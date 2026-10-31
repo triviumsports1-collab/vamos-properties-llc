@@ -94,7 +94,8 @@ A new lead write is one transaction: lead + consent rows + the `created` event. 
 
 | Name | Use |
 | --- | --- |
-| `DATABASE_URL` | Pooled Postgres connection for the Vercel runtime and for `prisma db push` |
+| `DATABASE_URL` | Pooled Prisma Postgres URL for the Vercel / Next.js runtime |
+| `DIRECT_URL` | Direct Prisma Postgres URL for `prisma db push` and migrations |
 | `RESEND_API_KEY` | Sending |
 | `RESEND_WEBHOOK_SECRET` | Inbound verification |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | Sending and signature checks |
@@ -102,7 +103,7 @@ A new lead write is one transaction: lead + consent rows + the `created` event. 
 
 Local development uses a Postgres database and test Twilio/Resend credentials. Production webhooks point at the Vercel domain only.
 
-`getDb()` in `src/prisma/db.ts` builds one PrismaClient per serverless instance and stores it on `globalThis`. Missing pool params are filled in: `connection_limit=1`, `pool_timeout=10`, `connect_timeout=10`. Schema lives in `prisma/schema.prisma`. Apply it with `npx prisma db push`. `npx prisma generate` runs on `postinstall`.
+`getDb()` in `src/prisma/db.ts` builds one PrismaClient per serverless instance and stores it on `globalThis`. Runtime traffic uses the pooled host. Missing pool params are filled in: `connection_limit=1`, `pool_timeout=10`, `connect_timeout=15`. Apply schema with `npx prisma db push` (uses `DIRECT_URL`). `npx prisma generate` runs on `postinstall`.
 
 ## Failure behavior
 

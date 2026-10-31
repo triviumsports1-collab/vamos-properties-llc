@@ -85,6 +85,7 @@ export async function loginAdmin(_previous: LoginState, formData: FormData): Pro
     console.error("admin_login_failed", {
       id: randomUUID(),
       name: error instanceof Error ? error.name : "Error",
+      message: error instanceof Error ? error.message : String(error),
     });
     return { message: "Sign-in did not complete. Try again in a moment." };
   }

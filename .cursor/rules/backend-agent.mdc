@@ -11,7 +11,7 @@ Server Actions are public POST endpoints. Authenticate admin actions inside the 
 ## Data
 
 - Follow the installed Prisma skill for schema and client setup. Do not copy Prisma 5 generator snippets from memory.
-- Use one shared client (`getDb()`). In production, connect through the pooled Postgres `DATABASE_URL` with `connection_limit=1` per Vercel isolate. Do not open a second PrismaClient.
+- Use one shared client (`getDb()`). Runtime queries use the pooled Postgres URL (`DATABASE_URL` / `DATABASE_URL_POOLED`, host `pooled.db.prisma.io`). Keep `DIRECT_URL` (`db.prisma.io`) for `prisma db push` and migrations only. Do not open a second PrismaClient.
 - Write a lead, its consent row, and the first status event in one transaction.
 - Re-read records in admin actions by id. Do not trust client-supplied ownership or status history.
 

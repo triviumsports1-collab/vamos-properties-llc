@@ -8,9 +8,11 @@ Pages and actions never import a live client at module scope. Writes go through 
 
 | Variable | Use |
 | --- | --- |
-| `DATABASE_URL` | Pooled Postgres URL for the Next.js runtime on Vercel |
+| `DATABASE_URL` | Pooled Prisma Postgres URL (`pooled.db.prisma.io`) for the Next.js runtime |
+| `DATABASE_URL_POOLED` | Optional override for the runtime URL |
+| `DIRECT_URL` | Direct Prisma Postgres URL (`db.prisma.io`) for `prisma db push` / migrate |
 
-`lib/db/database-url.ts` adds serverless pool defaults when they are missing from the URL: `connection_limit=1`, `pool_timeout=10`, `connect_timeout=10`. Do not log the URL, the phone number, or the consent body.
+`getDb()` always talks to the pooler. If `DATABASE_URL` still points at `db.prisma.io`, the host is rewritten to `pooled.db.prisma.io` before Prisma opens a socket. `connection_limit=1` is added when missing so each Vercel isolate uses one client connection. Do not log the URL, the phone number, or the consent body.
 
 Apply schema:
 

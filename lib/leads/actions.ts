@@ -77,6 +77,7 @@ export async function submitLead(
     console.error("lead_write_failed", {
       id: randomUUID(),
       name: error instanceof Error ? error.name : "Error",
+      message: error instanceof Error ? error.message : String(error),
     });
     return {
       message: `We could not save that just now. Call ${site.phoneDisplay} and tell us the address.`,

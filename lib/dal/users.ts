@@ -35,16 +35,14 @@ export async function bootstrapAdminIfEmpty() {
   if (!email || !name || password.length < 10) return;
 
   const db = getDb();
-  await db.$transaction(async (tx) => {
-    const existing = await tx.user.findFirst({ orderBy: { id: "asc" } });
-    if (existing) return;
-    await tx.user.create({
-      data: {
-        email,
-        name,
-        role: "owner",
-        passwordHash: hashPassword(password),
-      },
-    });
+  const existing = await db.user.findFirst({ orderBy: { id: "asc" }, select: { id: true } });
+  if (existing) return;
+  await db.user.create({
+    data: {
+      email,
+      name,
+      role: "owner",
+      passwordHash: hashPassword(password),
+    },
   });
 }
