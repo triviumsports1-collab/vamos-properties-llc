@@ -1,5 +1,7 @@
 import "server-only";
 
+import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
+
 const PING_KEYS = new Set([
   "ping",
   "test",
@@ -54,7 +56,9 @@ function hasSecretHeader(request: Request) {
 
 export function isZohoWebhookRequest(request: Request) {
   const ua = request.headers.get("user-agent") ?? "";
-  if (/zoho/i.test(ua)) return true;
+  // Zoho Flow / Deluge posts with Apache HttpClient, not a "Zoho" UA.
+  if (/zoho|zohoflow|deluge/i.test(ua)) return true;
+  if (/apache-httpclient/i.test(ua)) return true;
   for (const [key, value] of request.headers) {
     if (/zoho/i.test(key) || /zoho/i.test(value)) return true;
   }
@@ -137,14 +141,19 @@ export async function isListingEmailPing(request: Request) {
   const method = request.method.toUpperCase();
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
 
+  // Zoho's setup test uses Apache-HttpClient and a sample payload, with no secret.
+  // Any such POST must 200, regardless of body fields, until they add the secret.
+  if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
+    return true;
+  }
+
   const secretPresent = hasSecretHeader(request);
-  const zoho = isZohoWebhookRequest(request);
   const { empty, record } = await peekBody(request);
 
   if (empty) return true;
   if (record && looksLikePingRecord(record)) return true;
   if (!secretPresent && !hasEmailPayload(record)) return true;
-  if ((zoho || !secretPresent) && isTinyZohoTestEmail(record)) return true;
+  if (!secretPresent && isTinyZohoTestEmail(record)) return true;
 
   return false;
 }

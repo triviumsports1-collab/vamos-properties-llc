@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { handleListingEmail } from "@/lib/listings/email-listing";
-import { isListingEmailPing } from "@/lib/listings/webhook-ping";
+import { isListingEmailPing, isZohoWebhookRequest } from "@/lib/listings/webhook-ping";
+import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
 
 export const maxDuration = 30;
 
@@ -22,6 +23,11 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
+    // Zoho Flow tests with User-Agent Apache-HttpClient (Java) and a sample body.
+    // During setup that request has no secret — acknowledge it instead of 401.
+    if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
+      return pingOk();
+    }
     if (await isListingEmailPing(request)) {
       return pingOk();
     }

@@ -22,13 +22,31 @@ function sameSecret(provided: string, expected: string) {
   return timingSafeEqual(left, right);
 }
 
+function secretFromRequest(request: Request) {
+  const header = request.headers.get("authorization") ?? "";
+  const bearer = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
+  const named =
+    request.headers.get("x-webhook-secret")?.trim() ||
+    request.headers.get("x-api-key")?.trim() ||
+    "";
+  let query = "";
+  try {
+    const url = new URL(request.url);
+    query =
+      url.searchParams.get("secret")?.trim() ||
+      url.searchParams.get("token")?.trim() ||
+      url.searchParams.get("webhook_secret")?.trim() ||
+      "";
+  } catch {
+    query = "";
+  }
+  return bearer || named || query;
+}
+
 export function verifyListingEmailSecret(request: Request) {
   const expected = process.env.LISTING_EMAIL_WEBHOOK_SECRET?.trim() ?? "";
   if (!expected || expected.length < 16) return false;
-  const header = request.headers.get("authorization") ?? "";
-  const bearer = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
-  const named = request.headers.get("x-webhook-secret")?.trim() ?? "";
-  const provided = bearer || named;
+  const provided = secretFromRequest(request);
   if (!provided) return false;
   return sameSecret(provided, expected);
 }
