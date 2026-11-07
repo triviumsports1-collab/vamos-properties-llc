@@ -80,9 +80,14 @@ export async function OPTIONS() {
   return pingOk();
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
+  console.log("[WEBHOOK_HIT]", {
+    method: req.method,
+    headers: Object.fromEntries(req.headers.entries()),
+    query: Object.fromEntries(new URL(req.url).searchParams.entries()),
+  });
   try {
-    return await withDeadline(handlePost(request), RESPOND_BY_MS);
+    return await withDeadline(handlePost(req), RESPOND_BY_MS);
   } catch (error) {
     console.error("listing_email_webhook_crashed", {
       id: randomUUID(),
