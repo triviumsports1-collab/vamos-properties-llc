@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createListingFromEmail } from "@/lib/dal/listings";
 import { extractListingFromEmail } from "@/lib/listings/email-extract";
 import { readInboundEmail, type InboundEmail } from "@/lib/listings/email-payload";
+import { isListingEmailPing } from "@/lib/listings/webhook-ping";
 import { listingEmailAiReady, listingEmailWebhookReady, verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
 import { allowLead } from "@/lib/leads/rate-limit";
 
@@ -21,6 +22,9 @@ function messageKey(email: InboundEmail) {
 }
 
 export async function handleListingEmail(request: Request): Promise<ListingEmailResult> {
+  if (await isListingEmailPing(request)) {
+    return json(200, { success: true });
+  }
   if (!listingEmailWebhookReady()) {
     return json(503, { ok: false, message: "Listing email intake is not configured." });
   }
