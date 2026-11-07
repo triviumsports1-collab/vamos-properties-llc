@@ -145,7 +145,7 @@ function asListing(raw: unknown): ExtractedListing | null {
 export async function extractListingFromEmail(email: InboundEmail): Promise<ExtractedListing | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) return null;
-  const client = new Anthropic({ apiKey });
+
   const body = [
     email.subject ? `Subject: ${email.subject}` : "",
     email.from ? `From: ${email.from}` : "",
@@ -156,22 +156,37 @@ export async function extractListingFromEmail(email: InboundEmail): Promise<Extr
     .filter((line, index, lines) => !(line === "" && lines[index - 1] === ""))
     .join("\n");
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1500,
-    tools: [extractTool],
-    tool_choice: { type: "tool", name: "extract_listing" },
-    messages: [
-      {
-        role: "user",
-        content:
-          "Extract one property listing from this email. Arizona / Maricopa County wholesale and seller emails are common. If the message is not about a property for sale, set address to null.\n\n" +
-          body,
-      },
-    ],
-  });
+  try {
+    const client = new Anthropic({ apiKey, timeout: 15_000, maxRetries: 0 });
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 1500,
+      tools: [extractTool],
+      tool_choice: { type: "tool", name: "extract_listing" },
+      messages: [
+        {
+          role: "user",
+          content:
+            "Extract one property listing from this email. Arizona / Maricopa County wholesale and seller emails are common. If the message is not about a property for sale, set address to null.\n\n" +
+            body,
+        },
+      ],
+    });
 
-  const block = message.content.find((item) => item.type === "tool_use");
-  if (!block || block.type !== "tool_use") return null;
-  return asListing(block.input);
+    const block = message.content.find((item) => item.type === "tool_use");
+    if (!block || block.type !== "tool_use") return null;
+    try {
+      return asListing(block.input);
+    } catch (error) {
+      console.error("listing_email_parse_failed", {
+        name: error instanceof Error ? error.name : "Error",
+      });
+      return null;
+    }
+  } catch (error) {
+    console.error("listing_email_claude_failed", {
+      name: error instanceof Error ? error.name : "Error",
+    });
+    throw new Error("listing_email_claude_failed");
+  }
 }

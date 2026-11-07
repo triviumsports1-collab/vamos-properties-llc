@@ -5,8 +5,67 @@ import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
 
 export const maxDuration = 30;
 
+const RESPOND_BY_MS = 22_000;
+
 function pingOk() {
   return Response.json({ success: true }, { status: 200 });
+}
+
+function failJson(message = "The listing could not be saved.") {
+  return Response.json({ success: false, ok: false, message }, { status: 500 });
+}
+
+function withDeadline(work: Promise<Response>, ms: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<Response>((resolve) => {
+    timer = setTimeout(() => {
+      console.error("listing_email_webhook_timeout");
+      resolve(failJson("The listing could not be saved in time."));
+    }, ms);
+  });
+  return Promise.race([work, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+async function handlePost(request: Request) {
+  try {
+    let zohoSetup = false;
+    try {
+      zohoSetup = isZohoWebhookRequest(request) && !verifyListingEmailSecret(request);
+    } catch (error) {
+      console.error("listing_email_zoho_check_failed", {
+        name: error instanceof Error ? error.name : "Error",
+      });
+    }
+    if (zohoSetup) {
+      return pingOk();
+    }
+
+    let ping = false;
+    try {
+      ping = await isListingEmailPing(request);
+    } catch (error) {
+      console.error("listing_email_ping_failed", {
+        name: error instanceof Error ? error.name : "Error",
+      });
+    }
+    if (ping) {
+      return pingOk();
+    }
+
+    const result = await handleListingEmail(request);
+    return Response.json(
+      { success: result.ok, ...result.body },
+      { status: result.status },
+    );
+  } catch (error) {
+    console.error("listing_email_webhook_failed", {
+      id: randomUUID(),
+      name: error instanceof Error ? error.name : "Error",
+    });
+    return failJson();
+  }
 }
 
 export async function GET() {
@@ -23,21 +82,12 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
-    // Zoho Flow tests with User-Agent Apache-HttpClient (Java) and a sample body.
-    // During setup that request has no secret — acknowledge it instead of 401.
-    if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
-      return pingOk();
-    }
-    if (await isListingEmailPing(request)) {
-      return pingOk();
-    }
-    const result = await handleListingEmail(request);
-    return Response.json(result.body, { status: result.status });
+    return await withDeadline(handlePost(request), RESPOND_BY_MS);
   } catch (error) {
-    console.error("listing_email_webhook_failed", {
+    console.error("listing_email_webhook_crashed", {
       id: randomUUID(),
       name: error instanceof Error ? error.name : "Error",
     });
-    return Response.json({ ok: false, message: "The listing could not be saved." }, { status: 500 });
+    return failJson();
   }
 }

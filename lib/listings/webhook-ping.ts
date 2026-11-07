@@ -138,22 +138,29 @@ async function peekBody(request: Request): Promise<{ empty: boolean; record: Rec
  * that often omits our secret. Those pings must return 200, not 401.
  */
 export async function isListingEmailPing(request: Request) {
-  const method = request.method.toUpperCase();
-  if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
+  try {
+    const method = request.method.toUpperCase();
+    if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
 
-  // Zoho's setup test uses Apache-HttpClient and a sample payload, with no secret.
-  // Any such POST must 200, regardless of body fields, until they add the secret.
-  if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
-    return true;
+    // Zoho's setup test uses Apache-HttpClient and a sample payload, with no secret.
+    // Any such POST must 200, regardless of body fields, until they add the secret.
+    if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
+      return true;
+    }
+
+    const secretPresent = hasSecretHeader(request);
+    const { empty, record } = await peekBody(request);
+
+    if (empty) return true;
+    if (record && looksLikePingRecord(record)) return true;
+    if (!secretPresent && !hasEmailPayload(record)) return true;
+    if (!secretPresent && isTinyZohoTestEmail(record)) return true;
+
+    return false;
+  } catch (error) {
+    console.error("listing_email_ping_check_failed", {
+      name: error instanceof Error ? error.name : "Error",
+    });
+    return false;
   }
-
-  const secretPresent = hasSecretHeader(request);
-  const { empty, record } = await peekBody(request);
-
-  if (empty) return true;
-  if (record && looksLikePingRecord(record)) return true;
-  if (!secretPresent && !hasEmailPayload(record)) return true;
-  if (!secretPresent && isTinyZohoTestEmail(record)) return true;
-
-  return false;
 }

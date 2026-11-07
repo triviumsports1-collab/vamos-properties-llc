@@ -402,67 +402,74 @@ export type EmailListingInput = {
 };
 
 export async function createListingFromEmail(input: EmailListingInput) {
-  const db = getDb();
-  const addressKey = normalizeAddress(input.address);
-  const now = new Date();
+  try {
+    const db = getDb();
+    const addressKey = normalizeAddress(input.address);
+    const now = new Date();
 
-  return db.$transaction(async (tx) => {
-    if (input.sourceMessageId) {
-      const sameMessage = await tx.listing.findFirst({
-        where: { sourceMessageId: input.sourceMessageId },
-        select: { id: true, slug: true },
-      });
-      if (sameMessage) {
-        return { duplicate: true as const, id: sameMessage.id, slug: sameMessage.slug };
+    return await db.$transaction(async (tx) => {
+      if (input.sourceMessageId) {
+        const sameMessage = await tx.listing.findFirst({
+          where: { sourceMessageId: input.sourceMessageId },
+          select: { id: true, slug: true },
+        });
+        if (sameMessage) {
+          return { duplicate: true as const, id: sameMessage.id, slug: sameMessage.slug };
+        }
       }
-    }
 
-    const existing = await tx.listing.findMany({
-      select: { id: true, slug: true, address: true, addressKey: true },
-    });
-    const sameAddress = existing.find((row) => (row.addressKey || normalizeAddress(row.address)) === addressKey);
-    if (sameAddress) {
-      return { duplicate: true as const, id: sameAddress.id, slug: sameAddress.slug };
-    }
+      const existing = await tx.listing.findMany({
+        select: { id: true, slug: true, address: true, addressKey: true },
+      });
+      const sameAddress = existing.find((row) => (row.addressKey || normalizeAddress(row.address)) === addressKey);
+      if (sameAddress) {
+        return { duplicate: true as const, id: sameAddress.id, slug: sameAddress.slug };
+      }
 
-    const base = listingSlugBase(input.address, input.city, input.title);
-    const taken = await tx.listing.findFirst({ where: { slug: base }, select: { id: true } });
-    const slug = taken ? `${base}-${Date.now().toString(36)}` : base;
-    const summary = input.description.replace(/\s+/g, " ").trim().slice(0, 280);
-    const created = await tx.listing.create({
-      data: {
-        title: input.title,
-        slug,
-        address: input.address,
-        addressKey,
-        city: input.city || null,
-        beds: input.beds,
-        baths: input.baths || null,
-        sqft: input.sqft,
-        propertyType: input.propertyType || null,
-        price: input.listPrice != null ? formatMoney(input.listPrice) : null,
-        listPrice: input.listPrice,
-        arv: input.arv,
-        description: input.description || null,
-        summary: summary || null,
-        photos: input.photos || null,
-        driveFolderUrl: input.driveFolderUrl || null,
-        status: "active",
-        featured: false,
-        source: "email",
-        sourceMessageId: input.sourceMessageId || null,
-        publishedAt: now,
-      },
-    });
-    if (input.listPrice != null) {
-      await tx.listingPrice.create({
+      const base = listingSlugBase(input.address, input.city, input.title);
+      const taken = await tx.listing.findFirst({ where: { slug: base }, select: { id: true } });
+      const slug = taken ? `${base}-${Date.now().toString(36)}` : base;
+      const summary = input.description.replace(/\s+/g, " ").trim().slice(0, 280);
+      const created = await tx.listing.create({
         data: {
-          listingId: created.id,
-          amount: input.listPrice,
-          previousAmount: null,
+          title: input.title,
+          slug,
+          address: input.address,
+          addressKey,
+          city: input.city || null,
+          beds: input.beds,
+          baths: input.baths || null,
+          sqft: input.sqft,
+          propertyType: input.propertyType || null,
+          price: input.listPrice != null ? formatMoney(input.listPrice) : null,
+          listPrice: input.listPrice,
+          arv: input.arv,
+          description: input.description || null,
+          summary: summary || null,
+          photos: input.photos || null,
+          driveFolderUrl: input.driveFolderUrl || null,
+          status: "active",
+          featured: false,
+          source: "email",
+          sourceMessageId: input.sourceMessageId || null,
+          publishedAt: now,
         },
       });
-    }
-    return { duplicate: false as const, id: created.id, slug };
-  }, { timeout: 30_000 });
+      if (input.listPrice != null) {
+        await tx.listingPrice.create({
+          data: {
+            listingId: created.id,
+            amount: input.listPrice,
+            previousAmount: null,
+          },
+        });
+      }
+      return { duplicate: false as const, id: created.id, slug };
+    }, { timeout: 12_000 });
+  } catch (error) {
+    console.error("listing_email_db_failed", {
+      name: error instanceof Error ? error.name : "Error",
+    });
+    throw new Error("listing_email_db_failed");
+  }
 }
