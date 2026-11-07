@@ -81,10 +81,21 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: Request) {
+  let body: unknown = null;
+  try {
+    body = await req.clone().json();
+  } catch {
+    try {
+      body = await req.clone().text();
+    } catch {
+      body = null;
+    }
+  }
   console.log("[WEBHOOK_HIT]", {
     method: req.method,
     headers: Object.fromEntries(req.headers.entries()),
     query: Object.fromEntries(new URL(req.url).searchParams.entries()),
+    body,
   });
   try {
     return await withDeadline(handlePost(req), RESPOND_BY_MS);
