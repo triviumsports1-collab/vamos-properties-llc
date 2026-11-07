@@ -4,6 +4,7 @@ export const site = {
   name: "Vamos Properties LLC",
   shortName: "Vamos",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://vamosproperties.com",
+  gtmId: process.env.NEXT_PUBLIC_GTM_ID || "GTM-5XGG59XD",
   phoneDisplay: process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "(602) 555-0148",
   phoneTel: `tel:${process.env.NEXT_PUBLIC_PHONE_E164 ?? "+16025550148"}`,
   hours: "8:00 a.m. to 7:00 p.m., seven days",

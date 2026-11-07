@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { listingStatusLabel } from "@/lib/admin/pipeline";
 import { listListings } from "@/lib/dal/listings";
 import { propertyTypeLabel } from "@/lib/listings/catalog";
+import { formatMoney } from "@/lib/listings/money";
 
 export const metadata: Metadata = {
   title: "Listings",
@@ -52,6 +53,8 @@ async function Listings() {
                     {listing.baths ? ` · ${listing.baths} ba` : ""}
                     {listing.sqft ? ` · ${listing.sqft} sqft` : ""}
                     {listing.propertyType ? ` · ${propertyTypeLabel(listing.propertyType)}` : ""}
+                    {listing.source === "email" ? " · From email" : ""}
+                    {listing.arv != null ? ` · ARV ${formatMoney(listing.arv)}` : ""}
                   </p>
                 </Link>
               </li>

@@ -28,3 +28,5 @@ User, Lead, Consent, LeadEvent, Listing, ListingPrice, MediaAsset, Post, Categor
 Prisma `String` maps to Postgres `text`. Long copy (post body, listing description, consent text, comments) is `@db.Text`. There is no MySQL `LONGTEXT` or `VARCHAR(191)` in this schema.
 
 A new lead write is one transaction: lead + consent rows + the `created` event. Status changes append a `LeadEvent` and update `Lead.status` together.
+
+Email-created listings set `source = "email"`, store `arv` and `driveFolderUrl` when present, and skip insert when `addressKey` or `sourceMessageId` already exists. Manual admin saves keep `source = "manual"`. The webhook is `POST /api/webhooks/listing-email`.

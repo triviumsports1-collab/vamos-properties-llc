@@ -126,4 +126,22 @@ export const listingSchema = z.object({
       const lines = value.split("\n").map((line) => line.trim()).filter(Boolean);
       return lines.length <= 12 && lines.every(photoLine);
     }, "Use up to 12 photo links, one http(s) URL per line."),
+  arv: z.string().trim().max(80).optional().default(""),
+  driveFolderUrl: z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .default("")
+    .refine((value) => {
+      if (!value) return true;
+      try {
+        const url = new URL(value);
+        if (url.protocol !== "https:") return false;
+        const host = url.hostname.toLowerCase();
+        return host === "drive.google.com" || host === "docs.google.com";
+      } catch {
+        return false;
+      }
+    }, "Use a Google Drive folder link."),
 });

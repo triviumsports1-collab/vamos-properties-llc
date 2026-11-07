@@ -3,6 +3,7 @@ import "server-only";
 import { getDb } from "@/src/prisma/db";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { ListingStatus } from "@/lib/admin/pipeline";
+import { isGalleryPhoto, listingSlugBase, normalizeAddress } from "@/lib/listings/address";
 import { isFreshListing, isPropertyType, isPublicStatus, type ListingSort, type PropertyType } from "@/lib/listings/catalog";
 import { dropAmount, formatMoney } from "@/lib/listings/money";
 
@@ -30,6 +31,8 @@ export type ListingInput = {
   metaDescription: string;
   keywords: string;
   localTags: string;
+  arv: number | null;
+  driveFolderUrl: string;
 };
 
 export type PricePoint = {
@@ -69,6 +72,9 @@ export type ListingView = {
   metaDescription: string | null;
   keywords: string | null;
   localTags: string | null;
+  arv: number | null;
+  driveFolderUrl: string | null;
+  source: string;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -105,18 +111,16 @@ type ListingRow = {
   metaDescription: string | null;
   keywords: string | null;
   localTags: string | null;
+  arv: number | null;
+  driveFolderUrl: string | null;
+  source: string;
   publishedAt: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
 
-function slugify(value: string) {
-  const base = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
-  return base || "home";
+function slugify(title: string, address: string, city: string) {
+  return listingSlugBase(address, city, title);
 }
 
 export function photoList(value: string | null) {
@@ -170,11 +174,14 @@ function toView(row: ListingRow, prices: PricePoint[], now: number): ListingView
     neighborhood: row.neighborhood,
     schools: row.schools,
     yearBuilt: row.yearBuilt,
-    photos: photoList(row.photos),
+    photos: photoList(row.photos).filter(isGalleryPhoto),
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
     keywords: row.keywords,
     localTags: row.localTags,
+    arv: row.arv,
+    driveFolderUrl: row.driveFolderUrl,
+    source: row.source,
     publishedAt: toIso(row.publishedAt),
     createdAt: toIsoRequired(row.createdAt),
     updatedAt: toIsoRequired(row.updatedAt),
@@ -185,7 +192,7 @@ function toView(row: ListingRow, prices: PricePoint[], now: number): ListingView
 
 async function uniqueSlug(title: string, address: string, city: string, currentId?: number) {
   const db = getDb();
-  const base = slugify(`${address} ${city || title}`);
+  const base = slugify(title, address, city);
   const taken = await db.listing.findFirst({ where: { slug: base }, select: { id: true } });
   if (!taken || taken.id === currentId) return base;
   return `${base}-${currentId ?? Date.now().toString(36)}`;
@@ -255,6 +262,9 @@ function listingData(
     metaDescription: input.metaDescription || null,
     keywords: input.keywords || null,
     localTags: input.localTags || null,
+    arv: input.arv,
+    driveFolderUrl: input.driveFolderUrl || null,
+    addressKey: normalizeAddress(input.address),
     publishedAt: publishedAt ? new Date(publishedAt) : null,
   };
 }
@@ -373,4 +383,86 @@ export async function listPublicSlugs() {
   return rows
     .filter((row) => isPublicStatus(row.status))
     .map((row) => ({ slug: row.slug, updatedAt: row.updatedAt.toISOString() }));
+}
+
+export type EmailListingInput = {
+  title: string;
+  address: string;
+  city: string;
+  beds: number | null;
+  baths: string;
+  sqft: number | null;
+  propertyType: PropertyType | "";
+  listPrice: number | null;
+  arv: number | null;
+  description: string;
+  driveFolderUrl: string;
+  photos: string;
+  sourceMessageId: string;
+};
+
+export async function createListingFromEmail(input: EmailListingInput) {
+  const db = getDb();
+  const addressKey = normalizeAddress(input.address);
+  const now = new Date();
+
+  return db.$transaction(async (tx) => {
+    if (input.sourceMessageId) {
+      const sameMessage = await tx.listing.findFirst({
+        where: { sourceMessageId: input.sourceMessageId },
+        select: { id: true, slug: true },
+      });
+      if (sameMessage) {
+        return { duplicate: true as const, id: sameMessage.id, slug: sameMessage.slug };
+      }
+    }
+
+    const existing = await tx.listing.findMany({
+      select: { id: true, slug: true, address: true, addressKey: true },
+    });
+    const sameAddress = existing.find((row) => (row.addressKey || normalizeAddress(row.address)) === addressKey);
+    if (sameAddress) {
+      return { duplicate: true as const, id: sameAddress.id, slug: sameAddress.slug };
+    }
+
+    const base = listingSlugBase(input.address, input.city, input.title);
+    const taken = await tx.listing.findFirst({ where: { slug: base }, select: { id: true } });
+    const slug = taken ? `${base}-${Date.now().toString(36)}` : base;
+    const summary = input.description.replace(/\s+/g, " ").trim().slice(0, 280);
+    const created = await tx.listing.create({
+      data: {
+        title: input.title,
+        slug,
+        address: input.address,
+        addressKey,
+        city: input.city || null,
+        beds: input.beds,
+        baths: input.baths || null,
+        sqft: input.sqft,
+        propertyType: input.propertyType || null,
+        price: input.listPrice != null ? formatMoney(input.listPrice) : null,
+        listPrice: input.listPrice,
+        arv: input.arv,
+        description: input.description || null,
+        summary: summary || null,
+        photos: input.photos || null,
+        driveFolderUrl: input.driveFolderUrl || null,
+        status: "active",
+        featured: false,
+        source: "email",
+        sourceMessageId: input.sourceMessageId || null,
+        publishedAt: now,
+      },
+    });
+    if (input.listPrice != null) {
+      await tx.listingPrice.create({
+        data: {
+          listingId: created.id,
+          amount: input.listPrice,
+          previousAmount: null,
+        },
+      });
+    }
+    return { duplicate: false as const, id: created.id, slug };
+  }, { timeout: 30_000 });
 }

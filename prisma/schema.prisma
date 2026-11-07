@@ -117,6 +117,11 @@ model Listing {
   keywords        String?        @db.Text
   localTags       String?        @db.Text
   photos          String?        @db.Text
+  arv             Int?
+  driveFolderUrl  String?        @db.Text
+  source          String         @default("manual")
+  sourceMessageId String?        @unique
+  addressKey      String?
   publishedAt     DateTime?
   prices          ListingPrice[]
   createdAt       DateTime       @default(now())
@@ -126,6 +131,8 @@ model Listing {
   @@index([city])
   @@index([listPrice])
   @@index([featured])
+  @@index([addressKey])
+  @@index([source])
 }
 
 model ListingPrice {

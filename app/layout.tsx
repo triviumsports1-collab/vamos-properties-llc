@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+import { GoogleTagManager, GoogleTagManagerNoscript } from "@/components/marketing/google-tag-manager";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -31,7 +32,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full bg-paper font-sans text-ink antialiased">{children}</body>
+      <body className="min-h-full bg-paper font-sans text-ink antialiased">
+        <GoogleTagManagerNoscript />
+        {children}
+        <GoogleTagManager />
+      </body>
     </html>
   );
 }

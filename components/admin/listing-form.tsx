@@ -36,6 +36,9 @@ export function ListingForm({
     metaDescription: string | null;
     keywords: string | null;
     localTags: string | null;
+    arv: number | null;
+    driveFolderUrl: string | null;
+    source?: string;
   };
 }) {
   const [state, action, pending] = useActionState(saveListingForm, idleForm);
@@ -69,7 +72,11 @@ export function ListingForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Asking price" name="price" defaultValue={listing?.listPrice != null ? formatMoney(listing.listPrice) : ""} required={false} />
+        <Field label="ARV" name="arv" defaultValue={listing?.arv != null ? formatMoney(listing.arv) : ""} required={false} />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Monthly payment" name="monthlyPayment" defaultValue={listing?.monthlyPayment != null ? formatMoney(listing.monthlyPayment) : ""} required={false} />
+        <Field label="Google Drive folder" name="driveFolderUrl" defaultValue={listing?.driveFolderUrl ?? ""} required={false} />
       </div>
       <p className="text-sm text-muted">Changing the asking price records the old price and the date. A lower price shows as a drop on the public page.</p>
       <div>

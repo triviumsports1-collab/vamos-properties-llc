@@ -153,6 +153,11 @@ async function Detail({ params }: DetailProps) {
       </p>
       <div className="mt-6">
         <ListingGallery photos={listing.photos} title={listing.address} />
+        {listing.driveFolderUrl ? (
+          <a href={listing.driveFolderUrl} className="mt-3 inline-flex min-h-11 items-center text-pine">
+            Photo folder
+          </a>
+        ) : null}
       </div>
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="grid gap-8">
@@ -165,6 +170,7 @@ async function Detail({ params }: DetailProps) {
                 {listing.priceChangedAt ? ` on ${formatWhen(listing.priceChangedAt)}` : ""}
               </p>
             ) : null}
+            {listing.arv != null ? <p className="mt-2 text-base text-muted">ARV {formatMoney(listing.arv)}</p> : null}
             {specs.length > 0 ? <p className="mt-4 text-base text-ink">{specs.join(" · ")}</p> : null}
             <div className="mt-4">
               <ShareListing title={listing.address} url={pageUrl} />

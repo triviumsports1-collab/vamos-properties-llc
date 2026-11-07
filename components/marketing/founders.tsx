@@ -9,9 +9,9 @@ const people = [
     line: "Talks through the numbers and the date on the notice.",
   },
   {
-    name: "Jaime",
-    src: "/founders/jaime.jpg",
-    alt: "Jaime, co-founder of Vamos Properties",
+    name: "Jaime Miranda",
+    src: "/founders/jaime-miranda.jpg",
+    alt: "Jaime Miranda, co-founder of Vamos Properties",
     line: "Stays on the paperwork from the first call to the title company.",
   },
 ];
@@ -20,7 +20,7 @@ export function Founders({ linked = false }: { linked?: boolean }) {
   return (
     <section>
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick and Jaime</h2>
+        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick and Jaime Miranda</h2>
         {linked ? (
           <Link href="/about" className="text-sm text-pine">
             About us
@@ -39,7 +39,7 @@ export function Founders({ linked = false }: { linked?: boolean }) {
                 alt={person.alt}
                 fill
                 sizes="(min-width: 640px) 320px, 80vw"
-                className="object-cover"
+                className="object-cover object-top"
               />
             </div>
             <figcaption className="mt-3">
@@ -49,9 +49,6 @@ export function Founders({ linked = false }: { linked?: boolean }) {
           </figure>
         ))}
       </div>
-      <p className="mt-4 text-sm text-muted">
-        These portraits are stand-ins until the real photos of Patrick and Jaime are added.
-      </p>
     </section>
   );
 }

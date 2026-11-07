@@ -240,6 +240,8 @@ export async function saveListingForm(_previous: AdminFormState, formData: FormD
     keywords: field(formData, "keywords"),
     localTags: field(formData, "localTags"),
     photos: field(formData, "photos"),
+    arv: field(formData, "arv"),
+    driveFolderUrl: field(formData, "driveFolderUrl"),
   });
   if (!parsed.success) {
     return failed(parsed.error.issues[0]?.message ?? "Check the listing and try again.");
@@ -249,6 +251,11 @@ export async function saveListingForm(_previous: AdminFormState, formData: FormD
   const listPrice = priceText ? parseDollars(priceText) : null;
   if (priceText && listPrice == null) {
     return failed("Enter the price in dollars, like 325000.");
+  }
+  const arvText = parsed.data.arv.trim();
+  const arv = arvText ? parseDollars(arvText) : null;
+  if (arvText && arv == null) {
+    return failed("Enter the ARV in dollars, like 325000.");
   }
   const paymentText = parsed.data.monthlyPayment.trim();
   const monthlyPayment = paymentText ? parseDollars(paymentText) : null;
@@ -304,6 +311,8 @@ export async function saveListingForm(_previous: AdminFormState, formData: FormD
       keywords: parsed.data.keywords,
       localTags: parsed.data.localTags,
       photos: photos.join("\n"),
+      arv,
+      driveFolderUrl: parsed.data.driveFolderUrl,
     });
   } catch (error) {
     console.error("admin_listing_failed", {
