@@ -142,22 +142,49 @@ function asListing(raw: unknown): ExtractedListing | null {
   };
 }
 
+function claudeErrorDetail(error: unknown) {
+  const err = error as {
+    name?: string;
+    message?: string;
+    status?: number;
+    error?: { type?: string; message?: string };
+  };
+  return {
+    name: err?.name || (error instanceof Error ? error.name : "Error"),
+    message: err?.message || (error instanceof Error ? error.message : String(error)),
+    status: err?.status ?? null,
+    type: err?.error?.type ?? null,
+    apiMessage: err?.error?.message ?? null,
+  };
+}
+
 export async function extractListingFromEmail(email: InboundEmail): Promise<ExtractedListing | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.error("[CLAUDE_SKIP]", { reason: "ANTHROPIC_API_KEY is missing" });
+    return null;
+  }
 
-  const body = [
-    email.subject ? `Subject: ${email.subject}` : "",
-    email.from ? `From: ${email.from}` : "",
-    email.to ? `To: ${email.to}` : "",
-    "",
-    email.text || "(no plain text)",
-  ]
-    .filter((line, index, lines) => !(line === "" && lines[index - 1] === ""))
-    .join("\n");
+  const prompt =
+    "Extract one property listing from this email. Arizona / Maricopa County wholesale and seller emails are common. If the message is not about a property for sale, set address to null.\n\n" +
+    [
+      email.subject ? `Subject: ${email.subject}` : "",
+      email.from ? `From: ${email.from}` : "",
+      email.to ? `To: ${email.to}` : "",
+      "",
+      email.text || "(no plain text)",
+    ]
+      .filter((line, index, lines) => !(line === "" && lines[index - 1] === ""))
+      .join("\n");
 
   try {
     const client = new Anthropic({ apiKey, timeout: 15_000, maxRetries: 0 });
+    console.log("[CLAUDE_REQUEST]", {
+      model: "claude-sonnet-4-5",
+      tool: "extract_listing",
+      promptChars: prompt.length,
+      prompt,
+    });
     const message = await client.messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: 1500,
@@ -166,27 +193,34 @@ export async function extractListingFromEmail(email: InboundEmail): Promise<Extr
       messages: [
         {
           role: "user",
-          content:
-            "Extract one property listing from this email. Arizona / Maricopa County wholesale and seller emails are common. If the message is not about a property for sale, set address to null.\n\n" +
-            body,
+          content: prompt,
         },
       ],
     });
 
     const block = message.content.find((item) => item.type === "tool_use");
-    if (!block || block.type !== "tool_use") return null;
+    const toolInput = block && block.type === "tool_use" ? block.input : null;
+    let extracted: ExtractedListing | null = null;
     try {
-      return asListing(block.input);
+      extracted = toolInput ? asListing(toolInput) : null;
     } catch (error) {
-      console.error("listing_email_parse_failed", {
-        name: error instanceof Error ? error.name : "Error",
-      });
-      return null;
+      console.error("[CLAUDE_PARSE_FAILED]", claudeErrorDetail(error));
+      extracted = null;
     }
-  } catch (error) {
-    console.error("listing_email_claude_failed", {
-      name: error instanceof Error ? error.name : "Error",
+
+    console.log("[CLAUDE_RESPONSE]", {
+      id: message.id,
+      model: message.model,
+      stopReason: message.stop_reason,
+      usage: message.usage,
+      rawContent: message.content,
+      toolInput,
+      extracted,
     });
+
+    return extracted;
+  } catch (error) {
+    console.error("[CLAUDE_FAILED]", claudeErrorDetail(error));
     throw new Error("listing_email_claude_failed");
   }
 }
