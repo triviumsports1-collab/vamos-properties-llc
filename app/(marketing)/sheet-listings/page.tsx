@@ -1,34 +1,40 @@
-import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
-import { connection } from "next/server";
-import { ListingSkeleton } from "@/components/marketing/listing-skeleton";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { Section } from "@/components/marketing/section";
 import { SheetListingCatalog } from "@/components/marketing/sheet-listing-catalog";
 import { listSheetListings, toSheetListingCard } from "@/lib/dal/gdoc-listings";
+import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
+import { sheetListingCatalogJsonLd } from "@/lib/gdoc-listings/seo";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Homes from the listing sheet",
-  description: "Homes from the Vamos listing sheet. Call before you drive over.",
+  description: "Homes from the Vamos listing sheet in Phoenix and Maricopa County. Call before you drive over.",
+  alternates: { canonical: "/sheet-listings" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "Homes from the listing sheet",
+    description: "Homes from the Vamos listing sheet in Phoenix and Maricopa County. Call before you drive over.",
+    url: "/sheet-listings",
+    type: "website",
+    locale: "en_US",
+  },
 };
 
-export default function SheetListingsPage() {
-  return (
-    <Suspense fallback={<ListingSkeleton />}>
-      <SheetListings />
-    </Suspense>
-  );
-}
-
-async function SheetListings() {
-  await connection();
-  const listings = (await listSheetListings()).map(toSheetListingCard);
+export default async function SheetListingsPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(SHEET_LISTINGS_TAG);
+  const listings = await listSheetListings();
+  const cards = listings.map(toSheetListingCard);
 
   return (
     <Section>
+      <JsonLd data={sheetListingCatalogJsonLd(cards)} />
       <h1 className="text-4xl font-semibold text-ink">Homes from the listing sheet</h1>
       <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
-        These houses come from the live listing sheet. Call before you drive over. Selling your own house starts on the
+        These houses come from the listing sheet. Call before you drive over. Selling your own house starts on the
         contact page.
       </p>
       {listings.length === 0 ? (
@@ -37,7 +43,7 @@ async function SheetListings() {
         </p>
       ) : (
         <div className="mt-8">
-          <SheetListingCatalog listings={listings} />
+          <SheetListingCatalog listings={cards} />
         </div>
       )}
     </Section>

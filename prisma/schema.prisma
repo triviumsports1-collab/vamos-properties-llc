@@ -146,6 +146,65 @@ model ListingPrice {
   @@index([listingId])
 }
 
+model SheetListing {
+  id              Int       @id @default(autoincrement())
+  sheetKey        String    @unique
+  slug            String    @unique
+  listingCode     String?   @unique
+  title           String
+  address         String
+  addressKey      String
+  city            String?
+  listPrice       Int?
+  previousPrice   Int?
+  drop            Int?
+  priceChangedAt  DateTime?
+  priceDropped    Boolean   @default(false)
+  updated         Boolean   @default(false)
+  arv             Int?
+  beds            Int?
+  baths           String?
+  sqft            Int?
+  propertyType    String?
+  status          String    @default("active")
+  description     String?   @db.Text
+  photos          String?   @db.Text
+  galleries       String?   @db.Text
+  coverPhoto      String?   @db.Text
+  driveFolderUrl  String?   @db.Text
+  hoa             String?
+  ac              String?
+  roof            String?
+  waterHeater     String?
+  titleCompany    String?
+  sourceMessageId String?
+  listedAt        String?
+  sheetUpdatedAt  String?
+  priceHistory    String?   @db.Text
+  updateNotes     String?   @db.Text
+  metaTitle       String?
+  metaDescription String?   @db.Text
+  metaKeywords    String?   @db.Text
+  localTargetArea String?
+  canonicalUrl    String?   @db.Text
+  schemaJsonLd    String?   @db.Text
+  latitude        Float?
+  longitude       Float?
+  sheetSyncStatus String?
+  sheetSyncedAt   String?
+  sheetRow        Int?
+  contentHash     String
+  manualHold      Boolean   @default(false)
+  removedAt       DateTime?
+  syncedAt        DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, addressKey, listPrice])
+  @@index([removedAt])
+  @@index([localTargetArea])
+}
+
 model MediaAsset {
   id          Int      @id @default(autoincrement())
   key         String   @unique

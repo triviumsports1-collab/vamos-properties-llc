@@ -11,6 +11,15 @@ export function sheetListingHref(id: string) {
   return `/sheet-listings/${encodeURIComponent(id)}`;
 }
 
+export function sheetListingStatusLabel(status: string, removed: boolean) {
+  if (removed) return "Inactive";
+  if (status === "active") return "Active";
+  if (status === "under_contract") return "Under contract";
+  if (status === "sold") return "Sold";
+  if (status === "inactive") return "Inactive";
+  return status.replaceAll("_", " ");
+}
+
 export function sheetListingTypes(listings: SheetListingCardView[]) {
   const seen = new Set<string>();
   const types: string[] = [];

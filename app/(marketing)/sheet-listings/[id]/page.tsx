@@ -1,17 +1,17 @@
-import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { connection } from "next/server";
+import { notFound, permanentRedirect } from "next/navigation";
 import { JsonLd } from "@/components/marketing/json-ld";
-import { ListingSkeleton } from "@/components/marketing/listing-skeleton";
 import { Section } from "@/components/marketing/section";
 import { ShareListing } from "@/components/marketing/share-listing";
 import { SheetListingFlags, SheetListingPriceChange } from "@/components/marketing/sheet-listing-flags";
 import { SheetListingGalleries } from "@/components/marketing/sheet-listing-galleries";
 import { SheetListingInquiry } from "@/components/marketing/sheet-listing-inquiry";
-import { getSheetListingById } from "@/lib/dal/gdoc-listings";
+import { getSheetListingById, listPublicSheetListingSlugs } from "@/lib/dal/gdoc-listings";
+import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
 import { sheetListingHref, sheetListingPlace } from "@/lib/gdoc-listings/display";
+import { sheetListingJsonLd, sheetListingMetadata, sheetListingPublicUrl } from "@/lib/gdoc-listings/seo";
 import { propertyTypeLabel } from "@/lib/listings/catalog";
 import { formatMoney } from "@/lib/listings/money";
 import { site } from "@/lib/site";
@@ -20,91 +20,42 @@ type DetailProps = {
   params: Promise<{ id: string }>;
 };
 
-export function generateStaticParams() {
-  return [{ id: "_" }];
+export async function generateStaticParams() {
+  const slugs = await listPublicSheetListingSlugs();
+  if (slugs.length === 0) return [{ id: "_" }];
+  return slugs.map((id) => ({ id }));
 }
 
 export async function generateMetadata({ params }: DetailProps): Promise<Metadata> {
-  await connection();
+  "use cache";
+  cacheLife("hours");
+  cacheTag(SHEET_LISTINGS_TAG);
   const { id } = await params;
   const listing = await getSheetListingById(id);
-  if (!listing) return { title: "Home" };
-  const place = sheetListingPlace(listing);
-  const title = listing.title && listing.title !== listing.address ? listing.title : place;
-  const description = listing.description || `A home at ${place}. Call before you visit.`;
-  return {
-    title,
-    description: description.slice(0, 160),
-    alternates: { canonical: sheetListingHref(listing.id) },
-    openGraph: {
-      title,
-      description: description.slice(0, 160),
-      url: sheetListingHref(listing.id),
-      type: "website",
-      images: listing.coverPhoto ? [{ url: listing.coverPhoto, alt: place }] : undefined,
-    },
-  };
+  if (!listing) return { title: "Home", robots: { index: false, follow: false } };
+  return sheetListingMetadata(listing);
 }
 
-export default function SheetListingDetailPage({ params }: DetailProps) {
-  return (
-    <Suspense fallback={<ListingSkeleton />}>
-      <Detail params={params} />
-    </Suspense>
-  );
-}
-
-async function Detail({ params }: DetailProps) {
-  await connection();
+export default async function SheetListingDetailPage({ params }: DetailProps) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(SHEET_LISTINGS_TAG);
   const { id } = await params;
   const listing = await getSheetListingById(id);
   if (!listing) notFound();
+  if (id !== listing.id) permanentRedirect(sheetListingHref(listing.id));
 
   const place = sheetListingPlace(listing);
   const typeLabel = propertyTypeLabel(listing.propertyType) || listing.propertyType;
-  const pageUrl = `${site.url}${sheetListingHref(listing.id)}`;
-  const mapQuery = encodeURIComponent(`${listing.address}${listing.city ? `, ${listing.city}` : ""}, Arizona`);
-  const phone = site.phoneTel.replace(/^tel:/, "");
+  const pageUrl = sheetListingPublicUrl(listing);
+  const mapQuery =
+    listing.latitude != null && listing.longitude != null
+      ? `${listing.latitude},${listing.longitude}`
+      : encodeURIComponent(`${listing.address}${listing.city ? `, ${listing.city}` : ""}, Arizona`);
 
   return (
     <Section>
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "RealEstateListing",
-              name: listing.title || place,
-              url: pageUrl,
-              description: listing.description || `A home at ${place}.`,
-              image: listing.photos.length > 0 ? listing.photos : undefined,
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: listing.address,
-                addressLocality: listing.city || undefined,
-                addressRegion: "AZ",
-                addressCountry: "US",
-              },
-              offers: listing.listPrice
-                ? {
-                    "@type": "Offer",
-                    price: listing.listPrice,
-                    priceCurrency: "USD",
-                    availability: "https://schema.org/InStock",
-                    url: pageUrl,
-                  }
-                : undefined,
-            },
-            {
-              "@type": ["RealEstateAgent", "LocalBusiness"],
-              name: site.name,
-              url: site.url,
-              telephone: phone,
-              areaServed: listing.city ? `${listing.city}, Arizona` : site.area,
-            },
-          ],
-        }}
-      />
+      <JsonLd data={sheetListingJsonLd(listing)} />
       <Link href="/sheet-listings" className="inline-flex min-h-11 items-center text-sm text-pine">
         See all sheet homes
       </Link>
@@ -117,7 +68,9 @@ async function Detail({ params }: DetailProps) {
       <p className="mt-2 text-lg text-muted">
         {place}
         {typeLabel ? ` · ${typeLabel}` : ""}
+        {listing.localTargetArea ? ` · ${listing.localTargetArea}` : ""}
       </p>
+      {listing.listingCode ? <p className="mt-1 text-sm text-muted">{listing.listingCode}</p> : null}
       <div className="mt-6">
         <SheetListingGalleries galleries={listing.galleries} title={listing.address} />
         {listing.driveFolderUrl ? (
@@ -159,7 +112,11 @@ async function Detail({ params }: DetailProps) {
           ) : null}
           <section>
             <h2 className="text-xl font-semibold text-ink">Map</h2>
-            <p className="mt-2 text-sm text-muted">The pin is a search for the address. Confirm it before you visit.</p>
+            <p className="mt-2 text-sm text-muted">
+              {listing.latitude != null && listing.longitude != null
+                ? "The pin uses the coordinates from the listing sheet. Confirm it before you visit."
+                : "The pin is a search for the address. Confirm it before you visit."}
+            </p>
             <iframe
               title={`Map of ${listing.address}`}
               src={`https://maps.google.com/maps?q=${mapQuery}&z=14&output=embed`}

@@ -2,10 +2,12 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { SheetListingSync } from "@/components/admin/sheet-listing-sync";
 import { formatWhen } from "@/lib/admin/clock";
 import { statusLabel } from "@/lib/admin/pipeline";
 import { listLeadQueue, recentActivity } from "@/lib/dal/admin";
 import { listListings } from "@/lib/dal/listings";
+import { getSheetListingAdminSummary } from "@/lib/dal/sheet-listings";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -21,6 +23,7 @@ export default function DashboardPage() {
 
 async function Dashboard() {
   const [{ leads }, listings, activity] = await Promise.all([listLeadQueue(null), listListings(), recentActivity()]);
+  const sheet = await getSheetListingAdminSummary();
   const open = leads.filter((lead) => lead.status !== "closed" && lead.status !== "lost");
   const urgent = open.filter((lead) => lead.urgent).length;
   const waiting = open.filter((lead) => lead.reply.kind === "waiting" || lead.reply.kind === "due").length;
@@ -40,6 +43,20 @@ async function Dashboard() {
           <Stat label="Active listings" value={String(activeListings)} href="/admin/listings" />
         </div>
         <section className="mt-8 border border-line bg-panel p-5">
+          <h2 className="text-lg font-semibold text-ink">Sheet listings</h2>
+          <p className="mt-2 max-w-2xl text-base leading-7 text-muted">
+            {sheet.active} on the public sheet catalog
+            {sheet.lastSyncedAt ? ` · last copied ${formatWhen(sheet.lastSyncedAt)}` : " · not copied yet"}. This is
+            separate from /listings.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <SheetListingSync ready={sheet.sheetsReady} />
+            <Link href="/admin/sheet-listings" className="inline-flex min-h-12 items-center text-base text-pine">
+              Open the sheet desk
+            </Link>
+          </div>
+        </section>
+        <section className="mt-6 border border-line bg-panel p-5">
           <h2 className="text-lg font-semibold text-ink">Latest activity</h2>
           {activity.length === 0 ? (
             <p className="mt-3 text-base text-muted">No notes yet.</p>

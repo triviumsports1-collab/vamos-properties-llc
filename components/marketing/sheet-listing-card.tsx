@@ -23,7 +23,7 @@ export function SheetListingCard({ listing }: { listing: SheetListingCardView })
           {listing.coverPhoto ? (
             <img
               src={listing.coverPhoto}
-              alt=""
+              alt={`${listing.title} at ${place}`}
               referrerPolicy="no-referrer"
               className="h-full w-full object-cover"
             />
