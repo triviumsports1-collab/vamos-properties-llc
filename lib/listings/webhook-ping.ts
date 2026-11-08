@@ -1,7 +1,5 @@
 import "server-only";
 
-import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
-
 const PING_KEYS = new Set([
   "ping",
   "test",
@@ -20,7 +18,9 @@ const PING_KEYS = new Set([
 
 const EMAIL_KEYS = new Set([
   "from",
+  "fromaddress",
   "to",
+  "toaddress",
   "subject",
   "text",
   "html",
@@ -31,9 +31,11 @@ const EMAIL_KEYS = new Set([
   "body-html",
   "body_plain",
   "body_html",
+  "summary",
   "message",
   "message_id",
   "messageid",
+  "messageidstring",
   "email",
   "mail",
   "data",
@@ -48,19 +50,14 @@ function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function hasSecretHeader(request: Request) {
-  const header = request.headers.get("authorization")?.trim() ?? "";
-  const named = request.headers.get("x-webhook-secret")?.trim() ?? "";
-  return Boolean(header || named);
-}
-
 export function isZohoWebhookRequest(request: Request) {
   const ua = request.headers.get("user-agent") ?? "";
-  // Zoho Flow / Deluge posts with Apache HttpClient, not a "Zoho" UA.
   if (/zoho|zohoflow|deluge/i.test(ua)) return true;
   if (/apache-httpclient/i.test(ua)) return true;
+  if (request.headers.get("x-hook-signature")?.trim()) return true;
   for (const [key, value] of request.headers) {
-    if (/zoho/i.test(key) || /zoho/i.test(value)) return true;
+    if (/^x-zoho/i.test(key) || /zoho/i.test(key)) return true;
+    if (/zoho\.com/i.test(value)) return true;
   }
   return false;
 }
@@ -70,10 +67,36 @@ function hasEmailPayload(record: Record<string, unknown> | null) {
   return Object.keys(record).some((key) => EMAIL_KEYS.has(key.toLowerCase()));
 }
 
+function emailBodyText(record: Record<string, unknown>) {
+  return (
+    asString(record.text) ||
+    asString(record.summary) ||
+    asString(record.body) ||
+    asString(record["body-plain"]) ||
+    asString(record.html)
+  );
+}
+
+/** Real Zoho Mail / listing emails have a subject plus html, summary, or fromAddress. */
+export function hasSubstantialEmail(record: Record<string, unknown> | null) {
+  if (!record) return false;
+  const subject = asString(record.subject);
+  const html = asString(record.html);
+  const text = emailBodyText(record);
+  const from =
+    asString(record.fromAddress) ||
+    asString(record.fromaddress) ||
+    asString(record.from) ||
+    asString(record.sender);
+  if (html.length > 40 || text.length > 40) return true;
+  if (subject && (from || html || text)) return true;
+  return false;
+}
+
 function looksLikePingRecord(record: Record<string, unknown>) {
   const keys = Object.keys(record);
   if (keys.length === 0) return true;
-  if (hasEmailPayload(record)) return false;
+  if (hasSubstantialEmail(record) || hasEmailPayload(record)) return false;
 
   const lower = keys.map((key) => key.toLowerCase());
   if (record.ping === true || record.test === true) return true;
@@ -81,19 +104,9 @@ function looksLikePingRecord(record: Record<string, unknown>) {
   const kind = String(record.type ?? record.event ?? record.mode ?? record.action ?? "");
   if (/ping|test|verif|handshake|challenge/i.test(kind)) return true;
   if (lower.every((key) => PING_KEYS.has(key))) return true;
-  if (lower.some((key) => /ping|test|verif|challenge|handshake/.test(key))) return true;
+  if (lower.some((key) => /^(ping|verify|verification|handshake|challenge)$/.test(key))) return true;
 
   return false;
-}
-
-function isTinyZohoTestEmail(record: Record<string, unknown> | null) {
-  if (!record) return false;
-  const from = asString(record.from) || asString(record.sender);
-  const subject = asString(record.subject);
-  const text = asString(record.text) || asString(record.body) || asString(record["body-plain"]);
-  const zohoFrom = /zoho\.com/i.test(from);
-  const testSubject = /^(test|ping|verify|verification|webhook)/i.test(subject);
-  return (zohoFrom || testSubject) && text.length < 240;
 }
 
 async function peekBody(request: Request): Promise<{ empty: boolean; record: Record<string, unknown> | null }> {
@@ -134,27 +147,22 @@ async function peekBody(request: Request): Promise<{ empty: boolean; record: Rec
 }
 
 /**
- * Zoho Flow / CRM / Mail verify a webhook URL with GET or an empty/test POST
- * that often omits our secret. Those pings must return 200, not 401.
+ * Only empty or handshake verification POSTs are pings.
+ * Zoho Mail listing emails (subject + html/summary) must be processed.
  */
 export async function isListingEmailPing(request: Request) {
   try {
     const method = request.method.toUpperCase();
     if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
 
-    // Zoho's setup test uses Apache-HttpClient and a sample payload, with no secret.
-    // Any such POST must 200, regardless of body fields, until they add the secret.
-    if (isZohoWebhookRequest(request) && !verifyListingEmailSecret(request)) {
-      return true;
-    }
-
-    const secretPresent = hasSecretHeader(request);
     const { empty, record } = await peekBody(request);
-
+    if (hasSubstantialEmail(record)) {
+      console.log("[WEBHOOK_GATE]", { ping: false, reason: "substantial_email" });
+      return false;
+    }
     if (empty) return true;
     if (record && looksLikePingRecord(record)) return true;
-    if (!secretPresent && !hasEmailPayload(record)) return true;
-    if (!secretPresent && isTinyZohoTestEmail(record)) return true;
+    if (!hasEmailPayload(record)) return true;
 
     return false;
   } catch (error) {

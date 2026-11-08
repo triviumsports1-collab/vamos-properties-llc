@@ -57,12 +57,27 @@ function clip(value: string, max = 80_000) {
 
 function fromParts(raw: Record<string, unknown>): InboundEmail | null {
   const data = asRecord(raw.data) ?? raw;
-  const from = firstString(data.from) || firstString(data.sender) || firstString(data.envelope_from);
-  const to = firstString(data.to) || firstString(data.recipient) || firstString(data.envelope_to);
+  const from =
+    firstString(data.from) ||
+    firstString(data.fromAddress) ||
+    firstString(data.fromaddress) ||
+    firstString(data.envelope_from) ||
+    firstString(data.sender);
+  const to =
+    firstString(data.to) ||
+    firstString(data.toAddress) ||
+    firstString(data.toaddress) ||
+    firstString(data.recipient) ||
+    firstString(data.envelope_to);
   const subject = asString(data.subject);
   const html = asString(data.html) || asString(data["body-html"]);
-  const text = asString(data.text) || asString(data["body-plain"]) || htmlToText(html);
+  const text =
+    asString(data.text) ||
+    asString(data["body-plain"]) ||
+    htmlToText(html) ||
+    asString(data.summary);
   const messageId =
+    asString(data.messageIdString) ||
     asString(data.message_id) ||
     asString(data.messageId) ||
     asString(data.email_id) ||

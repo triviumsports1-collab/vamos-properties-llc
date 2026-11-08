@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { handleListingEmail } from "@/lib/listings/email-listing";
 import { maskSecret } from "@/lib/listings/email-extract";
-import { isListingEmailPing, isZohoWebhookRequest } from "@/lib/listings/webhook-ping";
-import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
+import { isListingEmailPing } from "@/lib/listings/webhook-ping";
 
 export const maxDuration = 30;
 
@@ -31,19 +30,6 @@ function withDeadline(work: Promise<Response>, ms: number) {
 
 async function handlePost(request: Request) {
   try {
-    let zohoSetup = false;
-    try {
-      zohoSetup = isZohoWebhookRequest(request) && !verifyListingEmailSecret(request);
-    } catch (error) {
-      console.error("listing_email_zoho_check_failed", {
-        name: error instanceof Error ? error.name : "Error",
-      });
-    }
-    if (zohoSetup) {
-      console.log("[WEBHOOK_GATE]", { skipped: "zoho_setup_ping" });
-      return pingOk();
-    }
-
     let ping = false;
     try {
       ping = await isListingEmailPing(request);

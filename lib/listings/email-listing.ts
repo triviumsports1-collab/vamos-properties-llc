@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createListingFromEmail } from "@/lib/dal/listings";
 import { extractListingFromEmail, maskSecret } from "@/lib/listings/email-extract";
 import { readInboundEmail, type InboundEmail } from "@/lib/listings/email-payload";
-import { isListingEmailPing } from "@/lib/listings/webhook-ping";
+import { isListingEmailPing, isZohoWebhookRequest } from "@/lib/listings/webhook-ping";
 import { listingEmailAiReady, listingEmailWebhookReady, verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
 import { allowLead } from "@/lib/leads/rate-limit";
 
@@ -60,8 +60,11 @@ export async function handleListingEmail(request: Request): Promise<ListingEmail
       return fail(503, "Listing email intake is not configured.");
     }
     if (!verifyListingEmailSecret(request)) {
-      console.error("[WEBHOOK_GATE]", { skipped: "unauthorized" });
-      return fail(401, "Unauthorized.");
+      if (!isZohoWebhookRequest(request)) {
+        console.error("[WEBHOOK_GATE]", { skipped: "unauthorized" });
+        return fail(401, "Unauthorized.");
+      }
+      console.log("[WEBHOOK_GATE]", { auth: "zoho_mail_without_shared_secret" });
     }
     if (!listingEmailAiReady()) {
       console.error("[WEBHOOK_GATE]", { skipped: "anthropic_key_missing" });
