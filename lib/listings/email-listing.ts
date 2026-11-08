@@ -2,7 +2,7 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 import { createListingFromEmail } from "@/lib/dal/listings";
-import { extractListingFromEmail } from "@/lib/listings/email-extract";
+import { extractListingFromEmail, maskSecret } from "@/lib/listings/email-extract";
 import { readInboundEmail, type InboundEmail } from "@/lib/listings/email-payload";
 import { isListingEmailPing } from "@/lib/listings/webhook-ping";
 import { listingEmailAiReady, listingEmailWebhookReady, verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
@@ -51,15 +51,20 @@ export async function handleListingEmail(request: Request): Promise<ListingEmail
       });
     }
     if (ping) {
+      console.log("[WEBHOOK_GATE]", { skipped: "ping" });
       return json(200, { success: true });
     }
+    console.log("[ANTHROPIC_KEY]", maskSecret(process.env.ANTHROPIC_API_KEY));
     if (!listingEmailWebhookReady()) {
+      console.error("[WEBHOOK_GATE]", { skipped: "webhook_secret_missing" });
       return fail(503, "Listing email intake is not configured.");
     }
     if (!verifyListingEmailSecret(request)) {
+      console.error("[WEBHOOK_GATE]", { skipped: "unauthorized" });
       return fail(401, "Unauthorized.");
     }
     if (!listingEmailAiReady()) {
+      console.error("[WEBHOOK_GATE]", { skipped: "anthropic_key_missing" });
       return fail(503, "Listing email intake is not configured.");
     }
 
@@ -110,6 +115,11 @@ export async function handleListingEmail(request: Request): Promise<ListingEmail
         driveFolderUrl: extracted.driveFolderUrl,
         photos: extracted.photoUrls.join("\n"),
         sourceMessageId: messageKey(email),
+      });
+      console.log("[LISTING_DB_RESULT]", {
+        duplicate: saved.duplicate,
+        listingId: saved.id,
+        slug: saved.slug,
       });
       if (!saved.duplicate) {
         refreshListingPages(saved.id, saved.slug);

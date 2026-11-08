@@ -142,24 +142,46 @@ function asListing(raw: unknown): ExtractedListing | null {
   };
 }
 
+export function maskSecret(value: string | undefined | null) {
+  const secret = value?.trim() ?? "";
+  if (!secret) return { present: false, length: 0, masked: "" };
+  const tail = secret.slice(-4);
+  return {
+    present: true,
+    length: secret.length,
+    masked: secret.length <= 4 ? "*".repeat(secret.length) : `${"*".repeat(Math.max(0, secret.length - 4))}${tail}`,
+  };
+}
+
 function claudeErrorDetail(error: unknown) {
   const err = error as {
     name?: string;
     message?: string;
     status?: number;
+    type?: string;
+    code?: string;
     error?: { type?: string; message?: string };
   };
+  let serialized = "";
+  try {
+    serialized = JSON.stringify(error, Object.getOwnPropertyNames(Object(error)));
+  } catch {
+    serialized = String(error);
+  }
   return {
     name: err?.name || (error instanceof Error ? error.name : "Error"),
     message: err?.message || (error instanceof Error ? error.message : String(error)),
     status: err?.status ?? null,
-    type: err?.error?.type ?? null,
+    type: err?.type || err?.error?.type || null,
+    code: err?.code ?? null,
     apiMessage: err?.error?.message ?? null,
+    serialized,
   };
 }
 
 export async function extractListingFromEmail(email: InboundEmail): Promise<ExtractedListing | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  console.log("[ANTHROPIC_KEY]", maskSecret(apiKey));
   if (!apiKey) {
     console.error("[CLAUDE_SKIP]", { reason: "ANTHROPIC_API_KEY is missing" });
     return null;
@@ -183,6 +205,7 @@ export async function extractListingFromEmail(email: InboundEmail): Promise<Extr
       model: "claude-sonnet-4-5",
       tool: "extract_listing",
       promptChars: prompt.length,
+      payloadBytes: Buffer.byteLength(prompt, "utf8"),
       prompt,
     });
     const message = await client.messages.create({

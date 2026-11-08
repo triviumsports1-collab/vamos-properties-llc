@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { handleListingEmail } from "@/lib/listings/email-listing";
+import { maskSecret } from "@/lib/listings/email-extract";
 import { isListingEmailPing, isZohoWebhookRequest } from "@/lib/listings/webhook-ping";
 import { verifyListingEmailSecret } from "@/lib/listings/webhook-secret";
 
@@ -39,6 +40,7 @@ async function handlePost(request: Request) {
       });
     }
     if (zohoSetup) {
+      console.log("[WEBHOOK_GATE]", { skipped: "zoho_setup_ping" });
       return pingOk();
     }
 
@@ -51,6 +53,7 @@ async function handlePost(request: Request) {
       });
     }
     if (ping) {
+      console.log("[WEBHOOK_GATE]", { skipped: "ping" });
       return pingOk();
     }
 
@@ -96,6 +99,7 @@ export async function POST(req: Request) {
     headers: Object.fromEntries(req.headers.entries()),
     query: Object.fromEntries(new URL(req.url).searchParams.entries()),
     body,
+    anthropicKey: maskSecret(process.env.ANTHROPIC_API_KEY),
   });
   try {
     return await withDeadline(handlePost(req), RESPOND_BY_MS);

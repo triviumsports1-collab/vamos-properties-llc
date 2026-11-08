@@ -408,12 +408,23 @@ export async function createListingFromEmail(input: EmailListingInput) {
     const now = new Date();
 
     return await db.$transaction(async (tx) => {
+      console.log("[LISTING_DB_LOOKUP]", {
+        sourceMessageId: input.sourceMessageId || null,
+        addressKey,
+        address: input.address,
+      });
       if (input.sourceMessageId) {
         const sameMessage = await tx.listing.findFirst({
           where: { sourceMessageId: input.sourceMessageId },
           select: { id: true, slug: true },
         });
         if (sameMessage) {
+          console.log("[LISTING_DB_RESULT]", {
+            duplicate: true,
+            reason: "sourceMessageId",
+            listingId: sameMessage.id,
+            slug: sameMessage.slug,
+          });
           return { duplicate: true as const, id: sameMessage.id, slug: sameMessage.slug };
         }
       }
@@ -423,6 +434,12 @@ export async function createListingFromEmail(input: EmailListingInput) {
       });
       const sameAddress = existing.find((row) => (row.addressKey || normalizeAddress(row.address)) === addressKey);
       if (sameAddress) {
+        console.log("[LISTING_DB_RESULT]", {
+          duplicate: true,
+          reason: "addressKey",
+          listingId: sameAddress.id,
+          slug: sameAddress.slug,
+        });
         return { duplicate: true as const, id: sameAddress.id, slug: sameAddress.slug };
       }
 
@@ -464,11 +481,18 @@ export async function createListingFromEmail(input: EmailListingInput) {
           },
         });
       }
+      console.log("[LISTING_DB_RESULT]", {
+        duplicate: false,
+        reason: "inserted",
+        listingId: created.id,
+        slug,
+      });
       return { duplicate: false as const, id: created.id, slug };
     }, { timeout: 12_000 });
   } catch (error) {
-    console.error("listing_email_db_failed", {
+    console.error("[LISTING_DB_FAILED]", {
       name: error instanceof Error ? error.name : "Error",
+      message: error instanceof Error ? error.message : String(error),
     });
     throw new Error("listing_email_db_failed");
   }
