@@ -1,18 +1,26 @@
 import "server-only";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
 import type { Prisma } from "@prisma/client";
-import { applySheetListingSync, listSheetListingRecords } from "@/lib/dal/sheet-listings";
+import {
+  applySheetListingSync,
+  beginSheetSyncRun,
+  finishSheetSyncRun,
+  listSheetListingRecords,
+  releaseSheetSyncLock,
+} from "@/lib/dal/sheet-listings";
+import { SheetSyncError, sheetSyncErrorCode } from "@/lib/gdoc-listings/errors";
 import { fetchSheetValueRows } from "@/lib/gdoc-listings/fetch-sheet";
+import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import { sheetListingContentHash } from "@/lib/gdoc-listings/hash";
 import { foldSheetDrafts, parseSheetRows } from "@/lib/gdoc-listings/parse";
-import type { SheetListingDraft } from "@/lib/gdoc-listings/types";
-import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
+import type { SheetListingDraft, SheetSyncEventDraft, SheetSyncTrigger } from "@/lib/gdoc-listings/types";
+import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
 import { dropAmount } from "@/lib/listings/money";
 
 export type SheetSyncResult = {
   ok: boolean;
+  errorId: string;
   rows: number;
   unique: number;
   created: number;
@@ -25,21 +33,72 @@ export type SheetSyncResult = {
 
 type ExistingRow = Awaited<ReturnType<typeof listSheetListingRecords>>[number];
 
-export async function syncSheetListings(): Promise<SheetSyncResult> {
+export async function syncSheetListings(trigger: SheetSyncTrigger = "webhook"): Promise<SheetSyncResult> {
   if (!googleSheetsConfigured()) {
-    throw new Error("missing_credentials");
+    throw new SheetSyncError("missing_credentials", "Google Sheets is not configured.");
   }
 
-  const rows = await fetchSheetValueRows();
-  const parsed = parseSheetRows(rows);
-  const drafts = foldSheetDrafts(parsed.drafts);
-  const existing = await listSheetListingRecords();
+  const run = await beginSheetSyncRun(trigger);
+  try {
+    const rows = await fetchSheetValueRows();
+    const parsed = parseSheetRows(rows);
+    const drafts = foldSheetDrafts(parsed.drafts);
+    const existing = await listSheetListingRecords();
+    if (drafts.length === 0 && existing.some((row) => row.removedAt == null)) {
+      throw new SheetSyncError("empty_sheet", "The sheet copy was empty, so existing homes were left alone.");
+    }
+
+    const result = await applyDrafts(run.id, drafts, existing, parsed.rows, parsed.skipped);
+    refreshSheetListingPages([
+      ...drafts.map((draft) => draft.listingCode),
+      ...drafts.map((draft) => draft.sheetSlug),
+      ...existing.filter((row) => result.seenIds.has(row.id)).flatMap((row) => [row.slug, row.listingCode ?? ""]),
+    ]);
+    console.log("[SHEET_LISTINGS_SYNC]", {
+      event: "ok",
+      errorId: run.errorId,
+      trigger,
+      rows: result.sync.rows,
+      unique: result.sync.unique,
+      created: result.sync.created,
+      updated: result.sync.updated,
+      unchanged: result.sync.unchanged,
+      held: result.sync.held,
+      inactivated: result.sync.inactivated,
+      skipped: result.sync.skipped,
+    });
+    return { ...result.sync, errorId: run.errorId };
+  } catch (error) {
+    const code = sheetSyncErrorCode(error) || "sync_failed";
+    const status = code === "busy" || code === "empty_sheet" ? "skipped" : "failed";
+    await finishSheetSyncRun(run.id, status, code).catch(() => undefined);
+    console.error("[SHEET_LISTINGS_SYNC]", {
+      event: "failed",
+      errorId: run.errorId,
+      trigger,
+      code,
+      name: error instanceof Error ? error.name : "Error",
+    });
+    throw error instanceof SheetSyncError ? error : new SheetSyncError("sync_failed", "Sheet sync failed.");
+  } finally {
+    await releaseSheetSyncLock(run.errorId).catch(() => undefined);
+  }
+}
+
+async function applyDrafts(
+  runId: number,
+  drafts: SheetListingDraft[],
+  existing: ExistingRow[],
+  rowCount: number,
+  skipped: Record<string, number>,
+) {
   const existingByCode = new Map(existing.filter((row) => row.listingCode).map((row) => [row.listingCode as string, row]));
   const existingByKey = new Map(existing.map((row) => [row.sheetKey, row]));
   const reservedSlugs = new Set(existing.map((row) => row.slug));
   const now = new Date();
   const creates: Prisma.SheetListingCreateManyInput[] = [];
   const updates: Array<{ id: number; data: Prisma.SheetListingUpdateInput }> = [];
+  const events: SheetSyncEventDraft[] = [];
   const seenIds = new Set<number>();
   let unchanged = 0;
   let held = 0;
@@ -53,6 +112,7 @@ export async function syncSheetListings(): Promise<SheetSyncResult> {
     }
     if (current?.manualHold) {
       held += 1;
+      events.push(eventFor(draft, current.slug, "held", "manual_hold"));
       continue;
     }
     const contentHash = sheetListingContentHash(draft);
@@ -73,6 +133,7 @@ export async function syncSheetListings(): Promise<SheetSyncResult> {
       const slug = pickSlug(draft, reservedSlugs);
       reservedSlugs.add(slug);
       creates.push(toCreate(draft, slug, contentHash, price, now));
+      events.push(eventFor(draft, slug, "created", "new_row"));
       continue;
     }
 
@@ -85,34 +146,75 @@ export async function syncSheetListings(): Promise<SheetSyncResult> {
       id: current.id,
       data: toUpdate(draft, nextSlug, contentHash, price, now),
     });
+    events.push(eventFor(draft, nextSlug, "updated", updateReason(current, price)));
   }
 
-  const staleIds = existing
-    .filter((row) => !seenIds.has(row.id) && row.removedAt == null && !row.manualHold)
-    .map((row) => row.id);
+  const stale = existing.filter((row) => !seenIds.has(row.id) && row.removedAt == null && !row.manualHold);
+  for (const row of stale) {
+    events.push({
+      listingCode: row.listingCode ?? "",
+      sheetKey: row.sheetKey,
+      slug: row.slug,
+      action: "inactivated",
+      reason: "left_sheet",
+    });
+  }
 
-  await applySheetListingSync({ creates, updates, staleIds, now });
-  refreshSheetListingPages([
-    ...creates.map((row) => String(row.slug ?? "")),
-    ...updates.map((row) => (typeof row.data.slug === "string" ? row.data.slug : "")),
-    ...drafts.map((draft) => draft.listingCode),
-    ...drafts.map((draft) => draft.sheetSlug),
-    ...existing.filter((row) => seenIds.has(row.id)).flatMap((row) => [row.slug, row.listingCode ?? ""]),
-  ]);
-
-  const result: SheetSyncResult = {
+  const sync: SheetSyncResult = {
     ok: true,
-    rows: parsed.rows,
+    errorId: "",
+    rows: rowCount,
     unique: drafts.length,
     created: creates.length,
     updated: updates.length,
     unchanged,
     held,
-    inactivated: staleIds.length,
-    skipped: parsed.skipped,
+    inactivated: stale.length,
+    skipped,
   };
-  console.log("[SHEET_LISTINGS_SYNC]", result);
-  return result;
+
+  await applySheetListingSync({
+    runId,
+    creates,
+    updates,
+    staleIds: stale.map((row) => row.id),
+    events,
+    counts: {
+      rows: sync.rows,
+      uniqueCount: sync.unique,
+      createdCount: sync.created,
+      updatedCount: sync.updated,
+      unchangedCount: sync.unchanged,
+      heldCount: sync.held,
+      inactivatedCount: sync.inactivated,
+      skippedJson: JSON.stringify(skipped),
+    },
+    now,
+  });
+
+  return { sync, seenIds };
+}
+
+function eventFor(
+  draft: SheetListingDraft,
+  slug: string,
+  action: SheetSyncEventDraft["action"],
+  reason: string,
+): SheetSyncEventDraft {
+  return {
+    listingCode: draft.listingCode,
+    sheetKey: draft.sheetKey,
+    slug,
+    action,
+    reason,
+  };
+}
+
+function updateReason(current: ExistingRow, price: ReturnType<typeof priceFields>) {
+  if (current.removedAt) return "restored";
+  if (price.priceDropped && price.priceChangedAt && current.priceChangedAt !== price.priceChangedAt) return "price_drop";
+  if (price.updated && price.priceChangedAt && current.priceChangedAt !== price.priceChangedAt) return "price_change";
+  return "content_changed";
 }
 
 function priceFields(existing: ExistingRow | undefined, draft: SheetListingDraft, now: Date) {

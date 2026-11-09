@@ -6,7 +6,8 @@ import { SheetListingRowActions } from "@/components/admin/sheet-listing-row-act
 import { SheetListingStatusBadge } from "@/components/admin/sheet-listing-status";
 import { SheetListingSync } from "@/components/admin/sheet-listing-sync";
 import { formatWhen } from "@/lib/admin/clock";
-import { getSheetListingAdminSummary, listAdminSheetListings } from "@/lib/dal/sheet-listings";
+import { getSheetListingAdminSummary, listAdminSheetListings, listRecentSheetSyncRuns } from "@/lib/dal/sheet-listings";
+import { sheetSyncEventLabel, sheetSyncRunLabel, sheetSyncTriggerLabel } from "@/lib/gdoc-listings/display";
 import { parseSheetListingView, sheetListingViews } from "@/lib/gdoc-listings/status";
 import { formatMoney, parseDollars } from "@/lib/listings/money";
 
@@ -42,6 +43,7 @@ async function SheetListingsDesk({ searchParams }: DeskProps) {
 
   const summary = await getSheetListingAdminSummary();
   const listings = await listAdminSheetListings({ view, query, minPrice, maxPrice });
+  const runs = await listRecentSheetSyncRuns();
   const href = (nextView: string) => deskHref({ view: nextView, q: query, min: minRaw, max: maxRaw });
 
   return (
@@ -69,6 +71,50 @@ async function SheetListingsDesk({ searchParams }: DeskProps) {
           <div className="mt-4">
             <SheetListingSync ready={summary.sheetsReady} />
           </div>
+          {runs.length > 0 ? (
+            <div className="mt-6 overflow-x-auto">
+              <h3 className="text-base font-semibold text-ink">Recent copies</h3>
+              <table className="mt-3 w-full min-w-[36rem] text-left text-sm text-ink">
+                <thead>
+                  <tr className="border-b border-line text-muted">
+                    <th className="py-2 pr-3 font-medium">When</th>
+                    <th className="py-2 pr-3 font-medium">Source</th>
+                    <th className="py-2 pr-3 font-medium">Result</th>
+                    <th className="py-2 pr-3 font-medium">Changes</th>
+                    <th className="py-2 font-medium">Trace</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runs.map((run) => (
+                    <tr key={run.errorId} className="border-b border-line">
+                      <td className="py-2 pr-3">{formatWhen(run.startedAt)}</td>
+                      <td className="py-2 pr-3">{sheetSyncTriggerLabel(run.trigger)}</td>
+                      <td className="py-2 pr-3">
+                        {sheetSyncRunLabel(run.status)}
+                        {run.error ? ` · ${run.error.replaceAll("_", " ")}` : ""}
+                      </td>
+                      <td className="py-2 pr-3">
+                        {run.status === "ok"
+                          ? `${run.createdCount} new, ${run.updatedCount} updated, ${run.inactivatedCount} off page`
+                          : "—"}
+                      </td>
+                      <td className="py-2 font-mono text-xs text-muted">{run.errorId.slice(0, 8)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {runs[0]?.events.length ? (
+                <ul className="mt-3 grid gap-1 text-sm text-muted">
+                  {runs[0].events.slice(0, 6).map((event, index) => (
+                    <li key={`${event.createdAt}-${index}`}>
+                      {sheetSyncEventLabel(event.action, event.reason)}
+                      {event.listingCode ? ` · ${event.listingCode}` : event.slug ? ` · ${event.slug}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
         </section>
         <div className="mt-8 flex flex-wrap gap-2">
           {sheetListingViews.map((item) => (

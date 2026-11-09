@@ -7,6 +7,8 @@ import { normalizeAddress } from "@/lib/listings/address";
 import { requireAdmin } from "@/lib/admin/auth";
 import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import type { SheetListingStatus } from "@/lib/gdoc-listings/status";
+import { randomUUID } from "node:crypto";
+import { SheetSyncError } from "@/lib/gdoc-listings/errors";
 import type {
   SheetGalleryGroup,
   SheetListingAdminDetail,
@@ -16,6 +18,10 @@ import type {
   SheetListingCardView,
   SheetListingSpec,
   SheetListingView,
+  SheetSyncEventDraft,
+  SheetSyncEventView,
+  SheetSyncRunView,
+  SheetSyncTrigger,
 } from "@/lib/gdoc-listings/types";
 import { getDb } from "@/src/prisma/db";
 
@@ -312,10 +318,78 @@ export async function listSheetListingRecords() {
   });
 }
 
+const SYNC_LOCK_STALE_MS = 120_000;
+
+export async function beginSheetSyncRun(trigger: SheetSyncTrigger) {
+  const db = getDb();
+  const holder = randomUUID();
+  await db.sheetSyncLock.upsert({
+    where: { id: 1 },
+    create: { id: 1 },
+    update: {},
+  });
+  const stale = new Date(Date.now() - SYNC_LOCK_STALE_MS);
+  const locked = await db.sheetSyncLock.updateMany({
+    where: {
+      id: 1,
+      OR: [{ holder: null }, { lockedAt: null }, { lockedAt: { lt: stale } }],
+    },
+    data: { holder, lockedAt: new Date() },
+  });
+  if (locked.count !== 1) {
+    await db.sheetSyncRun.create({
+      data: {
+        errorId: randomUUID(),
+        trigger,
+        status: "skipped",
+        error: "busy",
+        finishedAt: new Date(),
+      },
+    });
+    throw new SheetSyncError("busy", "A sheet copy is already running.");
+  }
+
+  const run = await db.sheetSyncRun.create({
+    data: { errorId: holder, trigger, status: "running" },
+    select: { id: true, errorId: true },
+  });
+  return run;
+}
+
+export async function finishSheetSyncRun(
+  runId: number,
+  status: "failed" | "skipped",
+  error: string,
+) {
+  await getDb().sheetSyncRun.update({
+    where: { id: runId },
+    data: { status, error, finishedAt: new Date() },
+  });
+}
+
+export async function releaseSheetSyncLock(holder: string) {
+  await getDb().sheetSyncLock.updateMany({
+    where: { id: 1, holder },
+    data: { holder: null },
+  });
+}
+
 export async function applySheetListingSync(input: {
+  runId: number;
   creates: Prisma.SheetListingCreateManyInput[];
   updates: Array<{ id: number; data: Prisma.SheetListingUpdateInput }>;
   staleIds: number[];
+  events: SheetSyncEventDraft[];
+  counts: {
+    rows: number;
+    uniqueCount: number;
+    createdCount: number;
+    updatedCount: number;
+    unchangedCount: number;
+    heldCount: number;
+    inactivatedCount: number;
+    skippedJson: string;
+  };
   now: Date;
 }) {
   const db = getDb();
@@ -336,9 +410,126 @@ export async function applySheetListingSync(input: {
           data: { status: "inactive", removedAt: input.now },
         });
       }
+      if (input.events.length > 0) {
+        await tx.sheetSyncEvent.createMany({
+          data: input.events.map((event) => ({
+            runId: input.runId,
+            listingCode: event.listingCode || null,
+            sheetKey: event.sheetKey || null,
+            slug: event.slug || null,
+            action: event.action,
+            reason: event.reason,
+          })),
+        });
+      }
+      await tx.sheetSyncRun.update({
+        where: { id: input.runId },
+        data: {
+          status: "ok",
+          finishedAt: input.now,
+          rows: input.counts.rows,
+          uniqueCount: input.counts.uniqueCount,
+          createdCount: input.counts.createdCount,
+          updatedCount: input.counts.updatedCount,
+          unchangedCount: input.counts.unchangedCount,
+          heldCount: input.counts.heldCount,
+          inactivatedCount: input.counts.inactivatedCount,
+          skippedJson: input.counts.skippedJson,
+          error: null,
+        },
+      });
     },
-    { maxWait: 5_000, timeout: 20_000 },
+    { maxWait: 5_000, timeout: 40_000 },
   );
+}
+
+export async function listRecentSheetSyncRuns(limit = 8): Promise<SheetSyncRunView[]> {
+  await requireAdmin();
+  const rows = await getDb().sheetSyncRun.findMany({
+    orderBy: { startedAt: "desc" },
+    take: Math.min(20, Math.max(1, limit)),
+    include: { events: { orderBy: { id: "desc" }, take: 12 } },
+  });
+  return rows.map(toSyncRunView);
+}
+
+export async function listSheetSyncEventsForListing(id: string): Promise<SheetSyncEventView[]> {
+  await requireAdmin();
+  const needle = id.trim();
+  if (!needle) return [];
+  const rows = await getDb().sheetSyncEvent.findMany({
+    where: {
+      OR: [{ slug: needle }, { listingCode: needle.toUpperCase() }],
+    },
+    orderBy: { id: "desc" },
+    take: 12,
+  });
+  return rows.map(toSyncEventView);
+}
+
+function toSyncRunView(row: {
+  errorId: string;
+  trigger: string;
+  status: string;
+  startedAt: Date;
+  finishedAt: Date | null;
+  rows: number;
+  uniqueCount: number;
+  createdCount: number;
+  updatedCount: number;
+  unchangedCount: number;
+  heldCount: number;
+  inactivatedCount: number;
+  skippedJson: string | null;
+  error: string | null;
+  events: Array<{ listingCode: string | null; slug: string | null; action: string; reason: string; createdAt: Date }>;
+}): SheetSyncRunView {
+  let skipped: Record<string, number> = {};
+  if (row.skippedJson) {
+    try {
+      const parsed = JSON.parse(row.skippedJson) as unknown;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        skipped = Object.fromEntries(
+          Object.entries(parsed as Record<string, unknown>).filter(([, value]) => typeof value === "number"),
+        ) as Record<string, number>;
+      }
+    } catch {
+      skipped = {};
+    }
+  }
+  return {
+    errorId: row.errorId,
+    trigger: row.trigger,
+    status: row.status,
+    startedAt: row.startedAt.toISOString(),
+    finishedAt: row.finishedAt?.toISOString() ?? null,
+    rows: row.rows,
+    uniqueCount: row.uniqueCount,
+    createdCount: row.createdCount,
+    updatedCount: row.updatedCount,
+    unchangedCount: row.unchangedCount,
+    heldCount: row.heldCount,
+    inactivatedCount: row.inactivatedCount,
+    skipped,
+    error: row.error ?? "",
+    events: row.events.map(toSyncEventView),
+  };
+}
+
+function toSyncEventView(row: {
+  listingCode: string | null;
+  slug: string | null;
+  action: string;
+  reason: string;
+  createdAt: Date;
+}): SheetSyncEventView {
+  return {
+    listingCode: row.listingCode ?? "",
+    slug: row.slug ?? "",
+    action: row.action,
+    reason: row.reason,
+    createdAt: row.createdAt.toISOString(),
+  };
 }
 
 function adminListWhere(filters?: SheetListingAdminFilters): Prisma.SheetListingWhereInput {

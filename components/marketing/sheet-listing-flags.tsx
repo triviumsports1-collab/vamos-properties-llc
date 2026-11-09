@@ -38,5 +38,5 @@ export function SheetListingPriceChange({
 
 function Flag({ children, tone }: { children: string; tone: "navy" | "amber" }) {
   const className = tone === "amber" ? "bg-amber text-amber-ink" : "bg-navy text-white";
-  return <span className={`inline-flex min-h-7 items-center px-2 text-xs font-semibold ${className}`}>{children}</span>;
+  return <span className={`inline-flex min-h-7 items-center rounded-md px-2 text-xs font-semibold ${className}`}>{children}</span>;
 }

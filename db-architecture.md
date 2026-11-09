@@ -23,9 +23,11 @@ npx prisma db push
 
 ## What is in the schema now
 
-User, Lead, Consent, LeadEvent, Listing, ListingPrice, SheetListing, MediaAsset, Post, Category, Tag, PostCategory, PostTag, Comment.
+User, Lead, Consent, LeadEvent, Listing, ListingPrice, SheetListing, SheetSyncLock, SheetSyncRun, SheetSyncEvent, MediaAsset, Post, Category, Tag, PostCategory, PostTag, Comment.
 
-`SheetListing` is the Google Sheet catalog mirror. It is not related to `Listing`. Public `/sheet-listings` reads this table. Sync upserts on `listingCode` (`listing_id`, like VP-AZ-PHX-000001) when present, otherwise `sheetKey` (normalized address), and soft-inactivates rows that leave the sheet. SEO, local targeting, and coordinates come from sheet columns R–AC. Admins trigger a copy from `/admin` or `/admin/sheet-listings`. Cron and scripts use `POST /api/sheet-listings/sync` with `SHEET_SYNC_SECRET`. We do not write `sync_status` back to the sheet (read-only Google access).
+`SheetListing` is the Google Sheet catalog mirror. It is not related to `Listing`. Public `/sheet-listings` reads this table. Sync upserts on `listingCode` (`listing_id`, like VP-AZ-PHX-000001) when present, otherwise `sheetKey` (normalized address), and soft-inactivates rows that leave the sheet. SEO, local targeting, and coordinates come from sheet columns R–AC. Admins trigger a copy from `/admin` or `/admin/sheet-listings`. Cron and scripts use `POST /api/sheet-listings/sync` with `Authorization: Bearer $SHEET_SYNC_SECRET` (optional `SHEET_SYNC_ALLOWLIST`). We do not write `sync_status` back to the sheet (read-only Google access).
+
+A copy takes a single-row `SheetSyncLock` so overlapping cron and desk clicks cannot write at once. Google reads retry on 429/5xx with backoff. An empty or unreadable sheet aborts and does not take live homes off the catalog. Each copy writes a `SheetSyncRun` plus per-home `SheetSyncEvent` rows (created, updated, held, inactivated) so the desk can see why a home changed. Listing writes and those audit rows commit in one transaction. Public catalog reads use `"use cache"` and `cacheTag("sheet-listings")`; a failed database read is not cached as an empty catalog.
 
 Prisma `String` maps to Postgres `text`. Long copy (post body, listing description, consent text, comments) is `@db.Text`. There is no MySQL `LONGTEXT` or `VARCHAR(191)` in this schema.
 

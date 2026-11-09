@@ -7,8 +7,8 @@ import { SheetListingEditForm } from "@/components/admin/sheet-listing-edit-form
 import { SheetListingRowActions } from "@/components/admin/sheet-listing-row-actions";
 import { SheetListingStatusBadge } from "@/components/admin/sheet-listing-status";
 import { formatWhen } from "@/lib/admin/clock";
-import { getAdminSheetListingById } from "@/lib/dal/sheet-listings";
-import { sheetListingHref } from "@/lib/gdoc-listings/display";
+import { getAdminSheetListingById, listSheetSyncEventsForListing } from "@/lib/dal/sheet-listings";
+import { sheetListingHref, sheetSyncEventLabel } from "@/lib/gdoc-listings/display";
 
 type EditProps = {
   params: Promise<{ id: string }>;
@@ -30,6 +30,7 @@ async function EditSheetListing({ params }: EditProps) {
   const { id } = await params;
   const listing = await getAdminSheetListingById(decodeURIComponent(id));
   if (!listing) notFound();
+  const events = await listSheetSyncEventsForListing(listing.id);
 
   return (
     <AdminShell current="/admin/sheet-listings">
@@ -63,6 +64,19 @@ async function EditSheetListing({ params }: EditProps) {
           removed={listing.removed || listing.status === "inactive"}
           publicVisible={!listing.removed && listing.status === "active"}
         />
+        {events.length > 0 ? (
+          <section className="mt-8 border border-line bg-panel p-5">
+            <h2 className="text-lg font-semibold text-ink">Why this home changed</h2>
+            <ul className="mt-3 grid gap-2 text-sm text-ink">
+              {events.map((event, index) => (
+                <li key={`${event.createdAt}-${index}`}>
+                  {sheetSyncEventLabel(event.action, event.reason)}
+                  <span className="text-muted"> · {formatWhen(event.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         <SheetListingEditForm listing={listing} />
       </main>
     </AdminShell>

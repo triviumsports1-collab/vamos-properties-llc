@@ -196,3 +196,39 @@ export type SheetSyncFormState = {
 };
 
 export const idleSheetSync: SheetSyncFormState = { ok: false, message: "", stamp: 0 };
+
+export type SheetSyncTrigger = "admin" | "webhook";
+
+export type SheetSyncEventDraft = {
+  listingCode: string;
+  sheetKey: string;
+  slug: string;
+  action: "created" | "updated" | "held" | "inactivated";
+  reason: string;
+};
+
+export type SheetSyncRunView = {
+  errorId: string;
+  trigger: string;
+  status: string;
+  startedAt: string;
+  finishedAt: string | null;
+  rows: number;
+  uniqueCount: number;
+  createdCount: number;
+  updatedCount: number;
+  unchangedCount: number;
+  heldCount: number;
+  inactivatedCount: number;
+  skipped: Record<string, number>;
+  error: string;
+  events: SheetSyncEventView[];
+};
+
+export type SheetSyncEventView = {
+  listingCode: string;
+  slug: string;
+  action: string;
+  reason: string;
+  createdAt: string;
+};

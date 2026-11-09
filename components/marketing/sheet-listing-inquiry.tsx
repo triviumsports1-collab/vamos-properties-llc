@@ -56,17 +56,11 @@ export function SheetListingInquiry({
   }
 
   return (
-    <form
-      id="offer"
-      action={action}
-      onSubmit={onSubmit}
-      className="scroll-mt-24 border border-line bg-panel p-5"
-      aria-busy={pending}
-    >
-      <h2 className="text-xl font-semibold text-ink">Inquire about this property</h2>
+    <form id="offer" action={action} onSubmit={onSubmit} className="scroll-mt-24" aria-busy={pending}>
+      <h2 className="text-lg font-semibold text-ink">Ask about this home</h2>
       <p className="mt-2 text-sm leading-6 text-muted">Patrick or Jaime will call you back. This does not hold the house.</p>
       {banner ? (
-        <p id="sheet-inquiry-status" role="status" className="mt-4 border border-line bg-mist px-3 py-3 text-base text-ink">
+        <p id="sheet-inquiry-status" role="status" className="mt-4 rounded-lg border border-line bg-mist px-3 py-3 text-base text-ink">
           {banner}
         </p>
       ) : null}
@@ -94,7 +88,7 @@ export function SheetListingInquiry({
         minLength={5}
         rows={4}
         aria-invalid={fieldErrors.message ? true : undefined}
-        className="mt-1 w-full border border-line bg-paper px-3 py-3 text-base text-ink"
+        className="mt-1 w-full rounded-lg border border-line bg-paper px-3 py-3 text-base text-ink"
       />
       {fieldErrors.message ? <p className="mt-1 text-sm text-ink">{fieldErrors.message}</p> : null}
       <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-ink">
@@ -105,7 +99,7 @@ export function SheetListingInquiry({
       <button
         type="submit"
         disabled={pending}
-        className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-amber px-4 text-base font-semibold text-amber-ink disabled:opacity-60"
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-amber px-4 text-base font-semibold text-amber-ink disabled:opacity-60"
       >
         {pending ? (
           <>
@@ -113,7 +107,7 @@ export function SheetListingInquiry({
             Sending…
           </>
         ) : (
-          "Send lead"
+          "Request information"
         )}
       </button>
     </form>
@@ -148,7 +142,7 @@ function Field({
         autoComplete={autoComplete}
         inputMode={inputMode}
         aria-invalid={error ? true : undefined}
-        className="mt-1 min-h-12 w-full border border-line bg-paper px-3 text-base text-ink"
+        className="mt-1 min-h-12 w-full rounded-lg border border-line bg-paper px-3 text-base text-ink"
       />
       {error ? <p className="mt-1 text-sm text-ink">{error}</p> : null}
     </div>

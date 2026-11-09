@@ -22,56 +22,28 @@ export async function listSheetListings(): Promise<SheetListingView[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(SHEET_LISTINGS_TAG);
-  try {
-    return await listPublicSheetListings();
-  } catch (error) {
-    console.error("[SHEET_LISTINGS]", {
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return [];
-  }
+  return listPublicSheetListings();
 }
 
 export async function getSheetListingById(id: string): Promise<SheetListingView | null> {
   "use cache";
   cacheLife("hours");
   cacheTag(SHEET_LISTINGS_TAG);
-  try {
-    return await getPublicSheetListingById(id);
-  } catch (error) {
-    console.error("[SHEET_LISTINGS]", {
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return null;
-  }
+  return getPublicSheetListingById(id);
 }
 
 export async function listPublicSheetListingSlugs(): Promise<string[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(SHEET_LISTINGS_TAG);
-  try {
-    return await listSheetListingSlugs();
-  } catch (error) {
-    console.error("[SHEET_LISTINGS]", {
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return [];
-  }
+  return listSheetListingSlugs();
 }
 
 export async function listSheetListingSitemapEntries(): Promise<Array<{ slug: string; updatedAt: string }>> {
   "use cache";
   cacheLife("hours");
   cacheTag(SHEET_LISTINGS_TAG);
-  try {
-    return await listSheetListingSitemapRows();
-  } catch (error) {
-    console.error("[SHEET_LISTINGS]", {
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return [];
-  }
+  return listSheetListingSitemapRows();
 }
 
 export { toSheetListingCard, SHEET_LISTINGS_TAG };

@@ -14,6 +14,7 @@ import {
   updateAdminSheetListing,
 } from "@/lib/dal/sheet-listings";
 import { sheetListingAdminSchema, sheetListingSlugSchema } from "@/lib/gdoc-listings/admin-schema";
+import { sheetSyncErrorCode } from "@/lib/gdoc-listings/errors";
 import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import { syncSheetListings, type SheetSyncResult } from "@/lib/gdoc-listings/sync";
 import type { SheetSyncFormState } from "@/lib/gdoc-listings/types";
@@ -33,15 +34,18 @@ export async function runSheetListingSync(
   }
 
   try {
-    const result = await syncSheetListings();
+    const result = await syncSheetListings("admin");
     revalidatePath("/admin");
     revalidatePath("/admin/sheet-listings");
     return { ok: true, message: summarize(result), stamp: Date.now() };
   } catch (error) {
-    const name = error instanceof Error ? error.name : "Error";
-    const message = error instanceof Error ? error.message : "";
-    console.error("[SHEET_LISTINGS_SYNC]", { id: randomUUID(), name });
-    if (message === "missing_credentials") {
+    const code = sheetSyncErrorCode(error);
+    const id = randomUUID();
+    console.error("[SHEET_LISTINGS_SYNC]", { id, code: code || "sync_failed", name: error instanceof Error ? error.name : "Error" });
+    if (code === "busy") return fail("A sheet copy is already running. Wait a minute and try again.");
+    if (code === "empty_sheet") return fail("The sheet came back empty, so existing homes were left on the desk.");
+    if (code === "rate_limited") return fail("Google Sheets asked us to wait. Try again in a minute.");
+    if (code === "missing_credentials" || code === "google_auth") {
       return fail("Google Sheets is not configured on this server.");
     }
     return fail("The sheet could not be copied. Try again in a minute.");

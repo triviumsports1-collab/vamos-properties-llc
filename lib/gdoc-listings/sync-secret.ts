@@ -21,23 +21,8 @@ function sameSecret(provided: string, expected: string) {
 function secretFromRequest(request: Request) {
   const header = request.headers.get("authorization") ?? "";
   const bearer = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
-  const named =
-    request.headers.get("x-sheet-sync-secret")?.trim() ||
-    request.headers.get("x-webhook-secret")?.trim() ||
-    request.headers.get("x-api-key")?.trim() ||
-    "";
-  let query = "";
-  try {
-    const url = new URL(request.url);
-    query =
-      url.searchParams.get("secret")?.trim() ||
-      url.searchParams.get("token")?.trim() ||
-      url.searchParams.get("webhook_secret")?.trim() ||
-      "";
-  } catch {
-    query = "";
-  }
-  return bearer || named || query;
+  const named = request.headers.get("x-sheet-sync-secret")?.trim() || "";
+  return bearer || named;
 }
 
 export function verifySheetSyncSecret(request: Request) {
@@ -46,4 +31,21 @@ export function verifySheetSyncSecret(request: Request) {
   const provided = secretFromRequest(request);
   if (!provided) return false;
   return sameSecret(provided, expected);
+}
+
+export function sheetSyncIpAllowed(request: Request) {
+  const allow = (process.env.SHEET_SYNC_ALLOWLIST ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (allow.length === 0) return true;
+  const ip = clientIp(request);
+  if (!ip) return false;
+  return allow.includes(ip);
+}
+
+function clientIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
+  const real = request.headers.get("x-real-ip")?.trim() ?? "";
+  return forwarded || real;
 }

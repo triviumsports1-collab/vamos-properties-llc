@@ -205,6 +205,50 @@ model SheetListing {
   @@index([localTargetArea])
 }
 
+model SheetSyncLock {
+  id       Int       @id @default(1)
+  holder   String?
+  lockedAt DateTime?
+}
+
+model SheetSyncRun {
+  id                Int              @id @default(autoincrement())
+  errorId           String           @unique
+  trigger           String
+  status            String
+  startedAt         DateTime         @default(now())
+  finishedAt        DateTime?
+  rows              Int              @default(0)
+  uniqueCount       Int              @default(0)
+  createdCount      Int              @default(0)
+  updatedCount      Int              @default(0)
+  unchangedCount    Int              @default(0)
+  heldCount         Int              @default(0)
+  inactivatedCount  Int              @default(0)
+  skippedJson       String?          @db.Text
+  error             String?
+  events            SheetSyncEvent[]
+
+  @@index([startedAt])
+  @@index([status])
+}
+
+model SheetSyncEvent {
+  id          Int          @id @default(autoincrement())
+  runId       Int
+  run         SheetSyncRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  listingCode String?
+  sheetKey    String?
+  slug        String?
+  action      String
+  reason      String
+  createdAt   DateTime     @default(now())
+
+  @@index([runId])
+  @@index([slug])
+  @@index([listingCode])
+}
+
 model MediaAsset {
   id          Int      @id @default(autoincrement())
   key         String   @unique
