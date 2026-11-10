@@ -51,7 +51,7 @@ async function SheetListingsDesk({ searchParams }: DeskProps) {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <h1 className="text-3xl font-semibold text-ink">Sheet listings</h1>
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-          Homes copied from the Google Sheet into Postgres. The public catalog at /sheet-listings reads this table. This
+          Homes copied from the Google Sheet into Postgres. The public catalog at /properties reads this table. This
           desk does not change the /listings inventory.
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

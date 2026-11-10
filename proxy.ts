@@ -7,7 +7,27 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname === "/homes" || pathname.startsWith("/homes/")) {
     const url = request.nextUrl.clone();
-    url.pathname = pathname.replace(/^\/homes/, "/listings");
+    url.pathname = "/properties";
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === "/listings" || pathname.startsWith("/listings/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/properties";
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === "/sheet-listings" || pathname.startsWith("/sheet-listings/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/sheet-listings/, "/properties");
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === "/es/properties" || pathname.startsWith("/es/properties/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/es\/properties/, "/es/propiedades");
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === "/es/sheet-listings" || pathname.startsWith("/es/sheet-listings/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/es\/sheet-listings/, "/es/propiedades");
     return NextResponse.redirect(url, 308);
   }
   if (pathname === "/es/stop-foreclosure") {
@@ -52,6 +72,14 @@ export const config = {
     "/admin/:path*",
     "/homes",
     "/homes/:path*",
+    "/listings",
+    "/listings/:path*",
+    "/sheet-listings",
+    "/sheet-listings/:path*",
+    "/es/properties",
+    "/es/properties/:path*",
+    "/es/sheet-listings",
+    "/es/sheet-listings/:path*",
     "/es/stop-foreclosure",
     "/es/cash-offer",
     "/es/take-over-payments",

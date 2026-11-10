@@ -54,7 +54,7 @@ async function Settings() {
           </div>
           <div>
             <dt className="text-sm text-muted">Public inventory</dt>
-            <dd className="mt-1 text-base text-ink">Available and under-contract listings are on /listings. The seller header stays about selling. The footer links to the homes.</dd>
+            <dd className="mt-1 text-base text-ink">The public catalog is /properties. The seller header and footer link there.</dd>
           </div>
         </dl>
       </main>

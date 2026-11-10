@@ -19,10 +19,25 @@ export const enToEs: Record<string, string> = {
   "/guides/cash-sale": "/es/oferta-en-efectivo",
   "/guides/trustee-sale": "/es/ejecucion-hipotecaria",
   "/guides/life-events": "/es",
-  // Blog/listings stay in English; switcher goes to Spanish home
+  // Blog/acquired inventory stay in English; switcher goes to Spanish home
   "/blog": "/es",
-  "/listings": "/es",
+  "/properties": "/es/propiedades",
 };
+
+/** Path prefixes that keep the rest of the URL when switching language. */
+const localePrefixes: Array<{ en: string; es: string }> = [{ en: "/properties", es: "/es/propiedades" }];
+
+function canonicalPath(pathname: string) {
+  const base = pathname.split("?")[0].split("#")[0];
+  if (base.length > 1 && base.endsWith("/")) return base.slice(0, -1);
+  return base || "/";
+}
+
+function swapPrefix(path: string, from: string, to: string) {
+  if (path === from) return to;
+  if (path.startsWith(`${from}/`)) return `${to}${path.slice(from.length)}`;
+  return null;
+}
 
 /** Spanish path → English equivalent (reverse of the map above) */
 export const estoEn: Record<string, string> = Object.fromEntries(
@@ -34,9 +49,17 @@ export const estoEn: Record<string, string> = Object.fromEntries(
  * Strips query/hash before lookup; always returns a valid path.
  */
 export function getAlternatePath(pathname: string): string {
-  const base = pathname.split("?")[0].split("#")[0];
+  const base = canonicalPath(pathname);
   if (base.startsWith("/es")) {
+    for (const pair of localePrefixes) {
+      const next = swapPrefix(base, pair.es, pair.en);
+      if (next) return next;
+    }
     return estoEn[base] ?? "/";
+  }
+  for (const pair of localePrefixes) {
+    const next = swapPrefix(base, pair.en, pair.es);
+    if (next) return next;
   }
   return enToEs[base] ?? "/es";
 }

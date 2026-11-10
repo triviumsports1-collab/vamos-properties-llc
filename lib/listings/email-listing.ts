@@ -25,11 +25,8 @@ function messageKey(email: InboundEmail) {
   return basis.slice(0, 180);
 }
 
-function refreshListingPages(id: number, slug: string) {
+function refreshListingPages(id: number) {
   try {
-    revalidatePath("/listings");
-    revalidatePath("/homes");
-    revalidatePath(`/listings/${slug}`);
     revalidatePath("/admin/listings");
     revalidatePath(`/admin/listings/${id}`);
     revalidatePath("/sitemap.xml");
@@ -125,7 +122,7 @@ export async function handleListingEmail(request: Request): Promise<ListingEmail
         slug: saved.slug,
       });
       if (!saved.duplicate) {
-        refreshListingPages(saved.id, saved.slug);
+        refreshListingPages(saved.id);
       }
       return json(200, {
         success: true,

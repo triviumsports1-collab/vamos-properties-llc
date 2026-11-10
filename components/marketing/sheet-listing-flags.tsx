@@ -1,18 +1,23 @@
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/routes";
 import { formatMoney } from "@/lib/listings/money";
 
 export function SheetListingFlags({
   priceDropped,
   updated,
+  locale,
 }: {
   priceDropped: boolean;
   updated: boolean;
+  locale: Locale;
 }) {
   if (!priceDropped && !updated) return null;
+  const copy = propertyListingStrings[locale];
 
   return (
     <div className="flex flex-wrap gap-2">
-      {priceDropped ? <Flag tone="amber">Price dropped</Flag> : null}
-      {updated && !priceDropped ? <Flag tone="navy">Updated</Flag> : null}
+      {priceDropped ? <Flag tone="amber">{copy.priceDropped}</Flag> : null}
+      {updated && !priceDropped ? <Flag tone="navy">{copy.updated}</Flag> : null}
     </div>
   );
 }
@@ -21,17 +26,20 @@ export function SheetListingPriceChange({
   listPrice,
   previousPrice,
   drop,
+  locale,
 }: {
   listPrice: number | null;
   previousPrice: number | null;
   drop: number | null;
+  locale: Locale;
 }) {
   if (drop == null || previousPrice == null || listPrice == null) return null;
+  const copy = propertyListingStrings[locale];
 
   return (
     <p className="mt-2 text-base text-muted">
       <span className="line-through">{formatMoney(previousPrice)}</span>
-      {` · Down ${formatMoney(drop)}`}
+      {` · ${copy.down} ${formatMoney(drop)}`}
     </p>
   );
 }

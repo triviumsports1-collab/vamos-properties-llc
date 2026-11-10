@@ -1,18 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/routes";
 
 export function SheetListingPhotos({
   photos,
   title,
   children,
+  locale,
 }: {
   photos: string[];
   title: string;
   children: ReactNode;
+  locale: Locale;
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const copy = propertyListingStrings[locale];
   const side = photos.slice(1, 5);
   const gallery = photos.slice(1 + side.length);
 
@@ -40,16 +45,16 @@ export function SheetListingPhotos({
     <>
       {photos.length === 0 ? (
         <div className="mt-4 grid aspect-[4/3] place-items-center rounded-2xl border border-line bg-mist text-base text-muted md:aspect-[16/9]">
-          Photos are not up yet.
+          {copy.photosEmpty}
         </div>
       ) : (
         <div className="mt-4 grid grid-cols-1 gap-2 sm:h-[28rem] sm:grid-cols-6 sm:grid-rows-2 md:h-[32rem]">
           <PhotoTile
             photo={photos[0]}
-            alt={`${title}, photo 1 of ${photos.length}`}
+            alt={copy.photoAlt(title, 1, photos.length)}
             onOpen={() => setOpen(0)}
             className={side.length > 0 ? "rounded-2xl sm:col-span-4 sm:row-span-2" : "rounded-2xl sm:col-span-6 sm:row-span-2"}
-            label={photos.length > 1 ? `${photos.length} photos` : undefined}
+            label={photos.length > 1 ? copy.nPhotos(photos.length) : undefined}
             labelOn="mobile"
           />
           {side.map((photo, index) => {
@@ -65,10 +70,10 @@ export function SheetListingPhotos({
               <PhotoTile
                 key={`${photo}-${photoIndex}`}
                 photo={photo}
-                alt={`${title}, photo ${photoIndex + 1} of ${photos.length}`}
+                alt={copy.photoAlt(title, photoIndex + 1, photos.length)}
                 onOpen={() => setOpen(photoIndex)}
                 className={sideClass}
-                label={isLast ? `All ${photos.length} photos` : undefined}
+                label={isLast ? copy.allPhotos(photos.length) : undefined}
                 labelOn="always"
               />
             );
@@ -81,13 +86,13 @@ export function SheetListingPhotos({
       {gallery.length > 0 ? (
         <section className="mt-12">
           <div className="flex items-end justify-between gap-3">
-            <h2 className="text-xl font-semibold text-ink">Photos</h2>
+            <h2 className="text-xl font-semibold text-ink">{copy.photos}</h2>
             <button
               type="button"
               onClick={() => setOpen(0)}
               className="inline-flex min-h-11 items-center text-sm font-semibold text-pine"
             >
-              View all {photos.length}
+              {copy.viewAll(photos.length)}
             </button>
           </div>
           <ul className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
@@ -102,7 +107,7 @@ export function SheetListingPhotos({
                   >
                     <img
                       src={photo}
-                      alt={`${title}, photo ${photoIndex + 1} of ${photos.length}`}
+                      alt={copy.photoAlt(title, photoIndex + 1, photos.length)}
                       referrerPolicy="no-referrer"
                       className="aspect-[4/3] w-full bg-mist object-cover"
                     />
@@ -118,26 +123,24 @@ export function SheetListingPhotos({
         ref={dialogRef}
         onClose={() => setOpen(null)}
         className="fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-4 text-ink backdrop:bg-navy/85 open:flex open:items-center open:justify-center"
-        aria-label={`Photos of ${title}`}
+        aria-label={copy.photos}
       >
         {open != null && photos[open] ? (
           <div className="grid w-full max-w-5xl gap-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-white">
-                {open + 1} of {photos.length}
-              </p>
+              <p className="text-sm font-semibold text-white">{copy.photoOf(open + 1, photos.length)}</p>
               <button
                 type="button"
                 onClick={() => setOpen(null)}
                 className="inline-flex min-h-11 items-center rounded-lg bg-panel px-4 text-sm font-semibold text-ink"
               >
-                Close
+                {copy.close}
               </button>
             </div>
             <div className="flex items-center justify-center rounded-2xl bg-navy/40 p-2 md:p-4">
               <img
                 src={photos[open]}
-                alt={`${title}, photo ${open + 1} of ${photos.length}`}
+                alt={copy.photoAlt(title, open + 1, photos.length)}
                 referrerPolicy="no-referrer"
                 className="max-h-[min(72vh,40rem)] w-auto max-w-full rounded-lg object-contain"
               />
@@ -149,14 +152,14 @@ export function SheetListingPhotos({
                   onClick={() => setOpen(nextIndex(open, photos.length, -1))}
                   className="inline-flex min-h-11 items-center rounded-lg bg-panel px-4 text-sm font-semibold text-ink"
                 >
-                  Previous
+                  {copy.previous}
                 </button>
                 <button
                   type="button"
                   onClick={() => setOpen(nextIndex(open, photos.length, 1))}
                   className="inline-flex min-h-11 items-center rounded-lg bg-panel px-4 text-sm font-semibold text-ink"
                 >
-                  Next
+                  {copy.next}
                 </button>
               </div>
             ) : null}

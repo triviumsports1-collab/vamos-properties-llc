@@ -45,12 +45,9 @@ function refreshLead(leadId: number) {
   revalidatePath(`/admin/leads/${leadId}`);
 }
 
-function refreshListings(slug?: string) {
+function refreshListings() {
   revalidatePath("/admin");
   revalidatePath("/admin/listings");
-  revalidatePath("/listings");
-  revalidatePath("/homes");
-  if (slug) revalidatePath(`/listings/${slug}`);
 }
 
 export async function loginAdmin(_previous: LoginState, formData: FormData): Promise<LoginState> {
@@ -323,7 +320,7 @@ export async function saveListingForm(_previous: AdminFormState, formData: FormD
   }
 
   if (!result.ok) return failed(result.message);
-  refreshListings(result.slug);
+  refreshListings();
   revalidatePath(`/admin/listings/${result.id}`);
   redirect(`/admin/listings/${result.id}`);
 }

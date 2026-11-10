@@ -240,8 +240,10 @@ function refreshSheetDesk(slug: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/sheet-listings");
   revalidatePath(`/admin/sheet-listings/${slug}`);
-  revalidatePath("/sheet-listings");
-  revalidatePath(`/sheet-listings/${slug}`);
+  revalidatePath("/properties");
+  revalidatePath(`/properties/${slug}`);
+  revalidatePath("/es/propiedades");
+  revalidatePath(`/es/propiedades/${slug}`);
   revalidatePath("/sitemap.xml");
   revalidatePath("/api/listings/sheet");
 }

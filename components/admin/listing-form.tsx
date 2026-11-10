@@ -97,7 +97,7 @@ export function ListingForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-sm text-muted">Available and under contract show at /listings. Drafts and sold homes stay on this desk.</p>
+          <p className="mt-1 text-sm text-muted">This desk is internal. The public catalog is /properties. Drafts and sold homes stay here.</p>
         </div>
         <Field label="Year built" name="yearBuilt" defaultValue={listing?.yearBuilt?.toString() ?? ""} required={false} />
       </div>

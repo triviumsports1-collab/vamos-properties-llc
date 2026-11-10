@@ -377,13 +377,16 @@ function uniqueSlug(base: string, reserved: Set<string>) {
 function refreshSheetListingPages(slugs: string[]) {
   try {
     revalidateTag(SHEET_LISTINGS_TAG, "max");
-    revalidatePath("/sheet-listings");
+    revalidatePath("/properties");
+    revalidatePath("/es/propiedades");
     revalidatePath("/sitemap.xml");
     revalidatePath("/api/listings/sheet");
     revalidatePath("/admin");
     revalidatePath("/admin/sheet-listings");
     for (const slug of slugs) {
-      if (slug) revalidatePath(`/sheet-listings/${slug}`);
+      if (!slug) continue;
+      revalidatePath(`/properties/${slug}`);
+      revalidatePath(`/es/propiedades/${slug}`);
     }
   } catch (error) {
     console.error("[SHEET_LISTINGS_SYNC]", {

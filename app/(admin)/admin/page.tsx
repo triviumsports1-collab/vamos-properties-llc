@@ -45,9 +45,9 @@ async function Dashboard() {
         <section className="mt-8 border border-line bg-panel p-5">
           <h2 className="text-lg font-semibold text-ink">Sheet listings</h2>
           <p className="mt-2 max-w-2xl text-base leading-7 text-muted">
-            {sheet.active} on the public sheet catalog
+            {sheet.active} on the public catalog at /properties
             {sheet.lastSyncedAt ? ` · last copied ${formatWhen(sheet.lastSyncedAt)}` : " · not copied yet"}. This is
-            separate from /listings.
+            separate from the listings desk.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <SheetListingSync ready={sheet.sheetsReady} />
@@ -87,7 +87,7 @@ async function Dashboard() {
           </ul>
         </section>
         <p className="mt-6 text-sm text-muted">
-          {activeListings} active on the public inventory page. {listings.length - activeListings} still private.
+          {activeListings} active on the listings desk. {listings.length - activeListings} still private. The public catalog is /properties.
         </p>
       </main>
     </AdminShell>

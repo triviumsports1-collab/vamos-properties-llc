@@ -29,7 +29,7 @@ async function Listings() {
           <div>
             <h1 className="text-3xl font-semibold text-ink">Listings</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-              Houses Vamos can offer. Available and under-contract listings show at /listings. The seller menu stays about selling.
+              Houses Vamos can offer. This desk is internal. The public catalog is /properties.
             </p>
           </div>
           <Link href="/admin/listings/new" className="inline-flex min-h-12 items-center bg-amber px-4 text-base font-semibold text-amber-ink">

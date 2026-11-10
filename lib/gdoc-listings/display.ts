@@ -1,4 +1,17 @@
 import type { SheetListingCardView, SheetListingView } from "@/lib/dal/gdoc-listings";
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/routes";
+
+export const PROPERTIES_CATALOG_PATH = "/properties";
+export const PROPERTIES_CATALOG_PATH_ES = "/es/propiedades";
+
+export function sheetListingCatalogHref(locale: Locale = "en") {
+  return locale === "es" ? PROPERTIES_CATALOG_PATH_ES : PROPERTIES_CATALOG_PATH;
+}
+
+export function sheetListingHref(id: string, locale: Locale = "en") {
+  return `${sheetListingCatalogHref(locale)}/${encodeURIComponent(id)}`;
+}
 
 export function sheetListingPlace(listing: Pick<SheetListingView, "address" | "city">) {
   if (listing.city && !listing.address.toLowerCase().includes(listing.city.toLowerCase())) {
@@ -7,17 +20,23 @@ export function sheetListingPlace(listing: Pick<SheetListingView, "address" | "c
   return listing.address;
 }
 
-export function sheetListingHref(id: string) {
-  return `/sheet-listings/${encodeURIComponent(id)}`;
+export function sheetListingStatusLabel(status: string, removed: boolean, locale: Locale = "en") {
+  const copy = propertyListingStrings[locale];
+  if (removed) return copy.statusInactive;
+  if (status === "active") return copy.statusActive;
+  if (status === "under_contract") return copy.statusUnderContract;
+  if (status === "sold") return copy.statusSold;
+  if (status === "inactive") return copy.statusInactive;
+  return status.replaceAll("_", " ");
 }
 
-export function sheetListingStatusLabel(status: string, removed: boolean) {
-  if (removed) return "Inactive";
-  if (status === "active") return "Active";
-  if (status === "under_contract") return "Under contract";
-  if (status === "sold") return "Sold";
-  if (status === "inactive") return "Inactive";
-  return status.replaceAll("_", " ");
+export function sheetListingTypeLabel(type: string, locale: Locale = "en") {
+  return propertyListingStrings[locale].types[type] || type;
+}
+
+export function sheetListingForSaleLabel(status: string, locale: Locale = "en") {
+  const copy = propertyListingStrings[locale];
+  return status === "active" ? copy.forSale : sheetListingStatusLabel(status, false, locale);
 }
 
 export function sheetSyncRunLabel(status: string) {

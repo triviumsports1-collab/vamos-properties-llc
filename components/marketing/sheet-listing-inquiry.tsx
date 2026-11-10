@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useState, type FormEvent } from "react";
 import { submitSheetListingLead } from "@/lib/gdoc-listings/actions";
 import { sheetListingLeadSchema } from "@/lib/gdoc-listings/schema";
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/routes";
 import { type LeadFormState } from "@/lib/leads/actions";
 import { site } from "@/lib/site";
 
@@ -12,10 +14,12 @@ export function SheetListingInquiry({
   listingId,
   title,
   address,
+  locale,
 }: {
   listingId: string;
   title: string;
   address: string;
+  locale: Locale;
 }) {
   const [state, action, pending] = useActionState(submitSheetListingLead, initialState);
   const [clientMessage, setClientMessage] = useState("");
@@ -23,6 +27,7 @@ export function SheetListingInquiry({
   const fieldErrors = { ...clientErrors, ...state.fieldErrors };
   const banner = state.message || clientMessage;
   const property = title && title !== address ? `${title} · ${address}` : address;
+  const copy = propertyListingStrings[locale];
 
   useEffect(() => {
     if (!banner) return;
@@ -52,19 +57,20 @@ export function SheetListingInquiry({
       if (!nextErrors[key]) nextErrors[key] = issue.message;
     }
     setClientErrors(nextErrors);
-    setClientMessage("Check the highlighted fields, then send it again.");
+    setClientMessage(copy.checkFields);
   }
 
   return (
     <form id="offer" action={action} onSubmit={onSubmit} className="scroll-mt-24" aria-busy={pending}>
-      <h2 className="text-lg font-semibold text-ink">Ask about this home</h2>
-      <p className="mt-2 text-sm leading-6 text-muted">Patrick or Jaime will call you back. This does not hold the house.</p>
+      <h2 className="text-lg font-semibold text-ink">{copy.askHeading}</h2>
+      <p className="mt-2 text-sm leading-6 text-muted">{copy.askSub}</p>
       {banner ? (
         <p id="sheet-inquiry-status" role="status" className="mt-4 rounded-lg border border-line bg-mist px-3 py-3 text-base text-ink">
           {banner}
         </p>
       ) : null}
       <input type="hidden" name="listingId" value={listingId} />
+      <input type="hidden" name="language" value={locale} />
       <div aria-hidden="true">
         <label className="hidden" htmlFor="sheet-inquiry-company">
           Company
@@ -72,14 +78,14 @@ export function SheetListingInquiry({
         <input id="sheet-inquiry-company" name="company" tabIndex={-1} autoComplete="off" className="hidden" defaultValue="" />
       </div>
       <p className="mt-4 text-sm text-ink">
-        Property
+        {copy.property}
         <span className="mt-1 block text-base">{property}</span>
       </p>
-      <Field label="Your name" name="name" autoComplete="name" error={fieldErrors.name} />
-      <Field label="Email" name="email" autoComplete="email" type="email" error={fieldErrors.email} />
-      <Field label="Mobile number" name="phone" autoComplete="tel" inputMode="tel" error={fieldErrors.phone} />
+      <Field label={copy.name} name="name" autoComplete="name" error={fieldErrors.name} />
+      <Field label={copy.email} name="email" autoComplete="email" type="email" error={fieldErrors.email} />
+      <Field label={copy.phone} name="phone" autoComplete="tel" inputMode="tel" error={fieldErrors.phone} />
       <label className="mt-4 block text-sm text-ink" htmlFor="sheet-inquiry-message">
-        What do you want to know
+        {copy.message}
       </label>
       <textarea
         id="sheet-inquiry-message"
@@ -93,7 +99,7 @@ export function SheetListingInquiry({
       {fieldErrors.message ? <p className="mt-1 text-sm text-ink">{fieldErrors.message}</p> : null}
       <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-ink">
         <input type="checkbox" name="consent" value="yes" required className="mt-1 size-5 shrink-0 accent-pine" />
-        <span>{site.consentText}</span>
+        <span>{locale === "es" ? site.consentTextEs : site.consentText}</span>
       </label>
       {fieldErrors.consent ? <p className="mt-1 text-sm text-ink">{fieldErrors.consent}</p> : null}
       <button
@@ -104,10 +110,10 @@ export function SheetListingInquiry({
         {pending ? (
           <>
             <span className="size-4 animate-spin rounded-full border-2 border-amber-ink/30 border-t-amber-ink motion-reduce:animate-none" aria-hidden="true" />
-            Sending…
+            {copy.sending}
           </>
         ) : (
-          "Request information"
+          copy.requestInfo
         )}
       </button>
     </form>

@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { sheetListingHref, sheetListingPlace } from "@/lib/gdoc-listings/display";
+import {
+  sheetListingCatalogHref,
+  sheetListingHref,
+  sheetListingPlace,
+} from "@/lib/gdoc-listings/display";
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import { hreflang, type Locale } from "@/lib/i18n/routes";
 import type { SheetListingView } from "@/lib/gdoc-listings/types";
 import { site } from "@/lib/site";
 
@@ -19,20 +25,26 @@ export function sheetListingSearchTerms(...values: Array<string | null | undefin
   return terms;
 }
 
-export function sheetListingCanonicalPath(listing: { id: string; canonicalUrl: string }) {
+function rewriteLegacyListingPath(path: string) {
+  return path.replace(/^\/sheet-listings(?=\/|$)/, "/properties");
+}
+
+export function sheetListingCanonicalPath(listing: { id: string; canonicalUrl: string }, locale: Locale = "en") {
+  if (locale === "es") return sheetListingHref(listing.id, "es");
   const url = listing.canonicalUrl.trim();
   if (!url) return sheetListingHref(listing.id);
-  if (url.startsWith("/")) return url;
+  if (url.startsWith("/")) return rewriteLegacyListingPath(url);
   try {
     const parsed = new URL(url);
+    parsed.pathname = rewriteLegacyListingPath(parsed.pathname);
     return `${parsed.pathname}${parsed.search}` || sheetListingHref(listing.id);
   } catch {
     return sheetListingHref(listing.id);
   }
 }
 
-export function sheetListingPublicUrl(listing: { id: string; canonicalUrl: string }) {
-  const path = sheetListingCanonicalPath(listing);
+export function sheetListingPublicUrl(listing: { id: string; canonicalUrl: string }, locale: Locale = "en") {
+  const path = sheetListingCanonicalPath(listing, locale);
   if (path.startsWith("http")) return path;
   return `${site.url}${path}`;
 }
@@ -48,30 +60,32 @@ export function sheetListingCustomJsonLd(value: string): Record<string, unknown>
   }
 }
 
-export function sheetListingMetadata(listing: SheetListingView): Metadata {
+export function sheetListingMetadata(listing: SheetListingView, locale: Locale = "en"): Metadata {
   const place = sheetListingPlace(listing);
   const fallbackTitle = listing.title && listing.title !== listing.address ? listing.title : place;
   const title = listing.metaTitle || fallbackTitle;
   const description = (
     listing.metaDescription ||
     listing.description ||
-    `A home at ${place}. Call before you visit.`
+    (locale === "es" ? `Una casa en ${place}. Llame antes de ir.` : `A home at ${place}. Call before you visit.`)
   ).slice(0, 320);
   const keywords = sheetListingSearchTerms(listing.metaKeywords, listing.localTargetArea, listing.city);
-  const canonical = sheetListingCanonicalPath(listing);
-  const url = sheetListingPublicUrl(listing);
+  const canonical = sheetListingCanonicalPath(listing, locale);
+  const url = sheetListingPublicUrl(listing, locale);
+  const enPath = sheetListingHref(listing.id, "en");
+  const esPath = sheetListingHref(listing.id, "es");
   return {
     title: listing.metaTitle ? { absolute: listing.metaTitle } : fallbackTitle,
     description,
     keywords: keywords.length > 0 ? keywords : undefined,
-    alternates: { canonical },
+    alternates: { canonical, ...hreflang(enPath, esPath) },
     robots: { index: true, follow: true },
     openGraph: {
       title,
       description,
       url,
       type: "website",
-      locale: "en_US",
+      locale: locale === "es" ? "es_US" : "en_US",
       images: listing.coverPhoto ? [{ url: listing.coverPhoto, alt: place }] : undefined,
     },
     twitter: {
@@ -82,16 +96,17 @@ export function sheetListingMetadata(listing: SheetListingView): Metadata {
   };
 }
 
-export function sheetListingJsonLd(listing: SheetListingView): Record<string, unknown> {
+export function sheetListingJsonLd(listing: SheetListingView, locale: Locale = "en"): Record<string, unknown> {
   const custom = sheetListingCustomJsonLd(listing.schemaJsonLd);
   if (custom) return custom;
 
+  const copy = propertyListingStrings[locale];
   const place = sheetListingPlace(listing);
-  const pageUrl = sheetListingPublicUrl(listing);
+  const pageUrl = sheetListingPublicUrl(listing, locale);
   const keywords = sheetListingSearchTerms(listing.metaKeywords, listing.localTargetArea);
   const phone = site.phoneTel.replace(/^tel:/, "");
   const name = listing.metaTitle || listing.title || place;
-  const description = listing.metaDescription || listing.description || `A home at ${place}.`;
+  const description = listing.metaDescription || listing.description || (locale === "es" ? `Una casa en ${place}.` : `A home at ${place}.`);
 
   return {
     "@context": "https://schema.org",
@@ -140,12 +155,12 @@ export function sheetListingJsonLd(listing: SheetListingView): Record<string, un
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+          { "@type": "ListItem", position: 1, name: locale === "es" ? "Inicio" : "Home", item: locale === "es" ? `${site.url}/es` : site.url },
           {
             "@type": "ListItem",
             position: 2,
-            name: "Homes from the listing sheet",
-            item: `${site.url}/sheet-listings`,
+            name: copy.catalogTitle,
+            item: `${site.url}${sheetListingCatalogHref(locale)}`,
           },
           { "@type": "ListItem", position: 3, name: listing.title || place, item: pageUrl },
         ],
@@ -154,17 +169,21 @@ export function sheetListingJsonLd(listing: SheetListingView): Record<string, un
   };
 }
 
-export function sheetListingCatalogJsonLd(listings: Array<{ id: string; title: string }>): Record<string, unknown> {
+export function sheetListingCatalogJsonLd(
+  listings: Array<{ id: string; title: string }>,
+  locale: Locale = "en",
+): Record<string, unknown> {
+  const copy = propertyListingStrings[locale];
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Homes from the listing sheet",
-    url: `${site.url}/sheet-listings`,
+    name: copy.catalogTitle,
+    url: `${site.url}${sheetListingCatalogHref(locale)}`,
     numberOfItems: listings.length,
     itemListElement: listings.map((listing, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      url: `${site.url}${sheetListingHref(listing.id)}`,
+      url: `${site.url}${sheetListingHref(listing.id, locale)}`,
       name: listing.title,
     })),
   };

@@ -6,7 +6,6 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { ListingForm } from "@/components/admin/listing-form";
 import { formatWhen } from "@/lib/admin/clock";
 import { getListing } from "@/lib/dal/listings";
-import { isPublicStatus } from "@/lib/listings/catalog";
 import { formatMoney } from "@/lib/listings/money";
 
 export const metadata: Metadata = {
@@ -39,11 +38,6 @@ async function EditListing({ params }: EditProps) {
           All listings
         </Link>
         <h1 className="mt-4 text-3xl font-semibold text-ink">{listing.title}</h1>
-        {isPublicStatus(listing.status) ? (
-          <a href={`/listings/${listing.slug}`} className="mt-3 inline-flex min-h-11 items-center text-sm text-pine">
-            View the public page
-          </a>
-        ) : null}
         {listing.prices.length > 0 ? (
           <section className="mt-6 border border-line bg-panel p-4">
             <h2 className="text-lg font-semibold text-ink">Price history</h2>

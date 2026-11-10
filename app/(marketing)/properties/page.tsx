@@ -4,25 +4,31 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { Section } from "@/components/marketing/section";
 import { SheetListingCatalog } from "@/components/marketing/sheet-listing-catalog";
 import { listSheetListings, toSheetListingCard } from "@/lib/dal/gdoc-listings";
-import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
+import { sheetListingCatalogHref } from "@/lib/gdoc-listings/display";
 import { sheetListingCatalogJsonLd } from "@/lib/gdoc-listings/seo";
+import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
+import { propertyListingStrings } from "@/lib/i18n/dictionaries";
+import { hreflang } from "@/lib/i18n/routes";
 import { site } from "@/lib/site";
 
+const copy = propertyListingStrings.en;
+const canonical = sheetListingCatalogHref("en");
+
 export const metadata: Metadata = {
-  title: "Homes from the listing sheet",
-  description: "Homes from the Vamos listing sheet in Phoenix and Maricopa County. Call before you drive over.",
-  alternates: { canonical: "/sheet-listings" },
+  title: copy.catalogTitle,
+  description: copy.catalogDescription,
+  alternates: { canonical, ...hreflang(canonical, sheetListingCatalogHref("es")) },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Homes from the listing sheet",
-    description: "Homes from the Vamos listing sheet in Phoenix and Maricopa County. Call before you drive over.",
-    url: "/sheet-listings",
+    title: copy.catalogTitle,
+    description: copy.catalogDescription,
+    url: canonical,
     type: "website",
     locale: "en_US",
   },
 };
 
-export default async function SheetListingsPage() {
+export default async function PropertiesPage() {
   "use cache";
   cacheLife("hours");
   cacheTag(SHEET_LISTINGS_TAG);
@@ -31,19 +37,16 @@ export default async function SheetListingsPage() {
 
   return (
     <Section>
-      <JsonLd data={sheetListingCatalogJsonLd(cards)} />
-      <h1 className="text-4xl font-semibold text-ink">Homes from the listing sheet</h1>
-      <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
-        These houses come from the listing sheet. Call before you drive over. Selling your own house starts on the
-        contact page.
-      </p>
+      <JsonLd data={sheetListingCatalogJsonLd(cards, "en")} />
+      <h1 className="text-4xl font-semibold text-ink">{copy.catalogTitle}</h1>
+      <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">{copy.catalogIntro}</p>
       {listings.length === 0 ? (
         <p className="mt-8 border border-line bg-panel px-4 py-6 text-base text-ink">
-          No homes are on the sheet right now. Call {site.phoneDisplay} if you want to hear about the next one.
+          {copy.catalogEmpty.replace("{phone}", site.phoneDisplay)}
         </p>
       ) : (
         <div className="mt-8">
-          <SheetListingCatalog listings={cards} />
+          <SheetListingCatalog listings={cards} locale="en" />
         </div>
       )}
     </Section>
