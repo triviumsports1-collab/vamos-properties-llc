@@ -2,15 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 
-const people = [
+const people: Array<{
+  name: string;
+  src: string;
+  alt: string;
+  line: string;
+  email: string;
+  phoneDisplay?: string;
+  phoneTel?: string;
+}> = [
   {
     name: "Patrick Szymczak",
     src: "/founders/patrick-szymczak.jpg",
     alt: "Patrick Szymczak",
     line: "Talks through the numbers and the date on the notice.",
     email: site.patrickEmail,
-    phoneDisplay: site.patrickPhoneDisplay,
-    phoneTel: site.patrickPhoneTel,
   },
   {
     name: "Jaime Miranda",
@@ -52,12 +58,14 @@ export function Founders({ linked = false }: { linked?: boolean }) {
             <figcaption className="mt-3">
               <span className="block font-serif text-2xl text-ink">{person.name}</span>
               <span className="mt-1 block text-sm leading-6 text-muted">{person.line}</span>
-              <a
-                href={person.phoneTel}
-                className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-link"
-              >
-                {person.phoneDisplay}
-              </a>
+              {person.phoneTel ? (
+                <a
+                  href={person.phoneTel}
+                  className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-link"
+                >
+                  {person.phoneDisplay}
+                </a>
+              ) : null}
               <a
                 href={`mailto:${person.email}`}
                 className="mt-1 inline-flex min-h-11 items-center break-all text-sm font-semibold text-link"

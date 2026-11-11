@@ -38,8 +38,6 @@ export const site = {
   jaimeEmail: "jaime@vamos-properties.com",
   jaimePhoneDisplay,
   jaimePhoneTel: `tel:${jaimePhoneE164}`,
-  patrickPhoneDisplay: "+49 176 32892944",
-  patrickPhoneTel: "tel:+4917632892944",
   whatsappNumber: digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || jaimePhoneE164),
   hours: "8:00 a.m. to 7:00 p.m., seven days",
   area: "Maricopa County, Arizona",
