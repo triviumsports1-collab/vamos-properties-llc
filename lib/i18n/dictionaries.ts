@@ -187,6 +187,8 @@ export const propertyListingStrings: Record<
     allTypes: string;
     showHomes: string;
     noMatch: string;
+    home: string;
+    breadcrumb: string;
     back: string;
     forSale: string;
     callForPrice: string;
@@ -259,6 +261,8 @@ export const propertyListingStrings: Record<
     allTypes: "All types",
     showHomes: "Show homes",
     noMatch: "Nothing matches that search right now.",
+    home: "Home",
+    breadcrumb: "Breadcrumb",
     back: "All homes",
     forSale: "For sale",
     callForPrice: "Call for the price",
@@ -336,6 +340,8 @@ export const propertyListingStrings: Record<
     allTypes: "Todos los tipos",
     showHomes: "Ver casas",
     noMatch: "Nada coincide con esa búsqueda ahora.",
+    home: "Inicio",
+    breadcrumb: "Ruta de navegación",
     back: "Todas las casas",
     forSale: "En venta",
     callForPrice: "Llame para el precio",

@@ -38,7 +38,11 @@ async function Settings() {
           </div>
           <div>
             <dt className="text-sm text-muted">Public phone</dt>
-            <dd className="mt-1 text-base text-ink">{site.phoneDisplay}</dd>
+            <dd className="mt-1 text-base text-ink">
+              Jaime {site.jaimePhoneDisplay}
+              <span className="text-muted"> · </span>
+              Patrick {site.patrickPhoneDisplay}
+            </dd>
           </div>
           <div>
             <dt className="text-sm text-muted">Public emails</dt>

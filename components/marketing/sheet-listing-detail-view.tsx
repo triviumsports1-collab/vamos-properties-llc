@@ -6,12 +6,11 @@ import { SheetListingInquiry } from "@/components/marketing/sheet-listing-inquir
 import { SheetListingPhotos } from "@/components/marketing/sheet-listing-photos";
 import { SheetListingSimilar } from "@/components/marketing/sheet-listing-similar";
 import {
-  sheetListingCatalogHref,
   sheetListingForSaleLabel,
   sheetListingPlace,
   sheetListingTypeLabel,
 } from "@/lib/gdoc-listings/display";
-import { sheetListingJsonLd, sheetListingPublicUrl } from "@/lib/gdoc-listings/seo";
+import { sheetListingBreadcrumbs, sheetListingJsonLd, sheetListingPublicUrl } from "@/lib/gdoc-listings/seo";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
 import type { SheetListingCardView, SheetListingView } from "@/lib/gdoc-listings/types";
@@ -52,14 +51,26 @@ export function SheetListingDetailView({
     listing.latitude != null && listing.longitude != null
       ? `${listing.latitude},${listing.longitude}`
       : encodeURIComponent(`${listing.address}${listing.city ? `, ${listing.city}` : ""}, Arizona`);
+  const crumbs = sheetListingBreadcrumbs(listing, locale);
+  const currentCrumb = crumbs[crumbs.length - 1];
 
   return (
     <div className="bg-paper" lang={locale === "es" ? "es" : undefined}>
       <JsonLd data={sheetListingJsonLd(listing, locale)} />
       <div className="mx-auto w-full max-w-6xl px-4 py-6 md:py-10">
-        <Link href={sheetListingCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm font-semibold text-pine">
-          {copy.back}
-        </Link>
+        <nav aria-label={copy.breadcrumb} className="text-sm text-muted">
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {crumbs.slice(0, -1).map((crumb) => (
+              <li key={crumb.path} className="flex items-center gap-2">
+                <Link href={crumb.path} className="inline-flex min-h-11 items-center font-semibold text-pine">
+                  {crumb.name}
+                </Link>
+                <span aria-hidden="true">/</span>
+              </li>
+            ))}
+            <li className="text-ink">{currentCrumb?.name}</li>
+          </ol>
+        </nav>
 
         <SheetListingPhotos photos={listing.photos} title={listing.title || listing.address} locale={locale}>
           <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">

@@ -56,6 +56,13 @@ export default async function AreaPage({ params }: AreaParams) {
           <Link href="/take-over-payments" className="font-semibold text-link">taking over the payments</Link>.
           Call <a href={site.phoneTel} className="font-semibold text-link">{site.phoneDisplay}</a>.
         </p>
+        <p className="mt-4 max-w-2xl leading-7 text-muted">
+          Looking at houses we already bought?{" "}
+          <Link href="/properties" className="font-semibold text-link">
+            Homes for sale in {area.name}
+          </Link>{" "}
+          are on the inventory page. This page is for selling the one you own.
+        </p>
       </Section>
 
       <Section tone="mist">

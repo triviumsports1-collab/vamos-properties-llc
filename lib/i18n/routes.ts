@@ -83,12 +83,20 @@ export function localeOf(pathname: string): Locale {
  */
 export function hreflang(enPath: string, esPath: string) {
   return {
-    languages: {
-      en: enPath,
-      "es-US": esPath,
-      "es-MX": esPath,
-      es: esPath,
-      "x-default": enPath,
-    } as Record<string, string>,
+    languages: sitemapLanguageMap(enPath, esPath),
   };
+}
+
+/** Absolute EN/ES URLs for `sitemap.ts` `alternates.languages`. */
+export function sitemapLanguages(enUrl: string, esUrl: string) {
+  return { languages: sitemapLanguageMap(enUrl, esUrl) };
+}
+
+function sitemapLanguageMap(en: string, es: string) {
+  return {
+    en,
+    es,
+    "es-US": es,
+    "x-default": en,
+  } as Record<string, string>;
 }

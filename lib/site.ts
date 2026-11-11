@@ -4,19 +4,28 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
 }
 
+const jaimePhoneDisplay = process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "+1 (602) 332-9553";
+const jaimePhoneE164 = process.env.NEXT_PUBLIC_PHONE_E164 ?? "+16023329553";
+
 export const site = {
   name: "Vamos Properties LLC",
   shortName: "Vamos",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://vamosproperties.com",
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "GTM-5XGG59XD",
-  phoneDisplay: process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "(602) 555-0148",
-  phoneTel: `tel:${process.env.NEXT_PUBLIC_PHONE_E164 ?? "+16025550148"}`,
+  phoneDisplay: jaimePhoneDisplay,
+  phoneTel: `tel:${jaimePhoneE164}`,
   email: "info@vamos-properties.com",
   patrickEmail: "patrick@vamos-properties.com",
   jaimeEmail: "jaime@vamos-properties.com",
-  whatsappNumber: digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_PHONE_E164 || "16025550148"),
+  jaimePhoneDisplay,
+  jaimePhoneTel: `tel:${jaimePhoneE164}`,
+  patrickPhoneDisplay: "+49 176 32892944",
+  patrickPhoneTel: "tel:+4917632892944",
+  whatsappNumber: digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || jaimePhoneE164),
   hours: "8:00 a.m. to 7:00 p.m., seven days",
   area: "Maricopa County, Arizona",
+  ogImagePath: "/phoenix-street.jpg",
+  ogImageAlt: "Single-story homes on a quiet Phoenix street in late afternoon light",
   consentText:
     "I agree that Vamos Properties LLC may call and text me about my house, including with automated messages. Message and data rates may apply. Consent is not required to sell or to receive an offer.",
   consentTextEs:

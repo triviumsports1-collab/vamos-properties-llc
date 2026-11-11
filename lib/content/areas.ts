@@ -54,7 +54,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85009", "85015", "85017", "85031", "85033", "85035", "85040", "85041", "85042", "85044", "85048", "85051"],
-    nearby: ["glendale", "tempe", "avondale"],
+    nearby: ["glendale", "tempe", "avondale", "scottsdale"],
     faqs: [
       {
         question: "Do you buy houses in west and south Phoenix?",
@@ -70,6 +70,61 @@ export const areas: Area[] = [
         question: "Does a Phoenix zip code decide the offer?",
         answer:
           "It tells us where to look. The offer still follows the block, the condition, the loan balance, and the date you need to close.",
+      },
+    ],
+  },
+  {
+    slug: "scottsdale",
+    name: "Scottsdale",
+    description:
+      "Sell a Scottsdale house as-is, from Old Town to north of Shea, or ask Vamos about a mortgage that is behind.",
+    opening:
+      "Scottsdale looks polished from Scottsdale Road, and people assume nobody there is behind. A divorce, a job change, HOA dues on top of the mortgage, or a house you inherited from another state still put owners on the clock.",
+    fact: "A trustee sale for a Scottsdale address is still a Maricopa County recording. The date on the notice is the clock, not the day the letter started to feel real.",
+    paragraphs: [
+      "We buy as-is. That includes a tired roof on an older ranch near Old Town, a lock that barely works, a tenant still in the house, and a north Scottsdale production home that would photograph well if you had the months to list it.",
+      "Old Town, McCormick Ranch, and DC Ranch are not one price. A golf-course elevation does not fix a payment that is already late, and a smaller lot south of Indian School is a different walkthrough than a house north of Shea.",
+      "If the house would list well, we will say that a traditional sale might net more and that it will take longer. Our cash number is the certain one. Patrick or Jaime will ask the address, what you owe, and whether an association letter is already on the counter.",
+    ],
+    neighborhoods: [
+      {
+        name: "Old Town and south Scottsdale",
+        note: "Older houses, smaller lots, and mixed streets near Indian School and McDowell. Condition and who is on the title matter more than a fresh coat of paint.",
+      },
+      {
+        name: "McCormick Ranch",
+        note: "Established lakes and golf, with association rules and houses whose systems are aging even when the street looks settled.",
+      },
+      {
+        name: "Gainey Ranch and the Shea corridor",
+        note: "HOAs, higher payments, and a pretty elevation that can still be behind. The dues belong on the first call next to the loan balance.",
+      },
+      {
+        name: "North Scottsdale and DC Ranch",
+        note: "Newer master-planned streets, longer drives, and association estoppels that can take as long as the payoff. Being far north does not add days to a trustee sale.",
+      },
+      {
+        name: "McDowell Mountain and the northeast edge",
+        note: "Larger lots and a different buyer pool than Old Town. Tell us the cross streets. North Scottsdale is not one number.",
+      },
+    ],
+    zips: ["85250", "85251", "85255", "85257", "85258", "85259", "85260", "85262"],
+    nearby: ["phoenix", "tempe", "mesa"],
+    faqs: [
+      {
+        question: "Do you buy houses in north Scottsdale and DC Ranch?",
+        answer:
+          "Yes. Master-planned streets, HOAs, and newer houses are still a cash conversation if the payment, a divorce, or a move is the reason. Tell us the community name on the first call.",
+      },
+      {
+        question: "Will you lowball a Scottsdale house that would list well?",
+        answer:
+          "You will see how we got to the number: price, repairs, dues, and the cost of closing on your timeline. If a listing might net more, we will say so. You can decline the offer.",
+      },
+      {
+        question: "Do HOA dues in Scottsdale stop a cash sale?",
+        answer:
+          "They rarely stop the sale. They can add a payoff. We would rather hear the association name on the first call than discover it at the title company.",
       },
     ],
   },
@@ -458,7 +513,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85281", "85282", "85283", "85284"],
-    nearby: ["phoenix", "mesa", "chandler"],
+    nearby: ["phoenix", "mesa", "chandler", "scottsdale"],
     faqs: [
       {
         question: "Do you buy condos in Tempe?",

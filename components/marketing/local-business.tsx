@@ -8,6 +8,7 @@ export function LocalBusinessJsonLd() {
       data={{
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
+        "@id": `${site.url}#business`,
         name: site.name,
         url: site.url,
         telephone: site.phoneDisplay,

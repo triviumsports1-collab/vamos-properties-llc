@@ -9,6 +9,8 @@ const people = [
     alt: "Patrick Szymczak",
     line: "Talks through the numbers and the date on the notice.",
     email: site.patrickEmail,
+    phoneDisplay: site.patrickPhoneDisplay,
+    phoneTel: site.patrickPhoneTel,
   },
   {
     name: "Jaime Miranda",
@@ -16,6 +18,8 @@ const people = [
     alt: "Jaime Miranda, co-founder of Vamos Properties",
     line: "Stays on the paperwork from the first call to the title company.",
     email: site.jaimeEmail,
+    phoneDisplay: site.jaimePhoneDisplay,
+    phoneTel: site.jaimePhoneTel,
   },
 ];
 
@@ -49,8 +53,14 @@ export function Founders({ linked = false }: { linked?: boolean }) {
               <span className="block font-serif text-2xl text-ink">{person.name}</span>
               <span className="mt-1 block text-sm leading-6 text-muted">{person.line}</span>
               <a
+                href={person.phoneTel}
+                className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-link"
+              >
+                {person.phoneDisplay}
+              </a>
+              <a
                 href={`mailto:${person.email}`}
-                className="mt-2 inline-flex min-h-11 items-center break-all text-sm font-semibold text-link"
+                className="mt-1 inline-flex min-h-11 items-center break-all text-sm font-semibold text-link"
               >
                 {person.email}
               </a>

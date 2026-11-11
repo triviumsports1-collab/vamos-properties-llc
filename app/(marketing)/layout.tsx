@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { CallBar } from "@/components/marketing/call-bar";
+import { DocumentLang } from "@/components/marketing/document-lang";
 import { CallBarLive } from "@/components/marketing/call-bar-live";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteFooterLive } from "@/components/marketing/site-footer-live";
@@ -11,6 +12,9 @@ import { WhatsAppButtonLive } from "@/components/marketing/whatsapp-button-live"
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <>
+      <Suspense fallback={null}>
+        <DocumentLang />
+      </Suspense>
       <Suspense fallback={<SiteHeader spanish={false} alternatePath="/es" />}>
         <SiteHeaderLive />
       </Suspense>
