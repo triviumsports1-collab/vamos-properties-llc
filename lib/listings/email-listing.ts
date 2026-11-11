@@ -1,6 +1,5 @@
 import "server-only";
 
-import { revalidatePath } from "next/cache";
 import { createListingFromEmail } from "@/lib/dal/listings";
 import { extractListingFromEmail, maskSecret } from "@/lib/listings/email-extract";
 import { readInboundEmail, type InboundEmail } from "@/lib/listings/email-payload";
@@ -23,18 +22,6 @@ function fail(status: number, message: string): ListingEmailResult {
 function messageKey(email: InboundEmail) {
   const basis = email.messageId || `${email.from}|${email.subject}|${email.text.slice(0, 180)}`;
   return basis.slice(0, 180);
-}
-
-function refreshListingPages(id: number) {
-  try {
-    revalidatePath("/admin/listings");
-    revalidatePath(`/admin/listings/${id}`);
-    revalidatePath("/sitemap.xml");
-  } catch (error) {
-    console.error("listing_email_revalidate_failed", {
-      name: error instanceof Error ? error.name : "Error",
-    });
-  }
 }
 
 export async function handleListingEmail(request: Request): Promise<ListingEmailResult> {
@@ -121,9 +108,6 @@ export async function handleListingEmail(request: Request): Promise<ListingEmail
         listingId: saved.id,
         slug: saved.slug,
       });
-      if (!saved.duplicate) {
-        refreshListingPages(saved.id);
-      }
       return json(200, {
         success: true,
         ok: true,

@@ -1,9 +1,8 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
 import { redirect } from "next/navigation";
+import { refreshSheetListingViews } from "@/lib/gdoc-listings/cache";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { AdminFormState } from "@/lib/admin/schema";
 import {
@@ -35,8 +34,7 @@ export async function runSheetListingSync(
 
   try {
     const result = await syncSheetListings("admin");
-    revalidatePath("/admin");
-    revalidatePath("/admin/sheet-listings");
+    refreshSheetListingViews();
     return { ok: true, message: summarize(result), stamp: Date.now() };
   } catch (error) {
     const code = sheetSyncErrorCode(error);
@@ -236,16 +234,7 @@ function formSaved(message: string): AdminFormState {
 }
 
 function refreshSheetDesk(slug: string) {
-  revalidateTag(SHEET_LISTINGS_TAG, "max");
-  revalidatePath("/admin");
-  revalidatePath("/admin/sheet-listings");
-  revalidatePath(`/admin/sheet-listings/${slug}`);
-  revalidatePath("/properties");
-  revalidatePath(`/properties/${slug}`);
-  revalidatePath("/es/propiedades");
-  revalidatePath(`/es/propiedades/${slug}`);
-  revalidatePath("/sitemap.xml");
-  revalidatePath("/api/listings/sheet");
+  refreshSheetListingViews([slug]);
 }
 
 function parseCoord(value: string, min: number, max: number) {

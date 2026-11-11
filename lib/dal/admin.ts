@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
 import { getDb } from "@/src/prisma/db";
 import { requireAdmin } from "@/lib/admin/auth";
 import {
@@ -135,10 +136,27 @@ export async function listStaff() {
   return users.map((user) => ({ id: user.id, name: user.name }));
 }
 
+const CONTACTED_STATUSES = ["contacted", "no_answer", "talking", "visited", "offer_sent"];
+const CONTRACT_STATUSES = ["under_contract", "contract"];
+const CLOSED_OR_LOST = ["closed", "lost"];
+
+function leadQueueWhere(status: string | null): Prisma.LeadWhereInput | undefined {
+  if (!status) return undefined;
+  if (status === "contacted") return { status: { in: CONTACTED_STATUSES } };
+  if (status === "under_contract") return { status: { in: CONTRACT_STATUSES } };
+  if (status === "new") {
+    return {
+      NOT: { status: { in: [...CONTACTED_STATUSES, ...CONTRACT_STATUSES, ...CLOSED_OR_LOST] } },
+    };
+  }
+  return { status };
+}
+
 export async function listLeadQueue(status: string | null): Promise<{ actor: AdminActor; leads: QueueLead[] }> {
   const actor = await requireAdmin();
   const db = getDb();
   const rows = await db.lead.findMany({
+    where: leadQueueWhere(status),
     select: {
       id: true,
       address: true,

@@ -194,6 +194,9 @@ export const propertyListingStrings: Record<
     about: string;
     priceHistory: string;
     facts: string;
+    similarHeading: string;
+    similarIntro: string;
+    similarViewAll: string;
     map: string;
     mapCoords: string;
     mapAddress: string;
@@ -263,6 +266,9 @@ export const propertyListingStrings: Record<
     about: "About this home",
     priceHistory: "Price history",
     facts: "Facts and features",
+    similarHeading: "Similar homes",
+    similarIntro: "Other active homes in this city or close in price.",
+    similarViewAll: "See all homes for sale",
     map: "Map",
     mapCoords: "The pin uses the coordinates from the listing. Confirm it before you visit.",
     mapAddress: "The pin is a search for the address. Confirm it before you visit.",
@@ -337,6 +343,9 @@ export const propertyListingStrings: Record<
     about: "Sobre esta casa",
     priceHistory: "Historial de precio",
     facts: "Datos y características",
+    similarHeading: "Casas parecidas",
+    similarIntro: "Otras casas activas en esta ciudad o de un precio parecido.",
+    similarViewAll: "Ver todas las casas en venta",
     map: "Mapa",
     mapCoords: "El pin usa las coordenadas del anuncio. Confírmelo antes de ir.",
     mapAddress: "El pin es una búsqueda de la dirección. Confírmelo antes de ir.",

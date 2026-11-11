@@ -1,6 +1,3 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import { whatsappStrings } from "@/lib/i18n/dictionaries";
 import { site } from "@/lib/site";
 
@@ -15,16 +12,11 @@ export function WhatsAppButton({ spanish }: { spanish: boolean }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={copy.label}
-      className="fixed right-4 z-50 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(18,140,126,0.35)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-6 md:right-6"
+      className="fixed right-[max(1rem,env(safe-area-inset-right))] z-50 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(18,140,126,0.35)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 md:right-6"
     >
       <WhatsAppIcon />
     </a>
   );
-}
-
-export function WhatsAppButtonLive() {
-  const spanish = usePathname().startsWith("/es");
-  return <WhatsAppButton spanish={spanish} />;
 }
 
 function WhatsAppIcon() {

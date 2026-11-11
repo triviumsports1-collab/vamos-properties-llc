@@ -1,9 +1,12 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { getDb } from "@/src/prisma/db";
 import { requireAdmin } from "@/lib/admin/auth";
 import { editorHtml, excerptFromHtml } from "@/lib/blog/content";
 import { sanitizePostHtml } from "@/lib/blog/html";
+
+export const BLOG_TAG = "blog";
 
 export type TermRef = { id: number; slug: string; name: string };
 
@@ -81,22 +84,32 @@ export type AdminComment = {
   createdAt: string;
 };
 
-type PostRow = {
-  id: number;
+const termSelect = { id: true, slug: true, name: true } as const;
+
+const publishedCardSelect = {
+  slug: true,
+  title: true,
+  excerpt: true,
+  body: true,
+  featuredImageUrl: true,
+  featuredImageAlt: true,
+  publishedAt: true,
+  updatedAt: true,
+  categories: { select: { category: { select: termSelect } } },
+  tags: { select: { tag: { select: termSelect } } },
+} as const;
+
+type PublishedCardRow = {
   slug: string;
   title: string;
   excerpt: string | null;
   body: string;
-  status: string;
   featuredImageUrl: string | null;
   featuredImageAlt: string | null;
-  metaTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
   publishedAt: Date | string | null;
-  authorId: number | null;
   updatedAt: Date | string;
+  categories: { category: TermRef }[];
+  tags: { tag: TermRef }[];
 };
 
 function toIso(d: Date | string | null | undefined): string | null {
@@ -104,43 +117,7 @@ function toIso(d: Date | string | null | undefined): string | null {
   return d instanceof Date ? d.toISOString() : d;
 }
 
-async function graph() {
-  const db = getDb();
-  const [posts, categories, tags, postCategories, postTags, users] = await Promise.all([
-    db.post.findMany({ orderBy: { updatedAt: "desc" } }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
-    db.tag.findMany({ orderBy: { name: "asc" } }),
-    db.postCategory.findMany(),
-    db.postTag.findMany(),
-    db.user.findMany({ select: { id: true, name: true } }),
-  ]);
-  const categoryById = new Map(categories.map((category) => [category.id, category]));
-  const tagById = new Map(tags.map((tag) => [tag.id, tag]));
-  const names = new Map(users.map((user) => [user.id, user.name]));
-  return { posts, categories, tags, postCategories, postTags, categoryById, tagById, names };
-}
-
-function termsFor(
-  postId: number,
-  links: { postId: number; categoryId?: number; tagId?: number }[],
-  lookup: Map<number, { id: number; slug: string; name: string }>,
-  field: "categoryId" | "tagId",
-) {
-  const refs: TermRef[] = [];
-  for (const link of links) {
-    const id = link[field];
-    if (link.postId !== postId || id == null) continue;
-    const term = lookup.get(id);
-    if (term) refs.push({ id: term.id, slug: term.slug, name: term.name });
-  }
-  return refs;
-}
-
-function card(
-  post: PostRow,
-  categories: TermRef[],
-  tags: TermRef[],
-): PostCard {
+function card(post: PublishedCardRow): PostCard {
   return {
     slug: post.slug,
     title: post.title,
@@ -149,50 +126,66 @@ function card(
     featuredImageAlt: post.featuredImageAlt,
     publishedAt: toIso(post.publishedAt),
     updatedAt: toIso(post.updatedAt) ?? "",
-    categories,
-    tags,
+    categories: post.categories.map((link) => link.category),
+    tags: post.tags.map((link) => link.tag),
   };
 }
 
+function byPublishedAt(left: PostCard, right: PostCard) {
+  return (right.publishedAt ?? "").localeCompare(left.publishedAt ?? "");
+}
+
 export async function listPublishedPosts() {
-  const data = await graph();
-  return data.posts
-    .filter((post) => post.status === "published")
-    .map((post) =>
-      card(
-        post,
-        termsFor(post.id, data.postCategories, data.categoryById, "categoryId"),
-        termsFor(post.id, data.postTags, data.tagById, "tagId"),
-      ),
-    )
-    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
-    .slice(0, 60);
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const rows = await getDb().post.findMany({
+    where: { status: "published" },
+    select: publishedCardSelect,
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+    take: 60,
+  });
+  return rows.map(card).sort(byPublishedAt);
 }
 
 export async function getPublicPost(slug: string): Promise<PublicPost | null> {
-  const db = getDb();
-  const post = await db.post.findFirst({ where: { slug } });
-  if (!post || post.status !== "published") return null;
-  const data = await graph();
-  const current = data.posts.find((item) => item.id === post.id) ?? post;
-  const comments = await db.comment.findMany({
-    where: { postId: post.id, status: "approved" },
-    orderBy: { createdAt: "asc" },
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const post = await getDb().post.findFirst({
+    where: { slug, status: "published" },
+    select: {
+      ...publishedCardSelect,
+      metaTitle: true,
+      metaDescription: true,
+      canonicalUrl: true,
+      ogImageUrl: true,
+      author: { select: { name: true } },
+      comments: {
+        where: { status: "approved" },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          parentId: true,
+          authorName: true,
+          body: true,
+          createdAt: true,
+          isStaff: true,
+        },
+      },
+    },
   });
-  const summary = card(
-    current,
-    termsFor(post.id, data.postCategories, data.categoryById, "categoryId"),
-    termsFor(post.id, data.postTags, data.tagById, "tagId"),
-  );
+  if (!post) return null;
+  const summary = card(post);
   return {
     ...summary,
-    html: sanitizePostHtml(current.body),
-    authorName: current.authorId ? data.names.get(current.authorId) ?? "Vamos Properties" : "Vamos Properties",
-    metaTitle: current.metaTitle?.trim() || current.title,
-    metaDescription: current.metaDescription?.trim() || summary.excerpt,
-    canonicalUrl: current.canonicalUrl,
-    ogImageUrl: current.ogImageUrl || current.featuredImageUrl,
-    comments: comments.map((comment) => ({
+    html: sanitizePostHtml(post.body),
+    authorName: post.author?.name ?? "Vamos Properties",
+    metaTitle: post.metaTitle?.trim() || post.title,
+    metaDescription: post.metaDescription?.trim() || summary.excerpt,
+    canonicalUrl: post.canonicalUrl,
+    ogImageUrl: post.ogImageUrl || post.featuredImageUrl,
+    comments: post.comments.map((comment) => ({
       id: comment.id,
       parentId: comment.parentId,
       authorName: comment.authorName,
@@ -204,46 +197,86 @@ export async function getPublicPost(slug: string): Promise<PublicPost | null> {
 }
 
 export async function getCategoryArchive(slug: string) {
-  const data = await graph();
-  const category = data.categories.find((item) => item.slug === slug);
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const db = getDb();
+  const category = await db.category.findFirst({
+    where: { slug },
+    select: { id: true, slug: true, name: true, description: true },
+  });
   if (!category) return null;
-  const posts = (await listPublishedPosts()).filter((post) => post.categories.some((item) => item.slug === slug));
-  const children = data.categories
-    .filter((item) => item.parentId === category.id)
-    .map((item) => ({ slug: item.slug, name: item.name }));
+  const [children, rows] = await Promise.all([
+    db.category.findMany({
+      where: { parentId: category.id },
+      select: { slug: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    db.post.findMany({
+      where: { status: "published", categories: { some: { categoryId: category.id } } },
+      select: publishedCardSelect,
+      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+      take: 60,
+    }),
+  ]);
   return {
     slug: category.slug,
     name: category.name,
     description: category.description ?? "",
     children,
-    posts,
+    posts: rows.map(card).sort(byPublishedAt),
   };
 }
 
 export async function getTagArchive(slug: string) {
-  const data = await graph();
-  const tag = data.tags.find((item) => item.slug === slug);
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const db = getDb();
+  const tag = await db.tag.findFirst({
+    where: { slug },
+    select: { id: true, slug: true, name: true },
+  });
   if (!tag) return null;
-  const posts = (await listPublishedPosts()).filter((post) => post.tags.some((item) => item.slug === slug));
-  return { slug: tag.slug, name: tag.name, posts };
+  const rows = await db.post.findMany({
+    where: { status: "published", tags: { some: { tagId: tag.id } } },
+    select: publishedCardSelect,
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+    take: 60,
+  });
+  return { slug: tag.slug, name: tag.name, posts: rows.map(card).sort(byPublishedAt) };
 }
 
 export async function blogSitemapEntries() {
-  const posts = await listPublishedPosts();
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const posts = await getDb().post.findMany({
+    where: { status: "published" },
+    select: {
+      slug: true,
+      updatedAt: true,
+      categories: { select: { category: { select: { slug: true } } } },
+      tags: { select: { tag: { select: { slug: true } } } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 60,
+  });
   const categories = new Map<string, string>();
   const tags = new Map<string, string>();
   for (const post of posts) {
-    for (const category of post.categories) {
-      const current = categories.get(category.slug);
-      if (!current || current < post.updatedAt) categories.set(category.slug, post.updatedAt);
+    const updatedAt = post.updatedAt.toISOString();
+    for (const link of post.categories) {
+      const current = categories.get(link.category.slug);
+      if (!current || current < updatedAt) categories.set(link.category.slug, updatedAt);
     }
-    for (const tag of post.tags) {
-      const current = tags.get(tag.slug);
-      if (!current || current < post.updatedAt) tags.set(tag.slug, post.updatedAt);
+    for (const link of post.tags) {
+      const current = tags.get(link.tag.slug);
+      if (!current || current < updatedAt) tags.set(link.tag.slug, updatedAt);
     }
   }
   return {
-    posts: posts.map((post) => ({ path: `/blog/${post.slug}`, updatedAt: post.updatedAt })),
+    posts: posts.map((post) => ({ path: `/blog/${post.slug}`, updatedAt: post.updatedAt.toISOString() })),
     categories: [...categories.entries()].map(([slug, updatedAt]) => ({ path: `/blog/category/${slug}`, updatedAt })),
     tags: [...tags.entries()].map(([slug, updatedAt]) => ({ path: `/blog/tag/${slug}`, updatedAt })),
   };
@@ -251,21 +284,50 @@ export async function blogSitemapEntries() {
 
 export async function listAdminPosts() {
   await requireAdmin();
-  const data = await graph();
-  return data.posts.map((post) => ({
+  const rows = await getDb().post.findMany({
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      status: true,
+      updatedAt: true,
+      categories: { select: { category: { select: { name: true } } } },
+    },
+  });
+  return rows.map((post) => ({
     id: post.id,
     slug: post.slug,
     title: post.title,
     status: post.status === "published" ? "published" : "draft",
     updatedAt: toIso(post.updatedAt) ?? "",
-    categories: termsFor(post.id, data.postCategories, data.categoryById, "categoryId").map((item) => item.name),
+    categories: post.categories.map((link) => link.category.name),
   }));
 }
 
 export async function getAdminPost(id: number): Promise<AdminPost | null> {
   await requireAdmin();
-  const data = await graph();
-  const post = data.posts.find((item) => item.id === id);
+  const post = await getDb().post.findFirst({
+    where: { id },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      excerpt: true,
+      body: true,
+      status: true,
+      featuredImageUrl: true,
+      featuredImageAlt: true,
+      metaTitle: true,
+      metaDescription: true,
+      canonicalUrl: true,
+      ogImageUrl: true,
+      publishedAt: true,
+      updatedAt: true,
+      categories: { select: { categoryId: true } },
+      tags: { select: { tag: { select: { name: true } } } },
+    },
+  });
   if (!post) return null;
   return {
     id: post.id,
@@ -280,8 +342,8 @@ export async function getAdminPost(id: number): Promise<AdminPost | null> {
     metaDescription: post.metaDescription ?? "",
     canonicalUrl: post.canonicalUrl ?? "",
     ogImageUrl: post.ogImageUrl ?? "",
-    categoryIds: termsFor(post.id, data.postCategories, data.categoryById, "categoryId").map((item) => item.id),
-    tagNames: termsFor(post.id, data.postTags, data.tagById, "tagId").map((item) => item.name),
+    categoryIds: post.categories.map((link) => link.categoryId),
+    tagNames: post.tags.map((link) => link.tag.name),
     publishedAt: toIso(post.publishedAt),
     updatedAt: toIso(post.updatedAt) ?? "",
   };
@@ -311,27 +373,28 @@ export async function listAdminComments(status: string) {
   await requireAdmin();
   const db = getDb();
   const [comments, posts] = await Promise.all([
-    db.comment.findMany({ orderBy: { createdAt: "desc" } }),
+    db.comment.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    }),
     db.post.findMany({ select: { id: true, title: true, slug: true } }),
   ]);
   const postById = new Map(posts.map((post) => [post.id, post]));
-  return comments
-    .filter((comment) => (status ? comment.status === status : true))
-    .slice(0, 200)
-    .map((comment) => {
-      const post = postById.get(comment.postId);
-      return {
-        id: comment.id,
-        postId: comment.postId,
-        postTitle: post?.title ?? "Removed post",
-        postSlug: post?.slug ?? "",
-        parentId: comment.parentId,
-        authorName: comment.authorName,
-        authorEmail: comment.authorEmail ?? "",
-        body: comment.body,
-        status: comment.status,
-        isStaff: comment.isStaff,
-        createdAt: comment.createdAt.toISOString(),
-      } satisfies AdminComment;
-    });
+  return comments.map((comment) => {
+    const post = postById.get(comment.postId);
+    return {
+      id: comment.id,
+      postId: comment.postId,
+      postTitle: post?.title ?? "Removed post",
+      postSlug: post?.slug ?? "",
+      parentId: comment.parentId,
+      authorName: comment.authorName,
+      authorEmail: comment.authorEmail ?? "",
+      body: comment.body,
+      status: comment.status,
+      isStaff: comment.isStaff,
+      createdAt: comment.createdAt.toISOString(),
+    } satisfies AdminComment;
+  });
 }

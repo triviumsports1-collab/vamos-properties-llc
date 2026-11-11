@@ -33,12 +33,20 @@ export default async function SpanishContactPage() {
           o la{" "}
           <a href="/es/ejecucion-hipotecaria" className="font-semibold text-link">ejecución hipotecaria</a>.
         </p>
-        <dl className="mt-10 grid gap-8 sm:grid-cols-3">
+        <dl className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <dt className="text-sm text-muted">Teléfono</dt>
             <dd className="mt-2">
               <a href={site.phoneTel} className="text-2xl font-semibold text-ink sm:text-3xl">
                 {site.phoneDisplay}
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted">Correo</dt>
+            <dd className="mt-2">
+              <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center break-all text-lg font-semibold text-ink">
+                {site.email}
               </a>
             </dd>
           </div>

@@ -88,6 +88,11 @@
   --color-pine-ink: var(--pine-ink);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--paper);
   color: var(--ink);
@@ -103,6 +108,35 @@ h2,
 :focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
+}
+
+/* Native <dialog> centering survives Tailwind preflight (margin:0) and iOS Safari. */
+.dialog-box {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 16px 40px rgb(16 36 61 / 0.2);
+  transform: translate(-50%, -50%);
+}
+
+.dialog-box::backdrop {
+  background: color-mix(in srgb, var(--navy) 55%, transparent);
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .post-content {

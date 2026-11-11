@@ -15,7 +15,7 @@ export function Comparison() {
       <p className="mt-3 max-w-2xl leading-7 text-muted">
         A listed sale, a cash sale, and a payment takeover solve different problems. The cash sale is the one that pays the loan off and takes your name off it.
       </p>
-      <div className="mt-6 overflow-x-auto border border-line">
+      <div className="mt-6 overflow-x-auto border border-line touch-scroll">
         <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
           <caption className="sr-only">Listing, cash offer, and payment takeover compared</caption>
           <thead className="bg-navy text-white">

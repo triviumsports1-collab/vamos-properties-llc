@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { excerptFromHtml, slugify } from "@/lib/blog/content";
 import { sanitizePostHtml } from "@/lib/blog/html";
+import { BLOG_TAG } from "@/lib/dal/blog";
 import { getDb } from "@/src/prisma/db";
 
 const optionalUrl = z
@@ -61,6 +62,7 @@ const categorySchema = z.object({
 });
 
 function refreshBlog(paths: string[]) {
+  revalidateTag(BLOG_TAG, "max");
   revalidatePath("/blog");
   revalidatePath("/sitemap.xml");
   for (const path of paths) revalidatePath(path);
@@ -271,8 +273,7 @@ export async function saveCategory(input: z.input<typeof categorySchema>) {
   } else {
     await db.category.create({ data: payload });
   }
-  revalidatePath("/admin/blog/categories");
-  revalidatePath("/blog");
+  refreshBlog(["/admin/blog/categories"]);
   return { ok: true as const, message: "Category saved." };
 }
 
@@ -286,7 +287,7 @@ export async function deleteCategory(id: number) {
   const current = await db.category.findFirst({ where: { id }, select: { id: true } });
   if (!current) return { ok: false as const, message: "That category is gone." };
   await db.category.delete({ where: { id } });
-  revalidatePath("/admin/blog/categories");
+  refreshBlog(["/admin/blog/categories"]);
   return { ok: true as const, message: "Category removed." };
 }
 
@@ -297,8 +298,7 @@ export async function deleteTag(id: number) {
   if (!current) return { ok: false as const, message: "That tag is gone." };
   await db.postTag.deleteMany({ where: { tagId: id } });
   await db.tag.delete({ where: { id } });
-  revalidatePath("/admin/blog/categories");
-  revalidatePath(`/blog/tag/${current.slug}`);
+  refreshBlog(["/admin/blog/categories", `/blog/tag/${current.slug}`]);
   return { ok: true as const, message: "Tag removed." };
 }
 

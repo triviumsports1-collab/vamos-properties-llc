@@ -24,6 +24,10 @@ model User {
   mediaAssets   MediaAsset[]
   posts         Post[]
   comments      Comment[]
+  sheetListingMargins SheetListing[] @relation("SheetListingMarginEditor")
+  sheetListingMarginEvents SheetListingMarginEvent[]
+  sheetPricingRules SheetPricingRule[] @relation("SheetPricingRuleEditor")
+  sheetPricingRuleEvents SheetPricingRuleEvent[]
   createdAt     DateTime     @default(now())
 }
 
@@ -156,6 +160,14 @@ model SheetListing {
   addressKey      String
   city            String?
   listPrice       Int?
+  marginAmount    Int?
+  marginPercentBps Int?
+  finalDisplayPrice Int?
+  marginUpdatedAt DateTime?
+  marginUpdatedById Int?
+  marginOverride  Boolean   @default(false)
+  marginUpdatedBy User?     @relation("SheetListingMarginEditor", fields: [marginUpdatedById], references: [id], onDelete: SetNull)
+  marginEvents    SheetListingMarginEvent[]
   previousPrice   Int?
   drop            Int?
   priceChangedAt  DateTime?
@@ -203,6 +215,96 @@ model SheetListing {
   @@index([status, addressKey, listPrice])
   @@index([removedAt])
   @@index([localTargetArea])
+  @@index([city])
+  @@index([finalDisplayPrice])
+  @@index([marginAmount])
+  @@index([marginUpdatedById])
+  @@index([marginOverride])
+}
+
+model SheetPricingRule {
+  id          Int      @id @default(1)
+  enabled     Boolean  @default(false)
+  mode        String   @default("percent")
+  flatAmount  Int?
+  percentBps  Int?
+  updatedAt   DateTime @updatedAt
+  updatedById Int?
+  updatedBy   User?    @relation("SheetPricingRuleEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+  events      SheetPricingRuleEvent[]
+  tiers       SheetPricingTier[]
+}
+
+model SheetPricingTier {
+  id         Int              @id @default(autoincrement())
+  rule       SheetPricingRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  ruleId     Int              @default(1)
+  sortOrder  Int
+  minPrice   Int?
+  maxPrice   Int?
+  mode       String
+  flatAmount Int?
+  percentBps Int?
+
+  @@index([ruleId, sortOrder])
+}
+
+model SheetPricingRuleEvent {
+  id                 Int              @id @default(autoincrement())
+  rule               SheetPricingRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  ruleId             Int
+  batchId            String
+  actor              User?            @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId            Int?
+  actorEmail         String
+  action             String
+  previousEnabled    Boolean
+  nextEnabled        Boolean
+  previousMode       String
+  nextMode           String
+  previousFlatAmount Int?
+  nextFlatAmount     Int?
+  previousPercentBps Int?
+  nextPercentBps     Int?
+  updatedCount       Int              @default(0)
+  skippedCount       Int              @default(0)
+  heldCount          Int              @default(0)
+  reason             String?          @db.Text
+  createdAt          DateTime         @default(now())
+
+  @@index([ruleId, createdAt])
+  @@index([batchId])
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+model SheetListingMarginEvent {
+  id                 Int          @id @default(autoincrement())
+  listing            SheetListing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId          Int?
+  listingCode        String?
+  slug               String
+  batchId            String
+  actor              User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId            Int?
+  actorEmail         String
+  action             String
+  mode               String
+  previousAmount     Int?
+  nextAmount         Int?
+  previousPercentBps Int?
+  nextPercentBps     Int?
+  listPrice          Int?
+  previousDisplay    Int?
+  nextDisplay        Int?
+  reason             String?      @db.Text
+  createdAt          DateTime     @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([batchId])
+  @@index([slug])
+  @@index([createdAt])
+  @@index([actorId])
 }
 
 model SheetSyncLock {

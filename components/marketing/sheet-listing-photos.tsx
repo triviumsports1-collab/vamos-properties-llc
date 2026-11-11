@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ListingPhoto } from "@/components/marketing/listing-photo";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
 
@@ -53,6 +54,7 @@ export function SheetListingPhotos({
             photo={photos[0]}
             alt={copy.photoAlt(title, 1, photos.length)}
             onOpen={() => setOpen(0)}
+            priority
             className={side.length > 0 ? "rounded-2xl sm:col-span-4 sm:row-span-2" : "rounded-2xl sm:col-span-6 sm:row-span-2"}
             label={photos.length > 1 ? copy.nPhotos(photos.length) : undefined}
             labelOn="mobile"
@@ -105,12 +107,13 @@ export function SheetListingPhotos({
                     onClick={() => setOpen(photoIndex)}
                     className="block w-full overflow-hidden rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
                   >
-                    <img
-                      src={photo}
-                      alt={copy.photoAlt(title, photoIndex + 1, photos.length)}
-                      referrerPolicy="no-referrer"
-                      className="aspect-[4/3] w-full bg-mist object-cover"
-                    />
+                    <span className="relative block aspect-[4/3] bg-mist">
+                      <ListingPhoto
+                        src={photo}
+                        alt={copy.photoAlt(title, photoIndex + 1, photos.length)}
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                      />
+                    </span>
                   </button>
                 </li>
               );
@@ -122,7 +125,7 @@ export function SheetListingPhotos({
       <dialog
         ref={dialogRef}
         onClose={() => setOpen(null)}
-        className="fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-4 text-ink backdrop:bg-navy/85 open:flex open:items-center open:justify-center"
+        className="fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-ink backdrop:bg-navy/85 open:flex open:items-center open:justify-center"
         aria-label={copy.photos}
       >
         {open != null && photos[open] ? (
@@ -137,7 +140,7 @@ export function SheetListingPhotos({
                 {copy.close}
               </button>
             </div>
-            <div className="flex items-center justify-center rounded-2xl bg-navy/40 p-2 md:p-4">
+            <div className="relative flex min-h-[12rem] items-center justify-center rounded-2xl bg-navy/40 p-2 md:p-4">
               <img
                 src={photos[open]}
                 alt={copy.photoAlt(title, open + 1, photos.length)}
@@ -177,6 +180,7 @@ function PhotoTile({
   className,
   label,
   labelOn,
+  priority = false,
 }: {
   photo: string;
   alt: string;
@@ -184,18 +188,20 @@ function PhotoTile({
   className?: string;
   label?: string;
   labelOn?: "mobile" | "always";
+  priority?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      className={`relative block min-h-11 overflow-hidden bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber sm:h-full ${className ?? ""}`}
+      className={`relative block aspect-[4/3] min-h-11 overflow-hidden bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber sm:aspect-auto sm:h-full ${className ?? ""}`}
     >
-      <img
+      <ListingPhoto
         src={photo}
         alt={alt}
-        referrerPolicy="no-referrer"
-        className="aspect-[4/3] w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full"
+        priority={priority}
+        sizes={priority ? "(max-width: 640px) 100vw, 66vw" : "(max-width: 640px) 100vw, 33vw"}
+        className="object-cover"
       />
       {label ? (
         <span

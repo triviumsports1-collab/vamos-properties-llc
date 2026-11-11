@@ -46,9 +46,3 @@ export function safeHttpUrl(value: string, hosts?: string[]) {
     return "";
   }
 }
-
-export function isGalleryPhoto(url: string) {
-  if (!url) return false;
-  if (isDriveFolderUrl(url)) return false;
-  return /^https?:\/\/\S+$/i.test(url) || /^\/listing-photos\/[a-z0-9-]+\.(jpg|png|webp)$/i.test(url);
-}

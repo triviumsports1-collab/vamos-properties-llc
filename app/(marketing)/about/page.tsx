@@ -84,7 +84,9 @@ export default async function AboutPage() {
             <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Tell us the address when you are ready.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
               You will hear back from Patrick or Jaime, not from a rotating closer. If you would rather talk first, call{" "}
-              <a href={site.phoneTel} className="font-semibold text-link">{site.phoneDisplay}</a>.
+              <a href={site.phoneTel} className="font-semibold text-link">{site.phoneDisplay}</a>
+              {" "}or email{" "}
+              <a href={`mailto:${site.email}`} className="font-semibold text-link">{site.email}</a>.
             </p>
           </div>
           <LeadForm sourcePath="/about" language="en" />

@@ -20,6 +20,8 @@ export type SheetListingView = {
   address: string;
   city: string;
   listPrice: number | null;
+  displayPrice: number | null;
+  marginAmount: number | null;
   arv: number | null;
   beds: number | null;
   baths: string;
@@ -61,6 +63,8 @@ export type SheetListingCardView = {
   address: string;
   city: string;
   listPrice: number | null;
+  displayPrice: number | null;
+  marginAmount: number | null;
   arv: number | null;
   beds: number | null;
   baths: string;
@@ -134,6 +138,8 @@ export type SheetListingAdminSummary = {
   sold: number;
   underContract: number;
   hidden: number;
+  withMargin: number;
+  customMargins: number;
   lastSyncedAt: string | null;
   sheetsReady: boolean;
 };
@@ -144,7 +150,12 @@ export type SheetListingAdminRow = {
   title: string;
   address: string;
   city: string;
+  region: string;
   listPrice: number | null;
+  marginAmount: number | null;
+  marginPercentBps: number | null;
+  marginOverride: boolean;
+  finalDisplayPrice: number | null;
   previousPrice: number | null;
   status: string;
   removed: boolean;
@@ -152,6 +163,106 @@ export type SheetListingAdminRow = {
   syncedAt: string;
   priceDropped: boolean;
   updated: boolean;
+};
+
+export type SheetListingAdminPlaces = {
+  cities: string[];
+  regions: string[];
+};
+
+export type SheetListingMarginEventView = {
+  slug: string;
+  listingCode: string;
+  actorEmail: string;
+  action: string;
+  mode: string;
+  previousAmount: number | null;
+  nextAmount: number | null;
+  previousPercentBps: number | null;
+  nextPercentBps: number | null;
+  listPrice: number | null;
+  previousDisplay: number | null;
+  nextDisplay: number | null;
+  createdAt: string;
+};
+
+export type SheetMarginFormState = {
+  ok: boolean;
+  message: string;
+  stamp: number;
+  updated: number;
+  skipped: number;
+};
+
+export const idleSheetMargin: SheetMarginFormState = { ok: false, message: "", stamp: 0, updated: 0, skipped: 0 };
+
+export type SheetPricingFormState = {
+  ok: boolean;
+  message: string;
+  stamp: number;
+  updated: number;
+  skipped: number;
+  held: number;
+};
+
+export const idleSheetPricing: SheetPricingFormState = {
+  ok: false,
+  message: "",
+  stamp: 0,
+  updated: 0,
+  skipped: 0,
+  held: 0,
+};
+
+export type SheetPricingTierView = {
+  minPrice: number | null;
+  maxPrice: number | null;
+  mode: "flat" | "percent";
+  flatAmount: number | null;
+  percentBps: number | null;
+  matchCount: number;
+};
+
+export type SheetPricingRuleView = {
+  enabled: boolean;
+  mode: "flat" | "percent";
+  flatAmount: number | null;
+  percentBps: number | null;
+  tiers: SheetPricingTierView[];
+  unmatchedCount: number;
+  noPriceCount: number;
+  updatedAt: string | null;
+  updatedByEmail: string;
+  eligibleCount: number;
+  customCount: number;
+};
+
+export type SheetPricingRuleEventView = {
+  actorEmail: string;
+  action: string;
+  nextEnabled: boolean;
+  nextMode: string;
+  nextFlatAmount: number | null;
+  nextPercentBps: number | null;
+  updatedCount: number;
+  skippedCount: number;
+  heldCount: number;
+  createdAt: string;
+};
+
+export type SheetMarginAuditDraft = {
+  slug: string;
+  listingCode: string;
+  action: string;
+  mode: string;
+  previousAmount: number | null;
+  nextAmount: number | null;
+  previousPercentBps: number | null;
+  nextPercentBps: number | null;
+  listPrice: number | null;
+  previousDisplay: number | null;
+  nextDisplay: number | null;
+  reason: string;
 };
 
 export type SheetListingAdminDetail = SheetListingAdminRow & {
@@ -187,6 +298,9 @@ export type SheetListingAdminFilters = {
   query: string;
   minPrice: number | null;
   maxPrice: number | null;
+  city: string;
+  region: string;
+  margin: "all" | "with" | "without";
 };
 
 export type SheetSyncFormState = {

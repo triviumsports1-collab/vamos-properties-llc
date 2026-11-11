@@ -6,7 +6,6 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   assignSchema,
-  listingSchema,
   loginSchema,
   noteSchema,
   statusSchema,
@@ -20,9 +19,6 @@ import { isLeadStatus } from "@/lib/admin/pipeline";
 import { sendSellerFollowUp } from "@/lib/admin/mail";
 import { allowLead } from "@/lib/leads/rate-limit";
 import { addLeadNote, assignLead, changeLeadStatus, logLeadTouch, recordEmailEvent } from "@/lib/dal/admin";
-import { storeListingPhotos } from "@/lib/admin/uploads";
-import { saveListing } from "@/lib/dal/listings";
-import { parseDollars } from "@/lib/listings/money";
 import { bootstrapAdminIfEmpty, findUserForLogin } from "@/lib/dal/users";
 
 function field(formData: FormData, name: string) {
@@ -43,11 +39,6 @@ function refreshLead(leadId: number) {
   revalidatePath("/admin/pipeline");
   revalidatePath("/admin/bank");
   revalidatePath(`/admin/leads/${leadId}`);
-}
-
-function refreshListings() {
-  revalidatePath("/admin");
-  revalidatePath("/admin/listings");
 }
 
 export async function loginAdmin(_previous: LoginState, formData: FormData): Promise<LoginState> {
@@ -209,118 +200,4 @@ export async function saveLeadTouch(_previous: AdminFormState, formData: FormDat
     });
     return failed("That did not save. Try again.");
   }
-}
-
-export async function saveListingForm(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
-  const parsed = listingSchema.safeParse({
-    listingId: field(formData, "listingId"),
-    title: field(formData, "title"),
-    address: field(formData, "address"),
-    city: field(formData, "city"),
-    beds: field(formData, "beds"),
-    baths: field(formData, "baths"),
-    sqft: field(formData, "sqft"),
-    yearBuilt: field(formData, "yearBuilt"),
-    propertyType: field(formData, "propertyType"),
-    price: field(formData, "price"),
-    monthlyPayment: field(formData, "monthlyPayment"),
-    terms: field(formData, "terms"),
-    status: field(formData, "status"),
-    featured: field(formData, "featured"),
-    summary: field(formData, "summary"),
-    description: field(formData, "description"),
-    features: field(formData, "features"),
-    neighborhood: field(formData, "neighborhood"),
-    schools: field(formData, "schools"),
-    metaTitle: field(formData, "metaTitle"),
-    metaDescription: field(formData, "metaDescription"),
-    keywords: field(formData, "keywords"),
-    localTags: field(formData, "localTags"),
-    photos: field(formData, "photos"),
-    arv: field(formData, "arv"),
-    driveFolderUrl: field(formData, "driveFolderUrl"),
-  });
-  if (!parsed.success) {
-    return failed(parsed.error.issues[0]?.message ?? "Check the listing and try again.");
-  }
-
-  const priceText = parsed.data.price.trim();
-  const listPrice = priceText ? parseDollars(priceText) : null;
-  if (priceText && listPrice == null) {
-    return failed("Enter the price in dollars, like 325000.");
-  }
-  const arvText = parsed.data.arv.trim();
-  const arv = arvText ? parseDollars(arvText) : null;
-  if (arvText && arv == null) {
-    return failed("Enter the ARV in dollars, like 325000.");
-  }
-  const paymentText = parsed.data.monthlyPayment.trim();
-  const monthlyPayment = paymentText ? parseDollars(paymentText) : null;
-  if (paymentText && monthlyPayment == null) {
-    return failed("Enter the monthly payment in dollars.");
-  }
-
-  const listingId = parsed.data.listingId ? Number(parsed.data.listingId) : null;
-  if (listingId !== null && (!Number.isInteger(listingId) || listingId < 1)) {
-    return failed("That listing is not in the inventory.");
-  }
-
-  const uploads = formData.getAll("uploads").filter((item): item is File => item instanceof File);
-  let uploaded: string[] = [];
-  try {
-    uploaded = await storeListingPhotos(uploads);
-  } catch (error) {
-    console.error("admin_listing_photo_failed", {
-      id: randomUUID(),
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return failed("Photos need to be JPG, PNG, or WebP, each under 4 MB.");
-  }
-
-  const photos = [...parsed.data.photos.split("\n").map((line) => line.trim()).filter(Boolean), ...uploaded];
-  if (photos.length > 12) {
-    return failed("Keep it to 12 photos.");
-  }
-
-  let result: Awaited<ReturnType<typeof saveListing>>;
-  try {
-    result = await saveListing(listingId, {
-      title: parsed.data.title,
-      address: parsed.data.address,
-      city: parsed.data.city,
-      beds: parsed.data.beds ? Number(parsed.data.beds) : null,
-      baths: parsed.data.baths,
-      sqft: parsed.data.sqft ? Number(parsed.data.sqft) : null,
-      yearBuilt: parsed.data.yearBuilt ? Number(parsed.data.yearBuilt) : null,
-      propertyType: parsed.data.propertyType,
-      listPrice,
-      monthlyPayment,
-      terms: parsed.data.terms,
-      status: parsed.data.status,
-      featured: parsed.data.featured === "yes",
-      summary: parsed.data.summary,
-      description: parsed.data.description,
-      features: parsed.data.features,
-      neighborhood: parsed.data.neighborhood,
-      schools: parsed.data.schools,
-      metaTitle: parsed.data.metaTitle,
-      metaDescription: parsed.data.metaDescription,
-      keywords: parsed.data.keywords,
-      localTags: parsed.data.localTags,
-      photos: photos.join("\n"),
-      arv,
-      driveFolderUrl: parsed.data.driveFolderUrl,
-    });
-  } catch (error) {
-    console.error("admin_listing_failed", {
-      id: randomUUID(),
-      name: error instanceof Error ? error.name : "Error",
-    });
-    return failed("That listing did not save. Try again.");
-  }
-
-  if (!result.ok) return failed(result.message);
-  refreshListings();
-  revalidatePath(`/admin/listings/${result.id}`);
-  redirect(`/admin/listings/${result.id}`);
 }

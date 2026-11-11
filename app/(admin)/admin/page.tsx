@@ -6,7 +6,6 @@ import { SheetListingSync } from "@/components/admin/sheet-listing-sync";
 import { formatWhen } from "@/lib/admin/clock";
 import { statusLabel } from "@/lib/admin/pipeline";
 import { listLeadQueue, recentActivity } from "@/lib/dal/admin";
-import { listListings } from "@/lib/dal/listings";
 import { getSheetListingAdminSummary } from "@/lib/dal/sheet-listings";
 
 export const metadata: Metadata = {
@@ -22,12 +21,14 @@ export default function DashboardPage() {
 }
 
 async function Dashboard() {
-  const [{ leads }, listings, activity] = await Promise.all([listLeadQueue(null), listListings(), recentActivity()]);
-  const sheet = await getSheetListingAdminSummary();
+  const [{ leads }, activity, sheet] = await Promise.all([
+    listLeadQueue(null),
+    recentActivity(),
+    getSheetListingAdminSummary(),
+  ]);
   const open = leads.filter((lead) => lead.status !== "closed" && lead.status !== "lost");
   const urgent = open.filter((lead) => lead.urgent).length;
   const waiting = open.filter((lead) => lead.reply.kind === "waiting" || lead.reply.kind === "due").length;
-  const activeListings = listings.filter((listing) => listing.status === "active").length;
 
   return (
     <AdminShell current="/admin">
@@ -40,14 +41,13 @@ async function Dashboard() {
           <Stat label="Open leads" value={String(open.length)} href="/admin/pipeline" />
           <Stat label="Sale inside 21 days" value={String(urgent)} href="/admin/pipeline" />
           <Stat label="Waiting on a reply" value={String(waiting)} href="/admin/pipeline" />
-          <Stat label="Active listings" value={String(activeListings)} href="/admin/listings" />
+          <Stat label="Active listings" value={String(sheet.active)} href="/admin/sheet-listings" />
         </div>
         <section className="mt-8 border border-line bg-panel p-5">
           <h2 className="text-lg font-semibold text-ink">Sheet listings</h2>
           <p className="mt-2 max-w-2xl text-base leading-7 text-muted">
             {sheet.active} on the public catalog at /properties
-            {sheet.lastSyncedAt ? ` · last copied ${formatWhen(sheet.lastSyncedAt)}` : " · not copied yet"}. This is
-            separate from the listings desk.
+            {sheet.lastSyncedAt ? ` · last copied ${formatWhen(sheet.lastSyncedAt)}` : " · not copied yet"}.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <SheetListingSync ready={sheet.sheetsReady} />
@@ -87,7 +87,7 @@ async function Dashboard() {
           </ul>
         </section>
         <p className="mt-6 text-sm text-muted">
-          {activeListings} active on the listings desk. {listings.length - activeListings} still private. The public catalog is /properties.
+          {sheet.active} live on /properties. {sheet.hidden} not on the public catalog.
         </p>
       </main>
     </AdminShell>

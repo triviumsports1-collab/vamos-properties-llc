@@ -1,10 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LanguageSwitcherFallback } from "@/components/marketing/language-switcher";
+import { LanguageSwitcherFallback } from "@/components/marketing/language-switcher-fallback";
 import { footerStrings } from "@/lib/i18n/dictionaries";
-import { getAlternatePath, isSpanish } from "@/lib/i18n/routes";
 import { areas } from "@/lib/content/areas";
 import { site } from "@/lib/site";
 
@@ -28,6 +24,9 @@ export function SiteFooter({
           <a href={site.phoneTel} className="mt-3 inline-flex min-h-11 items-center font-semibold text-amber">
             {site.phoneDisplay}
           </a>
+          <a href={`mailto:${site.email}`} className="mt-1 inline-flex min-h-11 items-center break-all text-white/80 hover:text-white">
+            {site.email}
+          </a>
         </div>
 
         {/* Help links */}
@@ -36,7 +35,7 @@ export function SiteFooter({
           <ul className="mt-4 space-y-2">
             {strings.links.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-white/80 hover:text-white">
+                <Link href={link.href} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
                   {link.label}
                 </Link>
               </li>
@@ -50,7 +49,7 @@ export function SiteFooter({
           <ul className="mt-4 grid grid-cols-2 gap-2">
             {areas.map((area) => (
               <li key={area.slug}>
-                <Link href={`/areas/${area.slug}`} className="text-white/80 hover:text-white">
+                <Link href={`/areas/${area.slug}`} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
                   {area.name}
                 </Link>
               </li>
@@ -65,16 +64,9 @@ export function SiteFooter({
         </div>
       </div>
 
-      <p className="mx-auto max-w-6xl px-4 pb-28 text-sm leading-6 text-white/60 md:pb-10">
+      <p className="mx-auto max-w-6xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] text-sm leading-6 text-white/60 md:pb-10">
         {strings.disclaimer}
       </p>
     </footer>
   );
-}
-
-export function SiteFooterLive() {
-  const pathname = usePathname();
-  const spanish = isSpanish(pathname);
-  const alternatePath = getAlternatePath(pathname);
-  return <SiteFooter spanish={spanish} alternatePath={alternatePath} />;
 }

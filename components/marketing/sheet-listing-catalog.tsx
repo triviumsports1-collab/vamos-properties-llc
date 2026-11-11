@@ -1,8 +1,5 @@
-"use client";
-
-import { useMemo, useState } from "react";
 import { SheetListingCard } from "@/components/marketing/sheet-listing-card";
-import { sheetListingTypes } from "@/lib/gdoc-listings/display";
+import { sheetListingCatalogHref, sheetListingTypes } from "@/lib/gdoc-listings/display";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
 import type { SheetListingCardView } from "@/lib/dal/gdoc-listings";
@@ -10,14 +7,16 @@ import type { SheetListingCardView } from "@/lib/dal/gdoc-listings";
 export function SheetListingCatalog({
   listings,
   locale,
+  query = "",
+  propertyType = "",
 }: {
   listings: SheetListingCardView[];
   locale: Locale;
+  query?: string;
+  propertyType?: string;
 }) {
   const copy = propertyListingStrings[locale];
-  const [query, setQuery] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const types = useMemo(() => sheetListingTypes(listings), [listings]);
+  const types = sheetListingTypes(listings);
   const needle = query.trim().toLowerCase();
   const visible = listings.filter((listing) => {
     if (propertyType && listing.propertyType !== propertyType) return false;
@@ -29,16 +28,16 @@ export function SheetListingCatalog({
   return (
     <div>
       <form
+        method="get"
+        action={sheetListingCatalogHref(locale)}
         className="grid gap-3 border border-line bg-panel p-4 sm:grid-cols-[minmax(0,1fr)_12rem_auto]"
-        onSubmit={(event) => event.preventDefault()}
       >
         <label className="block text-sm text-ink">
           {copy.search}
           <input
             type="search"
             name="q"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            defaultValue={query}
             autoComplete="off"
             placeholder={copy.searchPlaceholder}
             className="mt-1 min-h-12 w-full border border-line bg-paper px-3 text-base text-ink"
@@ -48,8 +47,7 @@ export function SheetListingCatalog({
           {copy.propertyType}
           <select
             name="type"
-            value={propertyType}
-            onChange={(event) => setPropertyType(event.target.value)}
+            defaultValue={propertyType}
             className="mt-1 min-h-12 w-full border border-line bg-paper px-3 text-base text-ink"
           >
             <option value="">{copy.allTypes}</option>

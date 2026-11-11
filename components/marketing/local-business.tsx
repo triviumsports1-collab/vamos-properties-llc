@@ -11,6 +11,11 @@ export function LocalBusinessJsonLd() {
         name: site.name,
         url: site.url,
         telephone: site.phoneDisplay,
+        email: site.email,
+        employee: [
+          { "@type": "Person", name: "Patrick Szymczak", email: site.patrickEmail, jobTitle: "Founder" },
+          { "@type": "Person", name: "Jaime Miranda", email: site.jaimeEmail, jobTitle: "Founder" },
+        ],
         areaServed: areas.map((area) => ({
           "@type": "City",
           name: area.name,

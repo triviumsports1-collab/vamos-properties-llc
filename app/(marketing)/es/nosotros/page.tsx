@@ -69,6 +69,14 @@ export default async function SpanishAboutPage() {
                 </dd>
               </div>
               <div>
+                <dt className="text-sm text-muted">Correo</dt>
+                <dd className="mt-2">
+                  <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center break-all text-lg font-semibold text-ink">
+                    {site.email}
+                  </a>
+                </dd>
+              </div>
+              <div>
                 <dt className="text-sm text-muted">Horario</dt>
                 <dd className="mt-2 text-lg leading-8 text-ink">8:00 a.m. a 7:00 p.m., los siete días</dd>
               </div>

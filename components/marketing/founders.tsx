@@ -1,18 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
+import { site } from "@/lib/site";
 
 const people = [
   {
-    name: "Patrick",
-    src: "/founders/patrick.jpg",
-    alt: "Patrick, co-founder of Vamos Properties",
+    name: "Patrick Szymczak",
+    src: "/founders/patrick-szymczak.jpg",
+    alt: "Patrick Szymczak",
     line: "Talks through the numbers and the date on the notice.",
+    email: site.patrickEmail,
   },
   {
     name: "Jaime Miranda",
     src: "/founders/jaime-miranda.jpg",
     alt: "Jaime Miranda, co-founder of Vamos Properties",
     line: "Stays on the paperwork from the first call to the title company.",
+    email: site.jaimeEmail,
   },
 ];
 
@@ -20,7 +23,7 @@ export function Founders({ linked = false }: { linked?: boolean }) {
   return (
     <section>
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick and Jaime Miranda</h2>
+        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick Szymczak and Jaime Miranda</h2>
         {linked ? (
           <Link href="/about" className="text-sm text-pine">
             About us
@@ -45,6 +48,12 @@ export function Founders({ linked = false }: { linked?: boolean }) {
             <figcaption className="mt-3">
               <span className="block font-serif text-2xl text-ink">{person.name}</span>
               <span className="mt-1 block text-sm leading-6 text-muted">{person.line}</span>
+              <a
+                href={`mailto:${person.email}`}
+                className="mt-2 inline-flex min-h-11 items-center break-all text-sm font-semibold text-link"
+              >
+                {person.email}
+              </a>
             </figcaption>
           </figure>
         ))}

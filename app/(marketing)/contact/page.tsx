@@ -31,12 +31,20 @@ export default async function ContactPage() {
           <Link href="/stop-foreclosure" className="font-semibold text-link">a foreclosure date</Link>, or{" "}
           <Link href="/guides" className="font-semibold text-link">the short guides</Link>.
         </p>
-        <dl className="mt-10 grid gap-8 sm:grid-cols-3">
+        <dl className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <dt className="text-sm text-muted">Phone</dt>
             <dd className="mt-2">
               <a href={site.phoneTel} className="text-2xl font-semibold text-ink sm:text-3xl">
                 {site.phoneDisplay}
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted">Email</dt>
+            <dd className="mt-2">
+              <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center break-all text-lg font-semibold text-ink">
+                {site.email}
               </a>
             </dd>
           </div>

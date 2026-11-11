@@ -17,11 +17,13 @@ export function SheetListingRowActions({
   title,
   removed,
   publicVisible,
+  compact = false,
 }: {
   slug: string;
   title: string;
   removed: boolean;
   publicVisible: boolean;
+  compact?: boolean;
 }) {
   const router = useRouter();
   const offRef = useRef<HTMLDialogElement>(null);
@@ -41,14 +43,16 @@ export function SheetListingRowActions({
     router.refresh();
   }, [stamp, router]);
 
-  return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <Link
-        href={`/admin/sheet-listings/${encodeURIComponent(slug)}`}
-        className="inline-flex min-h-11 items-center border border-line bg-paper px-3 text-sm text-ink"
-      >
-        Edit
-      </Link>
+  const editLink = (
+    <Link
+      href={`/admin/sheet-listings/${encodeURIComponent(slug)}`}
+      className="inline-flex min-h-11 items-center border border-line bg-paper px-3 text-sm text-ink"
+    >
+      Edit
+    </Link>
+  );
+  const extraActions = (
+    <>
       {publicVisible ? (
         <Link href={sheetListingHref(slug)} className="inline-flex min-h-11 items-center px-3 text-sm text-pine">
           Public page
@@ -78,6 +82,29 @@ export function SheetListingRowActions({
       >
         Remove
       </button>
+    </>
+  );
+
+  return (
+    <div className={`${compact ? "mt-1" : "mt-3"} flex flex-wrap items-center gap-2`}>
+      {compact ? (
+        <>
+          {editLink}
+          <details className="relative">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center px-3 text-sm text-pine [&::-webkit-details-marker]:hidden">
+              More
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 flex min-w-40 max-w-[calc(100vw-2rem)] flex-col border border-line bg-panel p-2 shadow-lg">
+              {extraActions}
+            </div>
+          </details>
+        </>
+      ) : (
+        <>
+          {editLink}
+          {extraActions}
+        </>
+      )}
       {notice ? <div className="basis-full">{notice}</div> : null}
 
       <ConfirmDialog
@@ -150,7 +177,7 @@ function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
-      className="w-[min(28rem,calc(100%-2rem))] border border-line bg-panel p-5 text-ink shadow-lg backdrop:bg-navy/50"
+      className="dialog-box"
       aria-labelledby={`${slug}-${confirmLabel}`}
     >
       <form action={action} aria-busy={pending}>

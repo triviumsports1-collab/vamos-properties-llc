@@ -152,7 +152,7 @@ export function SheetListingEditForm({ listing }: { listing: SheetListingAdminDe
       </form>
       <dialog
         ref={confirmRef}
-        className="w-[min(28rem,calc(100%-2rem))] border border-line bg-panel p-5 text-ink shadow-lg backdrop:bg-navy/50"
+        className="dialog-box"
         aria-labelledby="sheet-status-confirm"
       >
         <h3 id="sheet-status-confirm" className="text-lg font-semibold text-ink">

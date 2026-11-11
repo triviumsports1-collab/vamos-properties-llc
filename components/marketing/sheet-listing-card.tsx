@@ -1,6 +1,5 @@
-"use client";
-
 import Link from "next/link";
+import { ListingPhoto } from "@/components/marketing/listing-photo";
 import { SheetListingFlags, SheetListingPriceChange } from "@/components/marketing/sheet-listing-flags";
 import { sheetListingHref, sheetListingPlace } from "@/lib/gdoc-listings/display";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
@@ -11,9 +10,13 @@ import type { SheetListingCardView } from "@/lib/dal/gdoc-listings";
 export function SheetListingCard({
   listing,
   locale,
+  className = "",
+  heading: Heading = "h2",
 }: {
   listing: SheetListingCardView;
   locale: Locale;
+  className?: string;
+  heading?: "h2" | "h3";
 }) {
   const copy = propertyListingStrings[locale];
   const numberLocale = locale === "es" ? "es-US" : "en-US";
@@ -26,15 +29,14 @@ export function SheetListingCard({
   const place = sheetListingPlace(listing);
 
   return (
-    <article className="flex h-full flex-col border border-line bg-panel">
-      <Link href={sheetListingHref(listing.id, locale)} className="flex h-full flex-col">
+    <article className={`flex h-full flex-col border border-line bg-panel ${className}`.trim()}>
+      <Link href={sheetListingHref(listing.id, locale)} className="flex h-full min-h-11 flex-col">
         <div className="relative aspect-[4/3] bg-mist">
           {listing.coverPhoto ? (
-            <img
+            <ListingPhoto
               src={listing.coverPhoto}
               alt={`${listing.title} at ${place}`}
-              referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
             <p className="grid h-full place-items-center px-4 text-center text-sm text-muted">{copy.photoComing}</p>
@@ -45,10 +47,10 @@ export function SheetListingCard({
         </div>
         <div className="flex flex-1 flex-col px-4 py-4">
           <p className="text-sm text-muted">{[listing.city, typeLabel].filter(Boolean).join(" · ")}</p>
-          <h2 className="mt-1 text-lg font-semibold text-ink">{listing.title}</h2>
+          <Heading className="mt-1 text-lg font-semibold text-ink">{listing.title}</Heading>
           <p className="mt-1 text-sm text-muted">{place}</p>
           <p className="mt-3 text-2xl font-semibold text-ink">
-            {listing.listPrice != null ? formatMoney(listing.listPrice) : copy.callForPrice}
+            {listing.displayPrice != null ? formatMoney(listing.displayPrice) : copy.callForPrice}
           </p>
           <SheetListingPriceChange
             listPrice={listing.listPrice}

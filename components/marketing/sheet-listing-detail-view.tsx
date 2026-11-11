@@ -4,6 +4,7 @@ import { ShareListing } from "@/components/marketing/share-listing";
 import { SheetListingFlags, SheetListingPriceChange } from "@/components/marketing/sheet-listing-flags";
 import { SheetListingInquiry } from "@/components/marketing/sheet-listing-inquiry";
 import { SheetListingPhotos } from "@/components/marketing/sheet-listing-photos";
+import { SheetListingSimilar } from "@/components/marketing/sheet-listing-similar";
 import {
   sheetListingCatalogHref,
   sheetListingForSaleLabel,
@@ -13,22 +14,24 @@ import {
 import { sheetListingJsonLd, sheetListingPublicUrl } from "@/lib/gdoc-listings/seo";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
-import type { SheetListingView } from "@/lib/gdoc-listings/types";
+import type { SheetListingCardView, SheetListingView } from "@/lib/gdoc-listings/types";
 import { formatMoney } from "@/lib/listings/money";
 import { site } from "@/lib/site";
 
 export function SheetListingDetailView({
   listing,
+  similar = [],
   locale,
 }: {
   listing: SheetListingView;
+  similar?: SheetListingCardView[];
   locale: Locale;
 }) {
   const copy = propertyListingStrings[locale];
   const place = sheetListingPlace(listing);
   const typeLabel = sheetListingTypeLabel(listing.propertyType, locale);
   const pageUrl = sheetListingPublicUrl(listing, locale);
-  const price = listing.listPrice != null ? formatMoney(listing.listPrice) : copy.callForPrice;
+  const price = listing.displayPrice != null ? formatMoney(listing.displayPrice) : copy.callForPrice;
   const statusLabel = sheetListingForSaleLabel(listing.status, locale);
   const numberLocale = locale === "es" ? "es-US" : "en-US";
   const stats = [
@@ -144,7 +147,13 @@ export function SheetListingDetailView({
                   {listing.latitude != null && listing.longitude != null ? copy.mapCoords : copy.mapAddress}
                 </p>
                 <div className="mt-4 overflow-hidden rounded-2xl border border-line">
-                  <iframe title={copy.mapTitle(listing.address)} src={`https://maps.google.com/maps?q=${mapQuery}&z=14&output=embed`} className="h-72 w-full" />
+                  <iframe
+                    title={copy.mapTitle(listing.address)}
+                    src={`https://maps.google.com/maps?q=${mapQuery}&z=14&output=embed`}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="h-72 w-full"
+                  />
                 </div>
                 <a href={`https://maps.google.com/maps?q=${mapQuery}`} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-pine">
                   {copy.openMap}
@@ -180,6 +189,7 @@ export function SheetListingDetailView({
             </aside>
           </div>
         </SheetListingPhotos>
+        <SheetListingSimilar listings={similar} locale={locale} />
       </div>
     </div>
   );

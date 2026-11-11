@@ -1,10 +1,10 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/marketing/post-card";
 import { Section } from "@/components/marketing/section";
-import { getCategoryArchive } from "@/lib/dal/blog";
+import { BLOG_TAG, getCategoryArchive } from "@/lib/dal/blog";
 
 export const instant = false;
 
@@ -13,6 +13,7 @@ type CategoryParams = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: CategoryParams): Promise<Metadata> {
   "use cache";
   cacheLife("hours");
+  cacheTag(BLOG_TAG);
   const { slug } = await params;
   const category = await getCategoryArchive(slug);
   if (!category) return {};
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: CategoryParams): Promise<Meta
 export default async function CategoryPage({ params }: CategoryParams) {
   "use cache";
   cacheLife("hours");
+  cacheTag(BLOG_TAG);
   const { slug } = await params;
   const category = await getCategoryArchive(slug);
   if (!category) notFound();

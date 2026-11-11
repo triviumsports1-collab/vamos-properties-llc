@@ -9,15 +9,31 @@ import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import type { SheetListingStatus } from "@/lib/gdoc-listings/status";
 import { randomUUID } from "node:crypto";
 import { SheetSyncError } from "@/lib/gdoc-listings/errors";
+import type { AdminActor } from "@/lib/dal/users";
+import {
+  applyMarginRule,
+  engineMatchReason,
+  engineMatchRule,
+  matchPricingEngine,
+  MAX_MARGIN_BATCH,
+  publicDisplayPrice,
+  recomputeStoredMargin,
+  sameMargin,
+  type GlobalPricingRule,
+  type MarginRule,
+} from "@/lib/gdoc-listings/margin";
 import type {
   SheetGalleryGroup,
   SheetListingAdminDetail,
   SheetListingAdminFilters,
+  SheetListingAdminPlaces,
   SheetListingAdminRow,
   SheetListingAdminSummary,
   SheetListingCardView,
+  SheetListingMarginEventView,
   SheetListingSpec,
   SheetListingView,
+  SheetMarginAuditDraft,
   SheetSyncEventDraft,
   SheetSyncEventView,
   SheetSyncRunView,
@@ -33,6 +49,37 @@ export async function listPublicSheetListings(): Promise<SheetListingView[]> {
     orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
   });
   return rows.map(toView);
+}
+
+const catalogCardSelect = {
+  slug: true,
+  title: true,
+  address: true,
+  city: true,
+  listPrice: true,
+  finalDisplayPrice: true,
+  marginAmount: true,
+  arv: true,
+  beds: true,
+  baths: true,
+  sqft: true,
+  propertyType: true,
+  coverPhoto: true,
+  photos: true,
+  status: true,
+  previousPrice: true,
+  drop: true,
+  priceDropped: true,
+  updated: true,
+} as const;
+
+export async function listPublicSheetListingCards(): Promise<SheetListingCardView[]> {
+  const rows = await getDb().sheetListing.findMany({
+    where: { status: PUBLIC_STATUS, removedAt: null },
+    select: catalogCardSelect,
+    orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+  });
+  return rows.map(toCardFromRow);
 }
 
 export async function getPublicSheetListingById(id: string): Promise<SheetListingView | null> {
@@ -52,6 +99,70 @@ export async function getPublicSheetListingById(id: string): Promise<SheetListin
     },
   });
   return row ? toView(row) : null;
+}
+
+const SIMILAR_LIMIT = 3;
+const SIMILAR_CANDIDATES = 24;
+const SIMILAR_PRICE_RATIO = 0.2;
+const SIMILAR_PRICE_FLOOR = 100_000;
+
+export type SheetListingSimilarSeed = {
+  id: string;
+  listingCode: string;
+  city: string;
+  localTargetArea: string;
+  displayPrice: number | null;
+  listPrice: number | null;
+  propertyType: string;
+};
+
+export async function listPublicSimilarSheetListings(
+  seed: SheetListingSimilarSeed,
+): Promise<SheetListingCardView[]> {
+  const slug = seed.id.trim();
+  if (!slug) return [];
+
+  const city = seed.city.trim();
+  const area = seed.localTargetArea.trim();
+  const price = seed.displayPrice ?? seed.listPrice;
+  const band = price != null ? similarPriceBand(price) : null;
+  const locationOr: Prisma.SheetListingWhereInput[] = [];
+  if (city) locationOr.push({ city: { equals: city, mode: "insensitive" } });
+  if (area) locationOr.push({ localTargetArea: { equals: area, mode: "insensitive" } });
+  const matchOr: Prisma.SheetListingWhereInput[] = [...locationOr];
+  if (band) {
+    matchOr.push({ finalDisplayPrice: { gte: band.min, lte: band.max } });
+    matchOr.push({
+      AND: [{ finalDisplayPrice: null }, { listPrice: { gte: band.min, lte: band.max } }],
+    });
+  }
+  if (matchOr.length === 0) return [];
+
+  const notSelf: Prisma.SheetListingWhereInput[] = [{ slug }];
+  const listingCode = seed.listingCode.trim().toUpperCase();
+  if (listingCode) notSelf.push({ listingCode });
+
+  const rows = await getDb().sheetListing.findMany({
+    where: {
+      status: PUBLIC_STATUS,
+      removedAt: null,
+      NOT: notSelf.length === 1 ? notSelf[0] : { OR: notSelf },
+      OR: matchOr,
+    },
+    select: similarCardSelect,
+    orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+    take: SIMILAR_CANDIDATES,
+  });
+
+  return rankSimilarSheetListings(rows, {
+    slug,
+    listingCode,
+    city,
+    area,
+    price,
+    propertyType: seed.propertyType.trim().toLowerCase(),
+    band,
+  }).slice(0, SIMILAR_LIMIT);
 }
 
 export async function listSheetListingSlugs(): Promise<string[]> {
@@ -74,30 +185,42 @@ export async function listSheetListingSitemapEntries(): Promise<Array<{ slug: st
 
 export async function getSheetListingAdminSummary(): Promise<SheetListingAdminSummary> {
   await requireAdmin();
-  const rows = await getDb().sheetListing.findMany({
-    select: { status: true, removedAt: true, syncedAt: true },
-    orderBy: { syncedAt: "desc" },
-  });
-  let active = 0;
-  let inactive = 0;
-  let sold = 0;
-  let underContract = 0;
-  for (const row of rows) {
-    if (row.status === "inactive" || row.removedAt) inactive += 1;
-    if (row.status === PUBLIC_STATUS && row.removedAt == null) active += 1;
-    if (row.status === "sold" && row.removedAt == null) sold += 1;
-    if (row.status === "under_contract" && row.removedAt == null) underContract += 1;
-  }
+  const db = getDb();
+  const [total, active, inactive, sold, underContract, withMargin, customMargins, latest] = await Promise.all([
+    db.sheetListing.count(),
+    db.sheetListing.count({ where: { status: PUBLIC_STATUS, removedAt: null } }),
+    db.sheetListing.count({ where: { OR: [{ status: "inactive" }, { removedAt: { not: null } }] } }),
+    db.sheetListing.count({ where: { status: "sold", removedAt: null } }),
+    db.sheetListing.count({ where: { status: "under_contract", removedAt: null } }),
+    db.sheetListing.count({ where: { marginAmount: { not: null } } }),
+    db.sheetListing.count({ where: { marginOverride: true } }),
+    db.sheetListing.findFirst({
+      select: { syncedAt: true },
+      orderBy: { syncedAt: "desc" },
+    }),
+  ]);
   return {
-    total: rows.length,
+    total,
     active,
     inactive,
     sold,
     underContract,
-    hidden: Math.max(0, rows.length - active),
-    lastSyncedAt: rows[0]?.syncedAt.toISOString() ?? null,
+    hidden: Math.max(0, total - active),
+    withMargin,
+    customMargins,
+    lastSyncedAt: latest?.syncedAt.toISOString() ?? null,
     sheetsReady: googleSheetsConfigured(),
   };
+}
+
+export async function listAdminSheetListingPlaces(): Promise<SheetListingAdminPlaces> {
+  await requireAdmin();
+  const rows = await getDb().sheetListing.findMany({
+    select: { city: true, localTargetArea: true },
+  });
+  const cities = uniqueSorted(rows.map((row) => row.city));
+  const regions = uniqueSorted(rows.map((row) => row.localTargetArea));
+  return { cities, regions };
 }
 
 export async function listAdminSheetListings(filters?: SheetListingAdminFilters): Promise<SheetListingAdminRow[]> {
@@ -111,7 +234,12 @@ export async function listAdminSheetListings(filters?: SheetListingAdminFilters)
       title: true,
       address: true,
       city: true,
+      localTargetArea: true,
       listPrice: true,
+      marginAmount: true,
+      marginPercentBps: true,
+      marginOverride: true,
+      finalDisplayPrice: true,
       previousPrice: true,
       status: true,
       removedAt: true,
@@ -223,6 +351,7 @@ export async function updateAdminSheetListing(
   const previousPrice = priceChanged ? existing.listPrice : existing.previousPrice;
   const drop = dropAmount(previousPrice, input.listPrice);
   const removedAt = input.status === "inactive" ? (existing.removedAt ?? now) : null;
+  const margin = recomputeStoredMargin(input.listPrice, existing.marginAmount, existing.marginPercentBps);
 
   await getDb().sheetListing.update({
     where: { id: existing.id },
@@ -233,6 +362,9 @@ export async function updateAdminSheetListing(
       address: input.address,
       city: input.city || null,
       listPrice: input.listPrice,
+      marginAmount: margin.marginAmount,
+      marginPercentBps: margin.marginPercentBps,
+      finalDisplayPrice: margin.finalDisplayPrice,
       previousPrice,
       drop,
       priceChangedAt: priceChanged ? now : existing.priceChangedAt,
@@ -300,6 +432,149 @@ export async function deleteAdminSheetListing(slug: string): Promise<{ ok: true 
   return { ok: true };
 }
 
+export async function applySheetListingMargins(input: {
+  actor: AdminActor;
+  scope: "one" | "selected" | "filtered";
+  slugs: string[];
+  filters: SheetListingAdminFilters;
+  rule: MarginRule;
+  override?: boolean;
+  engine?: GlobalPricingRule;
+}): Promise<{ ok: true; updated: number; skipped: number; slugs: string[] } | { ok: false; message: string }> {
+  await requireAdmin();
+  const rows = await loadMarginTargets(input);
+  if (!rows) return { ok: false, message: "Those sheet homes are not on this desk." };
+  if (rows.length === 0) return { ok: false, message: "No sheet homes match that selection." };
+  if (rows.length > MAX_MARGIN_BATCH) {
+    return { ok: false, message: `Select up to ${MAX_MARGIN_BATCH} homes at a time.` };
+  }
+
+  const now = new Date();
+  const batchId = randomUUID();
+  const override = input.override ?? true;
+  let updated = 0;
+  let skipped = 0;
+  const changed: string[] = [];
+
+  await getDb().$transaction(
+    async (tx) => {
+      for (const row of rows) {
+        const current = {
+          marginAmount: row.marginAmount,
+          marginPercentBps: row.marginPercentBps,
+          finalDisplayPrice: row.finalDisplayPrice ?? row.listPrice,
+        };
+        const match = !override && input.engine ? matchPricingEngine(row.listPrice, input.engine) : null;
+        const rule =
+          match == null
+            ? input.rule
+            : match.kind === "off"
+              ? { type: "clear" as const }
+              : engineMatchRule(match);
+        if (!rule) {
+          skipped += 1;
+          continue;
+        }
+        const applied = applyMarginRule(row.listPrice, rule);
+        if (applied.skipped && override) {
+          skipped += 1;
+          continue;
+        }
+        const next = applied.skipped
+          ? { marginAmount: null, marginPercentBps: null, finalDisplayPrice: row.listPrice }
+          : applied;
+        if (sameMargin(current, next) && row.marginOverride === override) {
+          skipped += 1;
+          continue;
+        }
+        const action = override
+          ? marginAuditAction(input.scope, rule.type === "clear")
+          : rule.type === "clear"
+            ? "follow_clear"
+            : "follow_set";
+        await tx.sheetListing.update({
+          where: { id: row.id },
+          data: {
+            marginAmount: next.marginAmount,
+            marginPercentBps: next.marginPercentBps,
+            finalDisplayPrice: next.finalDisplayPrice,
+            marginOverride: override,
+            marginUpdatedAt: now,
+            marginUpdatedById: input.actor.id,
+          },
+        });
+        await tx.sheetListingMarginEvent.create({
+          data: {
+            listingId: row.id,
+            listingCode: row.listingCode,
+            slug: row.slug,
+            batchId,
+            actorId: input.actor.id,
+            actorEmail: input.actor.email,
+            action,
+            mode: rule.type,
+            previousAmount: row.marginAmount,
+            nextAmount: next.marginAmount,
+            previousPercentBps: row.marginPercentBps,
+            nextPercentBps: next.marginPercentBps,
+            listPrice: row.listPrice,
+            previousDisplay: current.finalDisplayPrice,
+            nextDisplay: next.finalDisplayPrice,
+            reason: override
+              ? input.scope === "filtered"
+                ? "filter_match"
+                : input.scope === "selected"
+                  ? "bulk_selected"
+                  : "single"
+              : `follow_global;${match ? engineMatchReason(match) : "engine"}`,
+          },
+        });
+        updated += 1;
+        changed.push(row.slug);
+      }
+    },
+    { timeout: 20_000, maxWait: 5_000 },
+  );
+
+  if (updated === 0) {
+    return {
+      ok: false,
+      message: skipped
+        ? override
+          ? "Those homes already have that markup."
+          : "Those homes already follow the global rule."
+        : "No sheet homes were changed.",
+    };
+  }
+  return { ok: true, updated, skipped, slugs: changed };
+}
+
+export async function listSheetListingMarginEvents(id: string): Promise<SheetListingMarginEventView[]> {
+  await requireAdmin();
+  const needle = id.trim();
+  if (!needle) return [];
+  const rows = await getDb().sheetListingMarginEvent.findMany({
+    where: { OR: [{ slug: needle }, { listingCode: needle.toUpperCase() }] },
+    orderBy: { id: "desc" },
+    take: 12,
+  });
+  return rows.map((row) => ({
+    slug: row.slug,
+    listingCode: row.listingCode ?? "",
+    actorEmail: row.actorEmail,
+    action: row.action,
+    mode: row.mode,
+    previousAmount: row.previousAmount,
+    nextAmount: row.nextAmount,
+    previousPercentBps: row.previousPercentBps,
+    nextPercentBps: row.nextPercentBps,
+    listPrice: row.listPrice,
+    previousDisplay: row.previousDisplay,
+    nextDisplay: row.nextDisplay,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
 export async function listSheetListingRecords() {
   return getDb().sheetListing.findMany({
     select: {
@@ -308,6 +583,10 @@ export async function listSheetListingRecords() {
       slug: true,
       listingCode: true,
       listPrice: true,
+      marginAmount: true,
+      marginPercentBps: true,
+      marginOverride: true,
+      finalDisplayPrice: true,
       previousPrice: true,
       priceChangedAt: true,
       contentHash: true,
@@ -380,6 +659,8 @@ export async function applySheetListingSync(input: {
   updates: Array<{ id: number; data: Prisma.SheetListingUpdateInput }>;
   staleIds: number[];
   events: SheetSyncEventDraft[];
+  marginEvents?: SheetMarginAuditDraft[];
+  marginBatchId?: string;
   counts: {
     rows: number;
     uniqueCount: number;
@@ -420,6 +701,40 @@ export async function applySheetListingSync(input: {
             action: event.action,
             reason: event.reason,
           })),
+        });
+      }
+      if (input.marginEvents && input.marginEvents.length > 0) {
+        const slugs = [...new Set(input.marginEvents.map((event) => event.slug))];
+        const homes = await tx.sheetListing.findMany({
+          where: { slug: { in: slugs } },
+          select: { id: true, slug: true },
+        });
+        const idBySlug = new Map(homes.map((home) => [home.slug, home.id]));
+        const batchId = input.marginBatchId || `sync-${input.runId}`;
+        await tx.sheetListingMarginEvent.createMany({
+          data: input.marginEvents.flatMap((event) => {
+            const listingId = idBySlug.get(event.slug);
+            if (!listingId) return [];
+            return [
+              {
+                listingId,
+                listingCode: event.listingCode || null,
+                slug: event.slug,
+                batchId,
+                actorEmail: "sheet-sync",
+                action: event.action,
+                mode: event.mode,
+                previousAmount: event.previousAmount,
+                nextAmount: event.nextAmount,
+                previousPercentBps: event.previousPercentBps,
+                nextPercentBps: event.nextPercentBps,
+                listPrice: event.listPrice,
+                previousDisplay: event.previousDisplay,
+                nextDisplay: event.nextDisplay,
+                reason: event.reason,
+              },
+            ];
+          }),
         });
       }
       await tx.sheetSyncRun.update({
@@ -563,8 +878,78 @@ function adminListWhere(filters?: SheetListingAdminFilters): Prisma.SheetListing
       },
     });
   }
+  if (filters.city?.trim()) {
+    clauses.push({ city: { equals: filters.city.trim(), mode: "insensitive" } });
+  }
+  if (filters.region?.trim()) {
+    clauses.push({ localTargetArea: { equals: filters.region.trim(), mode: "insensitive" } });
+  }
+  if (filters.margin === "with") {
+    clauses.push({ marginAmount: { not: null } });
+  } else if (filters.margin === "without") {
+    clauses.push({ marginAmount: null });
+  }
   if (clauses.length === 0) return {};
   return { AND: clauses };
+}
+
+async function loadMarginTargets(input: {
+  scope: "one" | "selected" | "filtered";
+  slugs: string[];
+  filters: SheetListingAdminFilters;
+}) {
+  const select = {
+    id: true,
+    slug: true,
+    listingCode: true,
+    listPrice: true,
+    marginAmount: true,
+    marginPercentBps: true,
+    marginOverride: true,
+    finalDisplayPrice: true,
+  } as const;
+  if (input.scope === "filtered") {
+    return getDb().sheetListing.findMany({
+      where: adminListWhere(input.filters),
+      select,
+      orderBy: { id: "asc" },
+    });
+  }
+  const needles = uniqueSorted(input.slugs.map((slug) => slug.trim()).filter(Boolean));
+  if (needles.length === 0) return [];
+  if (input.scope === "one" && needles.length !== 1) return null;
+  const rows = await getDb().sheetListing.findMany({
+    where: {
+      OR: needles.flatMap((needle) => [{ slug: needle }, { listingCode: needle.toUpperCase() }]),
+    },
+    select,
+  });
+  const seen = new Set<number>();
+  return rows.filter((row) => {
+    if (seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+}
+
+function marginAuditAction(scope: "one" | "selected" | "filtered", clear: boolean) {
+  if (scope === "filtered") return clear ? "filter_clear" : "filter_set";
+  if (scope === "selected") return clear ? "bulk_clear" : "bulk_set";
+  return clear ? "clear" : "set";
+}
+
+function uniqueSorted(values: Array<string | null | undefined>) {
+  const seen = new Set<string>();
+  const items: string[] = [];
+  for (const value of values) {
+    const next = value?.trim();
+    if (!next) continue;
+    const key = next.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    items.push(next);
+  }
+  return items.sort((left, right) => left.localeCompare(right));
 }
 
 async function findAdminSheetListing(id: string) {
@@ -581,7 +966,12 @@ function toAdminRow(row: {
   title: string;
   address: string;
   city: string | null;
+  localTargetArea?: string | null;
   listPrice: number | null;
+  marginAmount?: number | null;
+  marginPercentBps?: number | null;
+  marginOverride?: boolean;
+  finalDisplayPrice?: number | null;
   previousPrice: number | null;
   status: string;
   removedAt: Date | null;
@@ -590,13 +980,20 @@ function toAdminRow(row: {
   priceDropped: boolean;
   updated: boolean;
 }): SheetListingAdminRow {
+  const marginAmount = row.marginAmount ?? null;
+  const marginPercentBps = row.marginPercentBps ?? null;
   return {
     id: row.slug,
     listingCode: row.listingCode ?? "",
     title: row.title,
     address: row.address,
     city: row.city ?? "",
+    region: row.localTargetArea ?? "",
     listPrice: row.listPrice,
+    marginAmount,
+    marginPercentBps,
+    marginOverride: row.marginOverride ?? false,
+    finalDisplayPrice: publicDisplayPrice(row.listPrice, row.finalDisplayPrice ?? null, marginAmount),
     previousPrice: row.previousPrice,
     status: row.status,
     removed: row.removedAt != null,
@@ -614,6 +1011,8 @@ export function toSheetListingCard(listing: SheetListingView): SheetListingCardV
     address: listing.address,
     city: listing.city,
     listPrice: listing.listPrice,
+    displayPrice: listing.displayPrice,
+    marginAmount: listing.marginAmount,
     arv: listing.arv,
     beds: listing.beds,
     baths: listing.baths,
@@ -628,10 +1027,150 @@ export function toSheetListingCard(listing: SheetListingView): SheetListingCardV
   };
 }
 
+const similarCardSelect = {
+  slug: true,
+  title: true,
+  address: true,
+  city: true,
+  listPrice: true,
+  finalDisplayPrice: true,
+  marginAmount: true,
+  arv: true,
+  beds: true,
+  baths: true,
+  sqft: true,
+  propertyType: true,
+  coverPhoto: true,
+  photos: true,
+  status: true,
+  previousPrice: true,
+  drop: true,
+  priceDropped: true,
+  updated: true,
+  localTargetArea: true,
+  listingCode: true,
+} as const;
+
+type SimilarCardRow = {
+  slug: string;
+  title: string;
+  address: string;
+  city: string | null;
+  listPrice: number | null;
+  finalDisplayPrice: number | null;
+  marginAmount: number | null;
+  arv: number | null;
+  beds: number | null;
+  baths: string | null;
+  sqft: number | null;
+  propertyType: string | null;
+  coverPhoto: string | null;
+  photos: string | null;
+  status: string;
+  previousPrice: number | null;
+  drop: number | null;
+  priceDropped: boolean;
+  updated: boolean;
+  localTargetArea: string | null;
+  listingCode: string | null;
+};
+
+function similarPriceBand(price: number) {
+  const delta = Math.max(Math.round(price * SIMILAR_PRICE_RATIO), SIMILAR_PRICE_FLOOR);
+  return { min: Math.max(1, price - delta), max: price + delta };
+}
+
+function rankSimilarSheetListings(
+  rows: SimilarCardRow[],
+  seed: {
+    slug: string;
+    listingCode: string;
+    city: string;
+    area: string;
+    price: number | null;
+    propertyType: string;
+    band: { min: number; max: number } | null;
+  },
+) {
+  const cityKey = seed.city.toLowerCase();
+  const areaKey = seed.area.toLowerCase();
+  const scored = rows
+    .filter((row) => row.slug !== seed.slug && (!seed.listingCode || (row.listingCode ?? "").toUpperCase() !== seed.listingCode))
+    .map((row) => {
+      const displayPrice = publicDisplayPrice(row.listPrice, row.finalDisplayPrice, row.marginAmount);
+      const city = (row.city ?? "").trim().toLowerCase();
+      const area = (row.localTargetArea ?? "").trim().toLowerCase();
+      const type = (row.propertyType ?? "").trim().toLowerCase();
+      let score = 0;
+      if (cityKey && city === cityKey) score += 100;
+      if (areaKey && area === areaKey) score += 40;
+      if (seed.propertyType && type === seed.propertyType) score += 15;
+      if (seed.price != null && displayPrice != null && seed.band) {
+        const span = Math.max(1, seed.band.max - seed.band.min);
+        const distance = Math.abs(displayPrice - seed.price);
+        score += Math.round(50 * (1 - Math.min(1, distance / span)));
+      }
+      return { row, displayPrice, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((left, right) => right.score - left.score || left.row.slug.localeCompare(right.row.slug));
+
+  return scored.map((item) => toSimilarCard(item.row, item.displayPrice));
+}
+
+function toCardFromRow(row: {
+  slug: string;
+  title: string;
+  address: string;
+  city: string | null;
+  listPrice: number | null;
+  finalDisplayPrice: number | null;
+  marginAmount: number | null;
+  arv: number | null;
+  beds: number | null;
+  baths: string | null;
+  sqft: number | null;
+  propertyType: string | null;
+  coverPhoto: string | null;
+  photos?: string | null;
+  status: string;
+  previousPrice: number | null;
+  drop: number | null;
+  priceDropped: boolean;
+  updated: boolean;
+}): SheetListingCardView {
+  return {
+    id: row.slug,
+    title: row.title,
+    address: row.address,
+    city: row.city ?? "",
+    listPrice: row.listPrice,
+    displayPrice: publicDisplayPrice(row.listPrice, row.finalDisplayPrice, row.marginAmount),
+    marginAmount: row.marginAmount,
+    arv: row.arv,
+    beds: row.beds,
+    baths: row.baths ?? "",
+    sqft: row.sqft,
+    propertyType: row.propertyType ?? "",
+    coverPhoto: row.coverPhoto || parseStringArray(row.photos ?? null)[0] || "",
+    status: row.status,
+    previousPrice: row.previousPrice,
+    drop: row.drop,
+    priceDropped: row.priceDropped,
+    updated: row.updated,
+  };
+}
+
+function toSimilarCard(row: SimilarCardRow, displayPrice: number | null): SheetListingCardView {
+  return { ...toCardFromRow(row), displayPrice };
+}
+
 function toView(row: SheetListing): SheetListingView {
   const photos = parseStringArray(row.photos);
   const galleries = parseGalleries(row.galleries, photos);
   const listPrice = row.listPrice;
+  const marginAmount = row.marginAmount;
+  const displayPrice = publicDisplayPrice(listPrice, row.finalDisplayPrice, marginAmount);
   const previousPrice = row.previousPrice;
   const drop = row.drop ?? dropAmount(previousPrice, listPrice);
   const hoa = row.hoa ?? "";
@@ -654,6 +1193,8 @@ function toView(row: SheetListing): SheetListingView {
     address: row.address,
     city: row.city ?? "",
     listPrice,
+    displayPrice,
+    marginAmount,
     arv,
     beds,
     baths,
@@ -687,7 +1228,7 @@ function toView(row: SheetListing): SheetListingView {
     latitude: row.latitude,
     longitude: row.longitude,
     specs: listingSpecs({
-      listPrice,
+      listPrice: displayPrice,
       arv,
       beds,
       baths,

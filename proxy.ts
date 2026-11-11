@@ -63,6 +63,12 @@ export function proxy(request: NextRequest) {
     url.search = "";
     return NextResponse.redirect(url);
   }
+  if (pathname === "/admin/listings" || pathname.startsWith("/admin/listings/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/sheet-listings";
+    url.search = "";
+    return NextResponse.redirect(url, 308);
+  }
   return NextResponse.next();
 }
 

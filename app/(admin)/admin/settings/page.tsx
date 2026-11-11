@@ -41,6 +41,16 @@ async function Settings() {
             <dd className="mt-1 text-base text-ink">{site.phoneDisplay}</dd>
           </div>
           <div>
+            <dt className="text-sm text-muted">Public emails</dt>
+            <dd className="mt-1 text-base text-ink">
+              {site.email}
+              <span className="text-muted"> · </span>
+              {site.patrickEmail}
+              <span className="text-muted"> · </span>
+              {site.jaimeEmail}
+            </dd>
+          </div>
+          <div>
             <dt className="text-sm text-muted">Desk hours</dt>
             <dd className="mt-1 text-base text-ink">{site.hours}. First reply target is 5 minutes during 8:00 a.m. to 7:00 p.m. Phoenix time.</dd>
           </div>

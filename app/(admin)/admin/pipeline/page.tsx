@@ -70,7 +70,7 @@ async function Pipeline({ searchParams }: PipelineProps) {
 
 function Board({ leads }: { leads: QueueLead[] }) {
   return (
-    <div className="mt-6 flex gap-3 overflow-x-auto pb-4">
+    <div className="mt-6 flex gap-3 overflow-x-auto pb-4 touch-scroll">
       {leadStatuses.map((column) => {
         const cards = leads.filter((lead) => lead.status === column.value);
         return (

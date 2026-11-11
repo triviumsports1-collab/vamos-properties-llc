@@ -135,10 +135,10 @@ export function sheetListingJsonLd(listing: SheetListingView, locale: Locale = "
                 longitude: listing.longitude,
               }
             : undefined,
-        offers: listing.listPrice
+        offers: listing.displayPrice
           ? {
               "@type": "Offer",
-              price: listing.listPrice,
+              price: listing.displayPrice,
               priceCurrency: "USD",
               availability: "https://schema.org/InStock",
               url: pageUrl,
@@ -150,6 +150,7 @@ export function sheetListingJsonLd(listing: SheetListingView, locale: Locale = "
         name: site.name,
         url: site.url,
         telephone: phone,
+        email: site.email,
         areaServed: listing.localTargetArea || (listing.city ? `${listing.city}, Arizona` : site.area),
       },
       {

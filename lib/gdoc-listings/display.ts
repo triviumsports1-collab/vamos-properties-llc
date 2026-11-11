@@ -9,6 +9,10 @@ export function sheetListingCatalogHref(locale: Locale = "en") {
   return locale === "es" ? PROPERTIES_CATALOG_PATH_ES : PROPERTIES_CATALOG_PATH;
 }
 
+export function catalogSearchValue(value?: string | string[]) {
+  return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
+}
+
 export function sheetListingHref(id: string, locale: Locale = "en") {
   return `${sheetListingCatalogHref(locale)}/${encodeURIComponent(id)}`;
 }
@@ -48,6 +52,25 @@ export function sheetSyncRunLabel(status: string) {
 
 export function sheetSyncTriggerLabel(trigger: string) {
   return trigger === "admin" ? "Desk" : "Webhook";
+}
+
+export function sheetPricingRuleEventLabel(event: {
+  action: string;
+  nextEnabled: boolean;
+  nextMode: string;
+  nextFlatAmount: number | null;
+  nextPercentBps: number | null;
+  updatedCount: number;
+  skippedCount: number;
+  heldCount: number;
+}) {
+  if (event.action === "apply_all") {
+    const homes = event.updatedCount === 1 ? "1 home" : `${event.updatedCount} homes`;
+    return `Applied markup brackets to ${homes}`;
+  }
+  if (event.action === "enable") return "Turned the global rule on";
+  if (event.action === "disable") return "Turned the global rule off";
+  return "Updated the global rule";
 }
 
 export function sheetSyncEventLabel(action: string, reason: string) {

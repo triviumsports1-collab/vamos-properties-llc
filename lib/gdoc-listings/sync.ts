@@ -1,6 +1,6 @@
 import "server-only";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import {
   applySheetListingSync,
@@ -9,14 +9,21 @@ import {
   listSheetListingRecords,
   releaseSheetSyncLock,
 } from "@/lib/dal/sheet-listings";
+import { getSheetPricingRule } from "@/lib/dal/sheet-pricing";
 import { SheetSyncError, sheetSyncErrorCode } from "@/lib/gdoc-listings/errors";
 import { fetchSheetValueRows } from "@/lib/gdoc-listings/fetch-sheet";
 import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import { sheetListingContentHash } from "@/lib/gdoc-listings/hash";
 import { foldSheetDrafts, parseSheetRows } from "@/lib/gdoc-listings/parse";
-import type { SheetListingDraft, SheetSyncEventDraft, SheetSyncTrigger } from "@/lib/gdoc-listings/types";
-import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
+import type {
+  SheetListingDraft,
+  SheetMarginAuditDraft,
+  SheetSyncEventDraft,
+  SheetSyncTrigger,
+} from "@/lib/gdoc-listings/types";
+import { resolveSyncMargin, sameMargin, type MarginFields } from "@/lib/gdoc-listings/margin";
 import { dropAmount } from "@/lib/listings/money";
+import { refreshSheetListingViews } from "@/lib/gdoc-listings/cache";
 
 export type SheetSyncResult = {
   ok: boolean;
@@ -99,6 +106,9 @@ async function applyDrafts(
   const creates: Prisma.SheetListingCreateManyInput[] = [];
   const updates: Array<{ id: number; data: Prisma.SheetListingUpdateInput }> = [];
   const events: SheetSyncEventDraft[] = [];
+  const marginEvents: SheetMarginAuditDraft[] = [];
+  const marginBatchId = randomUUID();
+  const engine = await getSheetPricingRule();
   const seenIds = new Set<number>();
   let unchanged = 0;
   let held = 0;
@@ -132,8 +142,11 @@ async function applyDrafts(
     if (!current) {
       const slug = pickSlug(draft, reservedSlugs);
       reservedSlugs.add(slug);
-      creates.push(toCreate(draft, slug, contentHash, price, now));
+      const margin = resolveSyncMargin(draft.listPrice, undefined, engine);
+      creates.push(toCreate(draft, slug, contentHash, price, now, margin));
       events.push(eventFor(draft, slug, "created", "new_row"));
+      const createdMargin = marginAudit(draft, slug, emptyMargin(draft.listPrice), margin, engine.enabled, "new_row");
+      if (createdMargin) marginEvents.push(createdMargin);
       continue;
     }
 
@@ -142,11 +155,26 @@ async function applyDrafts(
       reservedSlugs.delete(current.slug);
       reservedSlugs.add(nextSlug);
     }
+    const margin = resolveSyncMargin(draft.listPrice, current, engine);
     updates.push({
       id: current.id,
-      data: toUpdate(draft, nextSlug, contentHash, price, now),
+      data: toUpdate(draft, nextSlug, contentHash, price, now, margin),
     });
     events.push(eventFor(draft, nextSlug, "updated", updateReason(current, price)));
+    const previousMargin = {
+      marginAmount: current.marginAmount,
+      marginPercentBps: current.marginPercentBps,
+      finalDisplayPrice: current.finalDisplayPrice ?? current.listPrice,
+    };
+    const updatedMargin = marginAudit(
+      draft,
+      nextSlug,
+      previousMargin,
+      margin,
+      engine.enabled,
+      current.marginOverride ? "custom_lock" : "sync_apply",
+    );
+    if (updatedMargin) marginEvents.push(updatedMargin);
   }
 
   const stale = existing.filter((row) => !seenIds.has(row.id) && row.removedAt == null && !row.manualHold);
@@ -179,6 +207,8 @@ async function applyDrafts(
     updates,
     staleIds: stale.map((row) => row.id),
     events,
+    marginEvents,
+    marginBatchId,
     counts: {
       rows: sync.rows,
       uniqueCount: sync.unique,
@@ -240,6 +270,7 @@ function toCreate(
   contentHash: string,
   price: ReturnType<typeof priceFields>,
   now: Date,
+  margin: MarginFields & { marginOverride: boolean },
 ): Prisma.SheetListingCreateManyInput {
   return {
     sheetKey: draft.sheetKey,
@@ -288,6 +319,10 @@ function toCreate(
     sheetSyncedAt: draft.sheetSyncedAt || null,
     sheetRow: draft.sheetRow,
     contentHash,
+    marginAmount: margin.marginAmount,
+    marginPercentBps: margin.marginPercentBps,
+    finalDisplayPrice: margin.finalDisplayPrice,
+    marginOverride: margin.marginOverride,
     removedAt: null,
     syncedAt: now,
   };
@@ -299,6 +334,7 @@ function toUpdate(
   contentHash: string,
   price: ReturnType<typeof priceFields>,
   now: Date,
+  margin: MarginFields & { marginOverride: boolean },
 ): Prisma.SheetListingUpdateInput {
   return {
     sheetKey: draft.sheetKey,
@@ -347,6 +383,10 @@ function toUpdate(
     sheetSyncedAt: draft.sheetSyncedAt || null,
     sheetRow: draft.sheetRow,
     contentHash,
+    marginAmount: margin.marginAmount,
+    marginPercentBps: margin.marginPercentBps,
+    finalDisplayPrice: margin.finalDisplayPrice,
+    marginOverride: margin.marginOverride,
     removedAt: null,
     syncedAt: now,
   };
@@ -374,20 +414,38 @@ function uniqueSlug(base: string, reserved: Set<string>) {
   return `${root}-${n}`;
 }
 
+function emptyMargin(listPrice: number | null): MarginFields {
+  return { marginAmount: null, marginPercentBps: null, finalDisplayPrice: listPrice };
+}
+
+function marginAudit(
+  draft: SheetListingDraft,
+  slug: string,
+  previous: MarginFields,
+  next: MarginFields & { marginOverride: boolean },
+  engineOn: boolean,
+  reason: string,
+): SheetMarginAuditDraft | null {
+  if (sameMargin(previous, next)) return null;
+  return {
+    slug,
+    listingCode: draft.listingCode,
+    action: next.marginOverride ? "sync_recompute" : next.marginAmount == null ? "sync_clear" : "sync_set",
+    mode: next.marginPercentBps != null ? "percent" : next.marginAmount != null ? "flat" : "clear",
+    previousAmount: previous.marginAmount,
+    nextAmount: next.marginAmount,
+    previousPercentBps: previous.marginPercentBps,
+    nextPercentBps: next.marginPercentBps,
+    listPrice: draft.listPrice,
+    previousDisplay: previous.finalDisplayPrice,
+    nextDisplay: next.finalDisplayPrice,
+    reason: engineOn && !next.marginOverride ? `${reason};engine` : reason,
+  };
+}
+
 function refreshSheetListingPages(slugs: string[]) {
   try {
-    revalidateTag(SHEET_LISTINGS_TAG, "max");
-    revalidatePath("/properties");
-    revalidatePath("/es/propiedades");
-    revalidatePath("/sitemap.xml");
-    revalidatePath("/api/listings/sheet");
-    revalidatePath("/admin");
-    revalidatePath("/admin/sheet-listings");
-    for (const slug of slugs) {
-      if (!slug) continue;
-      revalidatePath(`/properties/${slug}`);
-      revalidatePath(`/es/propiedades/${slug}`);
-    }
+    refreshSheetListingViews(slugs);
   } catch (error) {
     console.error("[SHEET_LISTINGS_SYNC]", {
       skipped: "revalidate_failed",

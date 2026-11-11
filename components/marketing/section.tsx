@@ -19,7 +19,7 @@ export function Section({
 }) {
   return (
     <section id={id} className={`${tones[tone]} ${className}`}>
-      <div className="mx-auto w-full max-w-6xl px-4 py-16 md:py-24">{children}</div>
+      <div className="mx-auto w-full max-w-6xl px-4 py-10 md:py-24">{children}</div>
     </section>
   );
 }

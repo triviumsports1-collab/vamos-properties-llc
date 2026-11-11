@@ -4,10 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { SheetListingEditForm } from "@/components/admin/sheet-listing-edit-form";
+import { SheetListingMarginForm } from "@/components/admin/sheet-listing-margin-form";
 import { SheetListingRowActions } from "@/components/admin/sheet-listing-row-actions";
 import { SheetListingStatusBadge } from "@/components/admin/sheet-listing-status";
 import { formatWhen } from "@/lib/admin/clock";
-import { getAdminSheetListingById, listSheetSyncEventsForListing } from "@/lib/dal/sheet-listings";
+import { getAdminSheetListingById, listSheetListingMarginEvents, listSheetSyncEventsForListing } from "@/lib/dal/sheet-listings";
+import { formatMoney } from "@/lib/listings/money";
+import { formatMarginPercent } from "@/lib/gdoc-listings/margin";
 import { sheetListingHref, sheetSyncEventLabel } from "@/lib/gdoc-listings/display";
 
 type EditProps = {
@@ -31,6 +34,7 @@ async function EditSheetListing({ params }: EditProps) {
   const listing = await getAdminSheetListingById(decodeURIComponent(id));
   if (!listing) notFound();
   const events = await listSheetSyncEventsForListing(listing.id);
+  const marginEvents = await listSheetListingMarginEvents(listing.id);
 
   return (
     <AdminShell current="/admin/sheet-listings">
@@ -64,6 +68,20 @@ async function EditSheetListing({ params }: EditProps) {
           removed={listing.removed || listing.status === "inactive"}
           publicVisible={!listing.removed && listing.status === "active"}
         />
+        <SheetListingMarginForm listing={listing} />
+        {marginEvents.length > 0 ? (
+          <section className="mt-8 border border-line bg-panel p-5">
+            <h2 className="text-lg font-semibold text-ink">Markup history</h2>
+            <ul className="mt-3 grid gap-2 text-sm text-ink">
+              {marginEvents.map((event, index) => (
+                <li key={`${event.createdAt}-${index}`}>
+                  {marginEventLabel(event)}
+                  <span className="text-muted"> · {formatWhen(event.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         {events.length > 0 ? (
           <section className="mt-8 border border-line bg-panel p-5">
             <h2 className="text-lg font-semibold text-ink">Why this home changed</h2>
@@ -81,4 +99,31 @@ async function EditSheetListing({ params }: EditProps) {
       </main>
     </AdminShell>
   );
+}
+
+function marginEventLabel(event: {
+  actorEmail: string;
+  action: string;
+  mode: string;
+  nextAmount: number | null;
+  nextPercentBps: number | null;
+  nextDisplay: number | null;
+}) {
+  const who = event.actorEmail || "Admin";
+  if (event.action === "follow_set" || event.action === "follow_clear") {
+    return `${who} set this home to follow the global rule`;
+  }
+  if (event.action === "global_set") {
+    return `${who} applied the global rule`;
+  }
+  if (event.action === "sync_set" || event.action === "sync_clear" || event.action === "sync_recompute") {
+    return "Sheet copy updated markup";
+  }
+  if (event.action.endsWith("clear") || event.mode === "clear") {
+    return `${who} removed markup`;
+  }
+  const amount = event.nextAmount != null ? formatMoney(event.nextAmount) : "markup";
+  const percent = event.nextPercentBps != null ? ` (${formatMarginPercent(event.nextPercentBps)})` : "";
+  const display = event.nextDisplay != null ? ` · display ${formatMoney(event.nextDisplay)}` : "";
+  return `${who} set ${amount}${percent}${display}`;
 }

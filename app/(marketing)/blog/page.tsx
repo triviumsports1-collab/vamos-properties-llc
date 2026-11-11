@@ -1,10 +1,10 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import { ClosingBand } from "@/components/marketing/closing-band";
 import { LeadForm } from "@/components/marketing/lead-form";
 import { PostCard } from "@/components/marketing/post-card";
 import { Section } from "@/components/marketing/section";
-import { listPublishedPosts } from "@/lib/dal/blog";
+import { BLOG_TAG, listPublishedPosts } from "@/lib/dal/blog";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default async function BlogPage() {
   "use cache";
   cacheLife("hours");
+  cacheTag(BLOG_TAG);
   const posts = await listPublishedPosts();
 
   return (

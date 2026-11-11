@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,7 @@ import { LeadForm } from "@/components/marketing/lead-form";
 import { PostBody } from "@/components/marketing/post-body";
 import { Section } from "@/components/marketing/section";
 import { formatBlogDate, readingMinutes } from "@/lib/blog/content";
-import { getPublicPost, listPublishedPosts } from "@/lib/dal/blog";
+import { BLOG_TAG, getPublicPost, listPublishedPosts } from "@/lib/dal/blog";
 import { site } from "@/lib/site";
 
 export const instant = false;
@@ -24,6 +24,7 @@ type PostParams = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PostParams): Promise<Metadata> {
   "use cache";
   cacheLife("hours");
+  cacheTag(BLOG_TAG);
   const { slug } = await params;
   const post = await getPublicPost(slug);
   if (!post) return {};
@@ -48,6 +49,7 @@ export async function generateMetadata({ params }: PostParams): Promise<Metadata
 export default async function BlogPostPage({ params }: PostParams) {
   "use cache";
   cacheLife("hours");
+  cacheTag(BLOG_TAG);
   const { slug } = await params;
   const post = await getPublicPost(slug);
   if (!post) notFound();

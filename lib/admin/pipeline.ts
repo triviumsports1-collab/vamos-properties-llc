@@ -14,20 +14,11 @@ export const lostReasons = [
   { value: "no_response", label: "No response" },
 ] as const;
 
-export const listingStatuses = [
-  { value: "draft", label: "Draft" },
-  { value: "active", label: "Active" },
-  { value: "under_contract", label: "Under contract" },
-  { value: "sold", label: "Sold" },
-] as const;
-
 export type LeadStatus = (typeof leadStatuses)[number]["value"];
 export type LostReason = (typeof lostReasons)[number]["value"];
-export type ListingStatus = (typeof listingStatuses)[number]["value"];
 
 const statusLabels = new Map(leadStatuses.map((item) => [item.value, item.label]));
 const reasonLabels = new Map(lostReasons.map((item) => [item.value, item.label]));
-const listingLabels = new Map(listingStatuses.map((item) => [item.value, item.label]));
 
 export function canonicalStatus(value: string): LeadStatus {
   if (value === "new" || value === "closed" || value === "lost" || value === "contacted") return value;
@@ -47,18 +38,10 @@ export function lostReasonLabel(value: string | null) {
   return reasonLabels.get(value as LostReason) ?? value;
 }
 
-export function listingStatusLabel(value: string) {
-  return listingLabels.get(value as ListingStatus) ?? value;
-}
-
 export function isLeadStatus(value: string): value is LeadStatus {
   return statusLabels.has(value as LeadStatus);
 }
 
 export function isLostReason(value: string): value is LostReason {
   return reasonLabels.has(value as LostReason);
-}
-
-export function isListingStatus(value: string): value is ListingStatus {
-  return listingLabels.has(value as ListingStatus);
 }
