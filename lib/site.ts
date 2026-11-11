@@ -1,7 +1,26 @@
 export const spanishForeclosurePath = "/es/ejecucion-hipotecaria";
 
+/** Canonical origin for sitemap, canonicals, and JSON-LD. Must match the Search Console URL-prefix property. */
+export const canonicalSiteUrl = "https://www.vamos-properties.com";
+
+const aliasHosts = new Set(["vamosproperties.com", "www.vamosproperties.com", "vamos-properties.com"]);
+
 function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
+}
+
+function publicSiteUrl() {
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL ?? canonicalSiteUrl).trim().replace(/\/+$/, "");
+  try {
+    const parsed = new URL(raw);
+    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") return raw;
+    if (aliasHosts.has(parsed.hostname) || parsed.hostname === "www.vamos-properties.com") {
+      return canonicalSiteUrl;
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return canonicalSiteUrl;
+  }
 }
 
 const jaimePhoneDisplay = process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "+1 (602) 332-9553";
@@ -10,7 +29,7 @@ const jaimePhoneE164 = process.env.NEXT_PUBLIC_PHONE_E164 ?? "+16023329553";
 export const site = {
   name: "Vamos Properties LLC",
   shortName: "Vamos",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://vamosproperties.com",
+  url: publicSiteUrl(),
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "GTM-5XGG59XD",
   phoneDisplay: jaimePhoneDisplay,
   phoneTel: `tel:${jaimePhoneE164}`,
