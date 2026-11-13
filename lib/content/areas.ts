@@ -54,7 +54,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85009", "85015", "85017", "85031", "85033", "85035", "85040", "85041", "85042", "85044", "85048", "85051"],
-    nearby: ["glendale", "tempe", "avondale", "scottsdale"],
+    nearby: ["glendale", "tempe", "avondale", "scottsdale", "laveen"],
     faqs: [
       {
         question: "Do you buy houses in west and south Phoenix?",
@@ -313,7 +313,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85233", "85234", "85295", "85296", "85297", "85298"],
-    nearby: ["chandler", "mesa", "tempe"],
+    nearby: ["chandler", "mesa", "queen-creek", "tempe"],
     faqs: [
       {
         question: "Will you lowball a Gilbert house that is in good shape?",
@@ -413,7 +413,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85374", "85378", "85379", "85387", "85388"],
-    nearby: ["peoria", "glendale", "phoenix"],
+    nearby: ["peoria", "el-mirage", "sun-city", "glendale"],
     faqs: [
       {
         question: "Can you close before a Surprise trustee sale?",
@@ -463,7 +463,7 @@ export const areas: Area[] = [
       },
     ],
     zips: ["85323", "85392"],
-    nearby: ["phoenix", "glendale", "peoria"],
+    nearby: ["phoenix", "goodyear", "laveen", "glendale"],
     faqs: [
       {
         question: "What if my spouse has moved out?",
@@ -529,6 +529,308 @@ export const areas: Area[] = [
         question: "What if the house is full of tenants?",
         answer:
           "Tell us how many and whether they pay. We can often still make a cash offer. We cannot pretend an occupied house is vacant.",
+      },
+    ],
+  },
+  {
+    slug: "goodyear",
+    name: "Goodyear",
+    description:
+      "Sell a Goodyear house as-is, from Estrella to Palm Valley, or ask Vamos about a mortgage that is behind.",
+    opening:
+      "Goodyear is mostly newer houses on HOA streets, which means bigger payments, association dues, and a commute that changed when the job did. Those are the calls we get.",
+    fact: "Goodyear trustee sales are recorded with the Maricopa County Recorder like the rest of the Valley. The sale cannot happen before the 91st day after the notice is recorded.",
+    paragraphs: [
+      "We buy Goodyear houses as they are. You do not need fresh paint, a staged living room, or a weekend of showings for a buyer who still needs a loan.",
+      "Many Goodyear streets are in master-planned communities. The association has to send a payoff and transfer letter before closing, so we ask for the community name on the first call.",
+      "If you are behind, tell us the date on any notice. We work backward from it, not from the day we would like to close.",
+    ],
+    neighborhoods: [
+      {
+        name: "Estrella",
+        note: "Large master-planned community south of the river, with lakes, HOA rules and a long drive to the freeway. Newer loans and dues are the usual first questions.",
+      },
+      {
+        name: "Palm Valley",
+        note: "North of I-10, a mix of older and newer HOA streets. A house here can have years of equity or almost none, depending on when it was bought.",
+      },
+      {
+        name: "PebbleCreek",
+        note: "An age-restricted community. Its rules can limit who can live there or hold title, so tell us before anyone assumes a sale can be written.",
+      },
+      {
+        name: "Canyon Trails and central Goodyear",
+        note: "Newer subdivisions near the freeway. Payments set at a recent price are the most common reason these houses fall behind.",
+      },
+    ],
+    zips: ["85338", "85395"],
+    nearby: ["avondale", "buckeye", "laveen"],
+    faqs: [
+      {
+        question: "Do you buy houses in Estrella?",
+        answer:
+          "Yes. Tell us whether the HOA dues are current. The title company pays the association from the sale at closing.",
+      },
+      {
+        question: "Can you close before a Goodyear trustee sale?",
+        answer:
+          "Sometimes, if there are enough days left and the payoff can be ordered. We will tell you on the first call if the date is already too close.",
+      },
+      {
+        question: "Is there a fee to get an offer?",
+        answer: "No. There is no fee to ask, and no fee if you say no.",
+      },
+    ],
+  },
+  {
+    slug: "buckeye",
+    name: "Buckeye",
+    description:
+      "Sell a Buckeye house as-is, from Verrado to downtown Buckeye, or ask Vamos about a payment you can no longer carry.",
+    opening:
+      "Buckeye grew faster than almost anywhere in the Valley, and a lot of those houses were bought at recent prices with long commutes attached. When gas, a job, or a family plan changes, the payment is what breaks first.",
+    fact: "Buckeye is in Maricopa County, so trustee sales are recorded with the Maricopa County Recorder and follow the same 91-day minimum as Phoenix.",
+    paragraphs: [
+      "We buy in Buckeye without asking you to list, stage, or wait for a buyer who also has to sell a house somewhere else.",
+      "New construction does not mean a clean sale. A recent loan can leave little room after the payoff, and some newer neighborhoods carry special district or HOA charges. We ask about both before we name a number.",
+      "Older parts of Buckeye, near downtown and on larger lots, are different houses with different questions: wells, septic, additions, and how long the owner has been there.",
+    ],
+    neighborhoods: [
+      {
+        name: "Verrado",
+        note: "Master-planned community in the White Tank foothills. HOA transfer paperwork and a recent purchase price are the first two things we check.",
+      },
+      {
+        name: "Sundance and south Buckeye",
+        note: "Subdivisions from the 2000s south of I-10. Many were bought near the last peak, so we look closely at what is owed.",
+      },
+      {
+        name: "Festival Ranch and the north side",
+        note: "Newer and farther out. The north side also has an age-restricted community with its own rules, so tell us which part the house is in.",
+      },
+      {
+        name: "Downtown Buckeye and larger lots",
+        note: "Older houses and acreage. Wells, septic systems and unpermitted additions come up more here, and we price them in.",
+      },
+    ],
+    zips: ["85326", "85396"],
+    nearby: ["goodyear", "avondale", "surprise"],
+    faqs: [
+      {
+        question: "Do you buy brand-new houses in Buckeye?",
+        answer:
+          "Yes, if the numbers work. With a new loan there may be little room after the payoff. We will say plainly if a cash sale does not cover it.",
+      },
+      {
+        question: "What if the house is on a well or septic?",
+        answer:
+          "That is fine. Tell us on the first call. It changes the inspection questions and the price, not whether we will look.",
+      },
+      {
+        question: "How far out do you buy?",
+        answer:
+          "Anywhere in Buckeye that is in Maricopa County. Send the address and we will tell you if it is outside the area we buy.",
+      },
+    ],
+  },
+  {
+    slug: "queen-creek",
+    name: "Queen Creek",
+    description:
+      "Sell a Queen Creek house as-is, from horse property to newer HOA streets, or ask Vamos about a mortgage that is behind.",
+    opening:
+      "Queen Creek has two kinds of houses: older homes on acreage, often with horse setups, and newer subdivisions with bigger payments. They sell for different reasons and need different offers.",
+    fact: "Queen Creek sits in two counties. Most of the town is in Maricopa County, but part is in Pinal County, where notices are recorded with the Pinal County Recorder. Check which county is on your notice.",
+    paragraphs: [
+      "We buy Queen Creek houses as they are, including acreage with barns, corrals, wells, and additions that were never permitted.",
+      "Newer Queen Creek neighborhoods usually have an HOA and a recent loan. Those two facts decide how much room there is after the payoff, so we ask about them first.",
+      "If you have a notice, tell us the date and the county on it. The clock is the same 91-day minimum, but the recorder's office is different on the Pinal side.",
+    ],
+    neighborhoods: [
+      {
+        name: "Acreage and horse property",
+        note: "Larger lots with wells, septic, barns and arenas. A cash buyer is often easier here than a lender who struggles to appraise it.",
+      },
+      {
+        name: "Hastings Farms and newer HOA communities",
+        note: "Newer houses, HOA dues and recent loans. The association payoff letter is ordered early so it does not hold up closing.",
+      },
+      {
+        name: "Town Center",
+        note: "The older core of town around Ellsworth and Ocotillo. A mix of long-time owners and newer infill.",
+      },
+      {
+        name: "The Pinal County side",
+        note: "Some Queen Creek addresses are in Pinal County. The sale works the same way, but the county records are different, so tell us which side.",
+      },
+    ],
+    zips: ["85142", "85140"],
+    nearby: ["gilbert", "mesa", "chandler"],
+    faqs: [
+      {
+        question: "Do you buy horse property in Queen Creek?",
+        answer:
+          "Yes. Tell us about the well, septic, barns and any additions. We price them in rather than asking you to fix or remove them.",
+      },
+      {
+        question: "My house is on the Pinal County side. Can you still buy it?",
+        answer:
+          "Send the address. Many Queen Creek addresses on the Pinal side are close enough to talk about. We will tell you plainly if it is outside the area we buy.",
+      },
+      {
+        question: "Is there a fee to get an offer?",
+        answer: "No. There is no fee to ask, and no fee if you say no.",
+      },
+    ],
+  },
+  {
+    slug: "sun-city",
+    name: "Sun City",
+    description:
+      "Sell a Sun City or Sun City West house as-is, whether it is your own, a parent's, or an inherited estate.",
+    opening:
+      "Most Sun City calls are not about a missed payment. They are about a parent moving to assisted living, a house left to children who live out of state, or an owner who is ready to stop taking care of a yard.",
+    fact: "Sun City and Sun City West are unincorporated, age-restricted communities in Maricopa County. Each has its own recreation centers and rules that a buyer has to follow, so the sale paperwork includes them.",
+    paragraphs: [
+      "We buy Sun City and Sun City West houses as they are: original kitchens, older roofs and plumbing, and a lifetime of belongings still inside.",
+      "Because these are age-restricted communities, the rules can affect who can live in the house and how a sale is written. We check them before we make promises, not after.",
+      "Many of these sales are handled by family. If you are an heir, a trustee, or holding a power of attorney, tell us which, because the title company will ask for that document.",
+    ],
+    neighborhoods: [
+      {
+        name: "Sun City (original)",
+        note: "Built from 1960 on, the original Del Webb community. Many houses have their original systems, and many sellers are heirs or trustees.",
+      },
+      {
+        name: "Sun City West",
+        note: "Built later, to the west, with its own recreation centers and rules. Tell us which community the house is in.",
+      },
+      {
+        name: "Patio homes and duplexes",
+        note: "Common in both communities, often with shared walls and an association. The association letter is part of the paperwork.",
+      },
+      {
+        name: "Houses in a trust",
+        note: "Many Sun City houses are held in a living trust. The successor trustee can often sell without probate, with the trust documents in hand.",
+      },
+    ],
+    zips: ["85351", "85373", "85375"],
+    nearby: ["surprise", "peoria", "el-mirage"],
+    faqs: [
+      {
+        question: "Can you buy a house in an age-restricted community?",
+        answer:
+          "We look at the community's rules before we write anything. Some rules affect who can live in the house or how a sale is structured. We will tell you what we find, not guess.",
+      },
+      {
+        question: "My parent moved to assisted living. Can I sell their house?",
+        answer:
+          "Usually, if you have the legal authority to sign, such as a power of attorney that covers real estate, or as trustee if the house is in a trust. The title company will ask for it.",
+      },
+      {
+        question: "Do we have to empty the house first?",
+        answer:
+          "No. Take what the family wants to keep. Anything left after closing becomes ours to deal with.",
+      },
+    ],
+  },
+  {
+    slug: "el-mirage",
+    name: "El Mirage",
+    description:
+      "Sell an El Mirage house as-is, or ask Vamos about a mortgage that is behind, close to Luke Air Force Base.",
+    opening:
+      "El Mirage is a small city with a lot of 2000s houses, a lot of first-time owners, and a lot of military families moving on orders from nearby Luke Air Force Base.",
+    fact: "El Mirage is in Maricopa County. Trustee sales are recorded with the Maricopa County Recorder, and the sale cannot happen before the 91st day after the notice is recorded.",
+    paragraphs: [
+      "We buy El Mirage houses as they are. You do not need to repaint, replace the carpet, or fix the AC before we look.",
+      "Many El Mirage houses are rentals now. We can buy with a tenant in place and take over the lease, so you do not have to wait for it to end.",
+      "If you are moving on military orders, tell us your report date. We plan the closing around it.",
+    ],
+    neighborhoods: [
+      {
+        name: "Rancho El Mirage and 2000s subdivisions",
+        note: "Most of the city's houses were built in the 2000s on HOA streets. Recent loans and dues are the first two things we ask about.",
+      },
+      {
+        name: "The original townsite",
+        note: "Older, smaller houses than the newer subdivisions. Long ownership and deferred repairs are common, and we price them in.",
+      },
+      {
+        name: "Rentals and investor-owned houses",
+        note: "Many El Mirage houses are rented. A tenant in place does not stop a sale.",
+      },
+      {
+        name: "Near Luke Air Force Base",
+        note: "Military families often need to sell on a fixed date. Tell us when you report so we can plan backward from it.",
+      },
+    ],
+    zips: ["85335"],
+    nearby: ["surprise", "sun-city", "glendale"],
+    faqs: [
+      {
+        question: "Can you buy my El Mirage house if I am moving on PCS orders?",
+        answer:
+          "Yes. Tell us your report date. The title company can usually arrange signing wherever you are after you leave.",
+      },
+      {
+        question: "Do you buy El Mirage rentals with tenants?",
+        answer:
+          "Yes. We can take over the lease and the deposit at closing, so the tenant does not have to move for the sale.",
+      },
+      {
+        question: "Is there a fee to get an offer?",
+        answer: "No. There is no fee to ask, and no fee if you say no.",
+      },
+    ],
+  },
+  {
+    slug: "laveen",
+    name: "Laveen",
+    description:
+      "Sell a Laveen house as-is, from older acreage to newer subdivisions near South Mountain, or ask Vamos about a mortgage that is behind.",
+    opening:
+      "Most of Laveen is part of the City of Phoenix, but it does not feel like the rest of it. Old farm and dairy land now sits next to subdivisions built in the 2000s and later, and the two kinds of houses sell for very different reasons.",
+    fact: "Most Laveen addresses are in the City of Phoenix, and some are unincorporated county land. Either way they are in Maricopa County, so a trustee sale on a Laveen house is recorded with the Maricopa County Recorder and cannot be held before the 91st day after the notice is recorded.",
+    paragraphs: [
+      "We buy Laveen houses as they are, from older homes on larger lots to newer houses on HOA streets.",
+      "Many Laveen subdivisions were built in the 2000s, and a lot of those loans were refinanced or modified since. Tell us what you owe and whether there is a second loan, because that decides how much room there is.",
+      "Older properties on larger lots can have wells, irrigation rights, additions, or animals. None of that stops us from looking. It changes the questions and the price.",
+    ],
+    neighborhoods: [
+      {
+        name: "Newer subdivisions along Baseline and 51st Avenue",
+        note: "Mostly 2000s and later houses on HOA streets. Recent loans and association dues are the usual first questions.",
+      },
+      {
+        name: "Older acreage and farm lots",
+        note: "Larger lots with irrigation, wells or animal setups. A cash buyer can be simpler here than a lender who has trouble appraising it.",
+      },
+      {
+        name: "Near South Mountain",
+        note: "Newer houses with mountain views and bigger payments. A view does not mean the loan is current.",
+      },
+      {
+        name: "Rentals",
+        note: "Many Laveen houses are rented. We can buy with the tenant in place and take over the lease.",
+      },
+    ],
+    zips: ["85339"],
+    nearby: ["phoenix", "avondale", "goodyear"],
+    faqs: [
+      {
+        question: "Is Laveen a separate city?",
+        answer:
+          "Mostly no. Laveen Village is part of the City of Phoenix, and some addresses with a Laveen mailing name are unincorporated Maricopa County land. A cash sale works the same way in both.",
+      },
+      {
+        question: "Do you buy older Laveen properties with acreage?",
+        answer:
+          "Yes. Tell us about the well, irrigation, additions and any animals. We price them in rather than asking you to change anything first.",
+      },
+      {
+        question: "Is there a fee to get an offer?",
+        answer: "No. There is no fee to ask, and no fee if you say no.",
       },
     ],
   },

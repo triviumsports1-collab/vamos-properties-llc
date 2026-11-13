@@ -49,6 +49,13 @@ export const site = {
     "Acepto que Vamos Properties LLC me llame y me envíe mensajes de texto sobre mi casa, incluso con mensajes automáticos. Pueden aplicarse tarifas de mensajes y datos. El consentimiento no es necesario para vender ni para recibir una oferta.",
 } as const;
 
+/**
+ * Public profiles of the business (Google Business Profile share link, Facebook, LinkedIn,
+ * YouTube, Yelp, BBB...). Add each URL here once it exists; it feeds `sameAs` in the
+ * LocalBusiness JSON-LD so Google can tie the profiles to this site.
+ */
+export const businessProfiles: string[] = [];
+
 export const situations = [
   { value: "behind", label: "Behind on payments" },
   { value: "trustee_sale", label: "Notice of Trustee's Sale" },

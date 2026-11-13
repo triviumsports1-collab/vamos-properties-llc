@@ -6,11 +6,21 @@ import { PostCard } from "@/components/marketing/post-card";
 import { Section } from "@/components/marketing/section";
 import { BLOG_TAG, listPublishedPosts } from "@/lib/dal/blog";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Notes from Vamos Properties on selling a Phoenix house, a cash offer, and a mortgage that is behind.",
-  alternates: { canonical: "/blog" },
-};
+/** Keep the blog index out of Google until it has real posts; an empty index is a thin page. */
+const MIN_POSTS_TO_INDEX = 1;
+
+export async function generateMetadata(): Promise<Metadata> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(BLOG_TAG);
+  const posts = await listPublishedPosts();
+  return {
+    title: "Blog",
+    description: "Notes from Vamos Properties on selling a Phoenix house, a cash offer, and a mortgage that is behind.",
+    alternates: { canonical: "/blog" },
+    robots: posts.length >= MIN_POSTS_TO_INDEX ? { index: true, follow: true } : { index: false, follow: true },
+  };
+}
 
 export default async function BlogPage() {
   "use cache";

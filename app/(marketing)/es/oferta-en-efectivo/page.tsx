@@ -4,6 +4,8 @@ import { ClosingBand } from "@/components/marketing/closing-band";
 import { FaqList } from "@/components/marketing/faq-list";
 import { LeadForm } from "@/components/marketing/lead-form";
 import { Section } from "@/components/marketing/section";
+import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { hreflang } from "@/lib/i18n/routes";
 import { site, spanishForeclosurePath } from "@/lib/site";
 
@@ -135,6 +137,13 @@ export default async function SpanishCashOfferPage() {
         <p className="mt-6 text-sm leading-6 text-muted">
           Llame al <a href={site.phoneTel} className="font-semibold text-link">{site.phoneDisplay}</a>, de 8:00 a.m. a 7:00 p.m., los siete días.
         </p>
+      </Section>
+
+      <Section>
+        <SituationLinks language="es" />
+        <div className="mt-14">
+          <CityLinks language="es" />
+        </div>
       </Section>
 
       <Section>

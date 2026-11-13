@@ -6,6 +6,8 @@ import { FaqList } from "@/components/marketing/faq-list";
 import { Founders } from "@/components/marketing/founders";
 import { LeadForm } from "@/components/marketing/lead-form";
 import { Section } from "@/components/marketing/section";
+import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { hreflang } from "@/lib/i18n/routes";
 import { site, spanishForeclosurePath } from "@/lib/site";
 
@@ -192,6 +194,13 @@ export default async function SpanishHomePage() {
       </Section>
 
       {/* FAQs */}
+      <Section>
+        <SituationLinks language="es" />
+        <div className="mt-14">
+          <CityLinks language="es" />
+        </div>
+      </Section>
+
       <Section>
         <FaqList faqs={faqs} heading="Preguntas frecuentes" />
       </Section>

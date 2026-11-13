@@ -26,6 +26,10 @@ export default async function GuidesPage() {
         <p className="mt-5 max-w-2xl text-lg leading-8 text-muted">
           These are short explanations, not a legal opinion. If you already know you want a person instead of a page, the form is on this screen.
         </p>
+        <p className="mt-4 max-w-2xl leading-7 text-muted">
+          Selling because of an inheritance, a divorce, a rental, repairs, or a move? Those have{" "}
+          <Link href="/sell" className="font-semibold text-link">their own pages</Link>.
+        </p>
         <ul className="mt-10 grid gap-4">
           {guides.map((guide) => (
             <li key={guide.slug} className="border border-line p-6">

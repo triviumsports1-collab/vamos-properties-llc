@@ -22,10 +22,20 @@ export const enToEs: Record<string, string> = {
   // Blog/acquired inventory stay in English; switcher goes to Spanish home
   "/blog": "/es",
   "/properties": "/es/propiedades",
+  // Situation pages (slugs are translated, so they are listed one by one)
+  "/sell": "/es/vender",
+  "/sell/inherited-house": "/es/vender/casa-heredada",
+  "/sell/divorce": "/es/vender/divorcio",
+  "/sell/rental-property": "/es/vender/casa-de-alquiler",
+  "/sell/as-is": "/es/vender/tal-como-esta",
+  "/sell/relocation": "/es/vender/mudanza",
 };
 
 /** Path prefixes that keep the rest of the URL when switching language. */
-const localePrefixes: Array<{ en: string; es: string }> = [{ en: "/properties", es: "/es/propiedades" }];
+const localePrefixes: Array<{ en: string; es: string }> = [
+  { en: "/properties", es: "/es/propiedades" },
+  { en: "/areas", es: "/es/zonas" },
+];
 
 function canonicalPath(pathname: string) {
   const base = pathname.split("?")[0].split("#")[0];

@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { ClosingBand } from "@/components/marketing/closing-band";
 import { FaqList } from "@/components/marketing/faq-list";
 import { LeadForm } from "@/components/marketing/lead-form";
@@ -125,7 +126,10 @@ export default async function StopForeclosurePage() {
       </Section>
 
       <Section tone="mist">
-        <CityLinks heading="The date is the same across the Valley" />
+        <SituationLinks />
+        <div className="mt-14">
+          <CityLinks heading="The date is the same across the Valley" />
+        </div>
       </Section>
 
       <ClosingBand

@@ -30,6 +30,11 @@ export function proxy(request: NextRequest) {
     url.pathname = pathname.replace(/^\/es\/sheet-listings/, "/es/propiedades");
     return NextResponse.redirect(url, 308);
   }
+  if (pathname === "/es/areas" || pathname.startsWith("/es/areas/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/es\/areas/, "/es/zonas");
+    return NextResponse.redirect(url, 308);
+  }
   if (pathname === "/es/stop-foreclosure") {
     const url = request.nextUrl.clone();
     url.pathname = "/es/ejecucion-hipotecaria";
@@ -87,6 +92,8 @@ export const config = {
     "/es/sheet-listings",
     "/es/sheet-listings/:path*",
     "/es/stop-foreclosure",
+    "/es/areas",
+    "/es/areas/:path*",
     "/es/cash-offer",
     "/es/take-over-payments",
     "/es/about",

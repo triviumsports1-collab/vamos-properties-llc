@@ -78,6 +78,11 @@ export default async function LifeEventsGuidePage() {
             The city still matters. A long-owned ranch in <Link href="/areas/mesa" className="font-semibold text-link">Mesa</Link> is not a newer payment in{" "}
             <Link href="/areas/gilbert" className="font-semibold text-link">Gilbert</Link> or <Link href="/areas/chandler" className="font-semibold text-link">Chandler</Link>.
           </p>
+          <p>
+            The longer versions are on their own pages:{" "}
+            <Link href="/sell/divorce" className="font-semibold text-link">selling during a divorce</Link> and{" "}
+            <Link href="/sell/inherited-house" className="font-semibold text-link">selling an inherited house</Link>.
+          </p>
         </div>
       </Section>
 

@@ -28,12 +28,19 @@ export const metadata: Metadata = {
     type: "website",
     siteName: site.name,
     locale: "en_US",
-    url: site.url,
     images: [{ url: site.ogImagePath, alt: site.ogImageAlt }],
   },
   twitter: {
     card: "summary_large_image",
     images: [site.ogImagePath],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: "/icon.png",
   },
 };
 
@@ -47,6 +54,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
+        <link rel="icon" href="/icon.png" type="image/png" sizes="192x192" />
+        <link rel="shortcut icon" href="/icon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full bg-paper font-sans text-ink antialiased">

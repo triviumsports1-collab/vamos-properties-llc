@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { ClosingBand } from "@/components/marketing/closing-band";
 import { Comparison } from "@/components/marketing/comparison";
 import { FaqList } from "@/components/marketing/faq-list";
@@ -116,7 +117,10 @@ export default async function CashOfferPage() {
       </Section>
 
       <Section tone="mist">
-        <CityLinks />
+        <SituationLinks />
+        <div className="mt-14">
+          <CityLinks />
+        </div>
       </Section>
 
       <ClosingBand

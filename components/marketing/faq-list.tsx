@@ -32,7 +32,7 @@ export function FaqList({
               <span className="mr-3 font-semibold text-amber" aria-hidden="true">
                 +
               </span>
-              {faq.question}
+              <h3 className="text-lg font-normal text-ink">{faq.question}</h3>
             </summary>
             <p className="mt-3 max-w-2xl pl-6 leading-7 text-muted">{faq.answer}</p>
           </details>

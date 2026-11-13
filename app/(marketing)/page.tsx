@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AddressLookup } from "@/components/marketing/address-lookup";
 import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { ClosingBand } from "@/components/marketing/closing-band";
 import { Comparison } from "@/components/marketing/comparison";
 import { FaqList } from "@/components/marketing/faq-list";
@@ -18,7 +19,7 @@ import { site } from "@/lib/site";
 
 export const metadata = {
   title: {
-    absolute: "Sell your Phoenix house, or get help with the payments",
+    absolute: "We Buy Houses in Phoenix for Cash · Vamos Properties",
   },
   description:
     "Vamos Properties buys houses as-is in Maricopa County and can talk through a mortgage that is behind. Call Patrick or Jaime.",
@@ -73,7 +74,7 @@ const situations = [
     body: "Start with the sale date. A cash closing can only help if title can finish before that day.",
   },
   {
-    href: "/guides/life-events",
+    href: "/sell",
     title: "A divorce or a death in the family",
     body: "Both people on the title usually have to sign. An heir needs authority to sign. We will say which papers title still needs.",
   },
@@ -235,6 +236,10 @@ export default async function HomePage() {
             </li>
           ))}
         </ul>
+      </Section>
+
+      <Section>
+        <SituationLinks />
       </Section>
 
       <Section tone="mist">

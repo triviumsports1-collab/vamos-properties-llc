@@ -49,7 +49,7 @@ export function SiteFooter({
           <ul className="mt-4 grid grid-cols-2 gap-2">
             {areas.map((area) => (
               <li key={area.slug}>
-                <Link href={`/areas/${area.slug}`} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
+                <Link href={spanish ? `/es/zonas/${area.slug}` : `/areas/${area.slug}`} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
                   {area.name}
                 </Link>
               </li>

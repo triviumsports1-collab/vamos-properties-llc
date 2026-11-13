@@ -4,6 +4,8 @@ import { ClosingBand } from "@/components/marketing/closing-band";
 import { FaqList } from "@/components/marketing/faq-list";
 import { LeadForm } from "@/components/marketing/lead-form";
 import { Section } from "@/components/marketing/section";
+import { CityLinks } from "@/components/marketing/city-links";
+import { SituationLinks } from "@/components/marketing/situation-links";
 import { hreflang } from "@/lib/i18n/routes";
 import { site, spanishForeclosurePath } from "@/lib/site";
 
@@ -105,6 +107,13 @@ export default async function SpanishForeclosurePage() {
             </p>
           </div>
           <LeadForm sourcePath={spanishForeclosurePath} language="es" />
+        </div>
+      </Section>
+
+      <Section>
+        <SituationLinks language="es" />
+        <div className="mt-14">
+          <CityLinks language="es" />
         </div>
       </Section>
 
