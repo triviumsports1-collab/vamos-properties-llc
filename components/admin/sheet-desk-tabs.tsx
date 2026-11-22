@@ -4,6 +4,7 @@ import { sheetDeskHref, type SheetDeskQuery, type SheetDeskTab } from "@/lib/gdo
 export function SheetDeskTabs({ query, tab }: { query: SheetDeskQuery; tab: SheetDeskTab }) {
   const inventoryHref = sheetDeskHref({ ...query, tab: "inventory" });
   const rulesHref = sheetDeskHref({ ...query, tab: "rules" });
+  const syncHref = sheetDeskHref({ ...query, tab: "sync" });
 
   return (
     <nav className="flex overflow-x-auto border-b border-line touch-scroll" aria-label="Sheet desk sections">
@@ -12,6 +13,9 @@ export function SheetDeskTabs({ query, tab }: { query: SheetDeskQuery; tab: Shee
       </TabLink>
       <TabLink href={rulesHref} active={tab === "rules"}>
         Pricing rules
+      </TabLink>
+      <TabLink href={syncHref} active={tab === "sync"}>
+        Sync
       </TabLink>
     </nav>
   );

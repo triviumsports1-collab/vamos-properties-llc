@@ -75,7 +75,7 @@ export const situationsEs: SituationEs[] = [
       },
       {
         title: "Reciba un número por la casa tal como está",
-        body: "Patrick o Jaime ven la casa y dan a todos los herederos el mismo número con el cálculo. Nadie tiene que limpiar ni reparar nada antes.",
+        body: "Nuestros especialistas ven la casa y dan a todos los herederos el mismo número con el cálculo. Nadie tiene que limpiar ni reparar nada antes.",
       },
       {
         title: "Cierre cuando los papeles lo permitan",
@@ -390,7 +390,7 @@ export const situationsEs: SituationEs[] = [
       },
       {
         title: "Una visita y luego un número",
-        body: "Patrick o Jaime recorren la casa una vez y le dan un precio con las reparaciones que consideramos. No sigue ninguna lista de inspección.",
+        body: "Nuestros especialistas recorren la casa una vez y le dan un precio con las reparaciones que consideramos. No sigue ninguna lista de inspección.",
       },
       {
         title: "Cierre en su fecha",

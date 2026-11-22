@@ -2,7 +2,15 @@ import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { SheetListingDetailView } from "@/components/marketing/sheet-listing-detail-view";
-import { getSheetListingById, listPublicSheetListingSlugs, listSimilarSheetListings, similarSeedFromListing } from "@/lib/dal/gdoc-listings";
+import { SheetListingOffMarket } from "@/components/marketing/sheet-listing-off-market";
+import {
+  getOffMarketSheetListing,
+  getSheetListingById,
+  listPublicSheetListingSlugs,
+  listSimilarSheetListings,
+  similarSeedFromListing,
+  similarSeedFromOffMarket,
+} from "@/lib/dal/gdoc-listings";
 import { sheetListingHref } from "@/lib/gdoc-listings/display";
 import { sheetListingMetadata } from "@/lib/gdoc-listings/seo";
 import { SHEET_LISTINGS_TAG } from "@/lib/gdoc-listings/types";
@@ -29,7 +37,12 @@ export async function generateMetadata({ params }: DetailProps): Promise<Metadat
   cacheTag(SHEET_LISTINGS_TAG);
   const { id } = await params;
   const listing = await getSheetListingById(id);
-  if (!listing) return { title: "Casa", robots: { index: false, follow: false } };
+  if (!listing) {
+    const offMarket = await getOffMarketSheetListing(id);
+    // Off-market homes: keep the URL working for visitors but ask search engines to drop it.
+    if (offMarket) return { title: `${offMarket.title} (fuera del mercado)`, robots: { index: false, follow: true } };
+    return { title: "Casa", robots: { index: false, follow: false } };
+  }
   return sheetListingMetadata(listing, "es");
 }
 
@@ -39,7 +52,13 @@ export default async function PropiedadDetailPage({ params }: DetailProps) {
   cacheTag(SHEET_LISTINGS_TAG);
   const { id } = await params;
   const listing = await getSheetListingById(id);
-  if (!listing) notFound();
+  if (!listing) {
+    const offMarket = await getOffMarketSheetListing(id);
+    if (!offMarket) notFound();
+    if (id !== offMarket.id) permanentRedirect(sheetListingHref(offMarket.id, "es"));
+    const similar = await listSimilarSheetListings(similarSeedFromOffMarket(offMarket));
+    return <SheetListingOffMarket listing={offMarket} similar={similar} locale="es" />;
+  }
   if (id !== listing.id) permanentRedirect(sheetListingHref(listing.id, "es"));
   const similar = await listSimilarSheetListings(similarSeedFromListing(listing));
   return <SheetListingDetailView listing={listing} similar={similar} locale="es" />;

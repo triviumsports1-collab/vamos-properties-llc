@@ -54,6 +54,16 @@ export const sheetListingAdminSchema = z.object({
   manualHold: z.string().optional().default(""),
 });
 
+export const MAX_LISTING_PHOTOS = 40;
+
+export const sheetListingPhotosSchema = z.object({
+  slug: z.string().trim().min(1, "That sheet home is missing.").max(120),
+  photos: z
+    .array(z.string().trim().min(1).max(2000))
+    .max(MAX_LISTING_PHOTOS, `Keep it to ${MAX_LISTING_PHOTOS} photos or fewer.`),
+  keepOnSync: z.boolean(),
+});
+
 export const sheetListingSlugSchema = z.object({
   slug: z.string().trim().min(1, "That sheet home is missing.").max(120),
 });

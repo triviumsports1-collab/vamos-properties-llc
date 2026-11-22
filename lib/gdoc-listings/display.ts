@@ -1,6 +1,7 @@
 import type { SheetListingCardView, SheetListingView } from "@/lib/dal/gdoc-listings";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
+import { syncTriggerLabel } from "@/lib/gdoc-listings/sync-schedule";
 
 export const PROPERTIES_CATALOG_PATH = "/properties";
 export const PROPERTIES_CATALOG_PATH_ES = "/es/propiedades";
@@ -51,7 +52,7 @@ export function sheetSyncRunLabel(status: string) {
 }
 
 export function sheetSyncTriggerLabel(trigger: string) {
-  return trigger === "admin" ? "Desk" : "Webhook";
+  return syncTriggerLabel(trigger);
 }
 
 export function sheetPricingRuleEventLabel(event: {
@@ -73,7 +74,14 @@ export function sheetPricingRuleEventLabel(event: {
   return "Updated the global rule";
 }
 
-export function sheetSyncEventLabel(action: string, reason: string) {
+export function sheetSyncEventLabel(action: string, rawReason: string) {
+  // "<reason>;status_kept": sheet fields updated but the expired / desk-locked status was protected.
+  const [reason, ...flags] = rawReason.split(";");
+  const base = sheetSyncEventBaseLabel(action, reason);
+  return flags.includes("status_kept") ? `${base}; status kept (expired or set on the desk)` : base;
+}
+
+function sheetSyncEventBaseLabel(action: string, reason: string) {
   if (action === "created") return "Added from the sheet";
   if (action === "held") return "Left alone (desk copy)";
   if (action === "inactivated") return "Taken off the public page (left the sheet)";

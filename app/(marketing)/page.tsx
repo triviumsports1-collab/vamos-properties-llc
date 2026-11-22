@@ -22,7 +22,7 @@ export const metadata = {
     absolute: "We Buy Houses in Phoenix for Cash · Vamos Properties",
   },
   description:
-    "Vamos Properties buys houses as-is in Maricopa County and can talk through a mortgage that is behind. Call Patrick or Jaime.",
+    "Vamos Properties buys houses as-is in Maricopa County and can talk through a mortgage that is behind. Call the Vamos team.",
   alternates: { canonical: "/", ...hreflang("/", "/es") },
 };
 
@@ -52,7 +52,7 @@ const steps = [
   },
   {
     title: "Talk to one of us",
-    body: "Patrick or Jaime asks what you owe, what the house needs, and what you actually want to happen.",
+    body: "A Vamos specialist asks what you owe, what the house needs, and what you actually want to happen.",
   },
   {
     title: "Choose, or don’t",
@@ -115,7 +115,7 @@ export default async function HomePage() {
             Behind on the house? Get a cash offer today.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-white/88">
-            No repairs. No showings. Patrick or Jaime call you the same day, including when a trustee sale is already on the calendar.
+            No repairs. No showings. Our specialists call you the same day, including when a trustee sale is already on the calendar.
           </p>
           <AddressLookup />
           <p className="mt-5 text-sm text-white/80">
@@ -268,7 +268,7 @@ export default async function HomePage() {
 
       <ClosingBand
         title="Send the address. We’ll call you today."
-        body="If it is after 7:00 p.m., Patrick or Jaime will be on it in the morning. You do not have to decide anything on the phone."
+        body="If it is after 7:00 p.m., our specialists will be on it in the morning. You do not have to decide anything on the phone."
       />
     </>
   );

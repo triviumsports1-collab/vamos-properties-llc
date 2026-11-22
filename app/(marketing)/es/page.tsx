@@ -16,7 +16,7 @@ export const metadata = {
     absolute: "¿Atrasado con la casa? Reciba una oferta de contado hoy",
   },
   description:
-    "Vamos Properties compra casas tal como están en el condado de Maricopa y puede hablar sobre una hipoteca atrasada. Llame a Patrick o Jaime.",
+    "Vamos Properties compra casas tal como están en el condado de Maricopa y puede hablar sobre una hipoteca atrasada. Llame al equipo de Vamos.",
   alternates: {
     canonical: "/es",
     ...hreflang("/", "/es"),
@@ -49,7 +49,7 @@ const steps = [
   },
   {
     title: "Hablamos con usted",
-    body: "Patrick o Jaime preguntan sobre el saldo, el estado de la casa y quién está en el título. No hay que limpiar antes.",
+    body: "Nuestros especialistas preguntan sobre el saldo, el estado de la casa y quién está en el título. No hay que limpiar antes.",
   },
   {
     title: "Usted decide",
@@ -110,7 +110,7 @@ export default async function SpanishHomePage() {
             ¿Atrasado con la casa? Reciba una oferta de contado hoy.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-white/88">
-            Sin reparaciones. Sin visitas. Patrick o Jaime le llaman el mismo día, incluyendo cuando ya hay una venta del fiduciario en el calendario.
+            Sin reparaciones. Sin visitas. Nuestros especialistas le llaman el mismo día, incluyendo cuando ya hay una venta del fiduciario en el calendario.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -190,7 +190,7 @@ export default async function SpanishHomePage() {
 
       {/* About founders */}
       <Section tone="mist">
-        <Founders linked />
+        <Founders linked locale="es" />
       </Section>
 
       {/* FAQs */}
@@ -207,7 +207,7 @@ export default async function SpanishHomePage() {
 
       <ClosingBand
         title="Envíe la dirección. Le llamamos hoy."
-        body="Si es después de las 7:00 p.m., Patrick o Jaime responden por la mañana. No tiene que decidir nada por teléfono."
+        body="Si es después de las 7:00 p.m., nuestros especialistas responden por la mañana. No tiene que decidir nada por teléfono."
         offerLabel="Pedir mi oferta"
       />
     </div>

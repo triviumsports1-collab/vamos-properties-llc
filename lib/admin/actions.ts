@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { site } from "@/lib/site";
 import {
   assignSchema,
   loginSchema,
@@ -179,7 +180,7 @@ export async function saveLeadTouch(_previous: AdminFormState, formData: FormDat
       const delivery = await sendSellerFollowUp({
         to: result.email,
         subject: parsed.data.subject,
-        text: `${parsed.data.body}\n\nVamos Properties LLC\nAbout: ${result.address}`,
+        text: `${parsed.data.body}\n\nThe Vamos Properties team\n${site.phoneDisplay}\nAbout: ${result.address}`,
       });
       const note =
         delivery === "sent"

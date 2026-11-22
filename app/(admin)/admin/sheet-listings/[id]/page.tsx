@@ -4,10 +4,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { SheetListingEditForm } from "@/components/admin/sheet-listing-edit-form";
+import { SheetListingLifecyclePanel } from "@/components/admin/sheet-listing-lifecycle-panel";
+import { SheetListingPhotoManager } from "@/components/admin/sheet-listing-photo-manager";
 import { SheetListingMarginForm } from "@/components/admin/sheet-listing-margin-form";
 import { SheetListingRowActions } from "@/components/admin/sheet-listing-row-actions";
 import { SheetListingStatusBadge } from "@/components/admin/sheet-listing-status";
 import { formatWhen } from "@/lib/admin/clock";
+import { mediaStorageReady } from "@/lib/media/storage";
+import { getLifecycleSettings, listSheetListingStatusEvents } from "@/lib/dal/listing-lifecycle";
+import { statusEventLabel } from "@/lib/gdoc-listings/lifecycle";
 import { getAdminSheetListingById, listSheetListingMarginEvents, listSheetSyncEventsForListing } from "@/lib/dal/sheet-listings";
 import { formatMoney } from "@/lib/listings/money";
 import { formatMarginPercent } from "@/lib/gdoc-listings/margin";
@@ -35,6 +40,8 @@ async function EditSheetListing({ params }: EditProps) {
   if (!listing) notFound();
   const events = await listSheetSyncEventsForListing(listing.id);
   const marginEvents = await listSheetListingMarginEvents(listing.id);
+  const [lifecycle, statusEvents] = await Promise.all([getLifecycleSettings(), listSheetListingStatusEvents(listing.id)]);
+  const nowIso = new Date().toISOString();
 
   return (
     <AdminShell current="/admin/sheet-listings">
@@ -67,6 +74,28 @@ async function EditSheetListing({ params }: EditProps) {
           title={listing.title}
           removed={listing.removed || listing.status === "inactive"}
           publicVisible={!listing.removed && listing.status === "active"}
+        />
+        <SheetListingLifecyclePanel listing={listing} settings={lifecycle} nowIso={nowIso} />
+        {statusEvents.length > 0 ? (
+          <section className="mt-8 border border-line bg-panel p-5">
+            <h2 className="text-lg font-semibold text-ink">Status history</h2>
+            <ul className="mt-3 grid gap-2 text-sm text-ink">
+              {statusEvents.map((event, index) => (
+                <li key={`${event.createdAt}-${index}`}>
+                  {statusEventLabel(event)}
+                  {event.expiresAt && event.nextStatus === "active" ? (
+                    <span className="text-muted"> · until {formatWhen(event.expiresAt)}</span>
+                  ) : null}
+                  <span className="text-muted"> · {formatWhen(event.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        <SheetListingPhotoManager
+          key={`${listing.photosUpdatedAt ?? "sheet"}-${listing.photos.length}`}
+          listing={listing}
+          storageReady={mediaStorageReady()}
         />
         <SheetListingMarginForm listing={listing} />
         {marginEvents.length > 0 ? (

@@ -57,6 +57,18 @@ export type SheetListingView = {
   specs: SheetListingSpec[];
 };
 
+/** A home that exists but is not public; drives the off-market detail page. */
+export type SheetListingOffMarketView = {
+  id: string;
+  title: string;
+  city: string;
+  localTargetArea: string;
+  propertyType: string;
+  listPrice: number | null;
+  status: string;
+  listingCode: string;
+};
+
 export type SheetListingCardView = {
   id: string;
   title: string;
@@ -137,6 +149,9 @@ export type SheetListingAdminSummary = {
   inactive: number;
   sold: number;
   underContract: number;
+  expiringSoon: number;
+  overdue: number;
+  expired: number;
   hidden: number;
   withMargin: number;
   customMargins: number;
@@ -163,6 +178,10 @@ export type SheetListingAdminRow = {
   syncedAt: string;
   priceDropped: boolean;
   updated: boolean;
+  activatedAt: string | null;
+  expiresAt: string | null;
+  inactiveReason: string | null;
+  statusOverride: boolean;
 };
 
 export type SheetListingAdminPlaces = {
@@ -291,10 +310,13 @@ export type SheetListingAdminDetail = SheetListingAdminRow & {
   longitude: number | null;
   sheetSyncStatus: string;
   removedAt: string | null;
+  photos: string[];
+  photosOverride: boolean;
+  photosUpdatedAt: string | null;
 };
 
 export type SheetListingAdminFilters = {
-  view: "all" | "active" | "inactive" | "under_contract" | "sold";
+  view: "all" | "active" | "expiring" | "expired" | "inactive" | "under_contract" | "sold";
   query: string;
   minPrice: number | null;
   maxPrice: number | null;
@@ -311,7 +333,7 @@ export type SheetSyncFormState = {
 
 export const idleSheetSync: SheetSyncFormState = { ok: false, message: "", stamp: 0 };
 
-export type SheetSyncTrigger = "admin" | "webhook";
+export type SheetSyncTrigger = "admin" | "webhook" | "auto";
 
 export type SheetSyncEventDraft = {
   listingCode: string;
@@ -336,6 +358,8 @@ export type SheetSyncRunView = {
   inactivatedCount: number;
   skipped: Record<string, number>;
   error: string;
+  actorEmail: string;
+  durationMs: number | null;
   events: SheetSyncEventView[];
 };
 

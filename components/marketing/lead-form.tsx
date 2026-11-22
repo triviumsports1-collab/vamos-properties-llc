@@ -58,7 +58,7 @@ export function LeadForm({
           path: "Cómo podemos ayudar",
           sending: "Enviando…",
           submit: "Pedir mi oferta",
-          note: "Toma menos de un minuto. Patrick o Jaime le responden el mismo día.",
+          note: "Toma menos de un minuto. Nuestros especialistas le responden el mismo día.",
           check: "Revise los campos marcados y envíelo otra vez.",
           situations: {
             behind: "Atrasado en los pagos",
@@ -87,7 +87,7 @@ export function LeadForm({
           path: "How should we help",
           sending: "Sending…",
           submit: "Get your cash offer",
-          note: "This takes under a minute. Patrick or Jaime reply the same day.",
+          note: "This takes under a minute. Our specialists reply the same day.",
           check: "Check the highlighted fields, then send it again.",
           situations: Object.fromEntries(situations.map((item) => [item.value, item.label])) as Record<string, string>,
           paths: Object.fromEntries(paths.map((item) => [item.value, item.label])) as Record<string, string>,

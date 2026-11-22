@@ -19,11 +19,11 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Vamos Properties LLC",
+    default: "Vamos Properties",
     template: "%s · Vamos Properties",
   },
   description:
-    "Phoenix homeowners can ask Patrick and Jaime for a cash offer or help with a mortgage that is behind.",
+    "Vamos Properties is a Phoenix-area real estate acquisitions team. Homeowners get a cash offer or help with a mortgage that is behind.",
   openGraph: {
     type: "website",
     siteName: site.name,

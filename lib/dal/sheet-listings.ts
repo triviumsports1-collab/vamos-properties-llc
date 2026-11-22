@@ -31,6 +31,7 @@ import type {
   SheetListingAdminSummary,
   SheetListingCardView,
   SheetListingMarginEventView,
+  SheetListingOffMarketView,
   SheetListingSpec,
   SheetListingView,
   SheetMarginAuditDraft,
@@ -40,12 +41,19 @@ import type {
   SheetSyncTrigger,
 } from "@/lib/gdoc-listings/types";
 import { getDb } from "@/src/prisma/db";
+import { getLifecycleSettings, lifecycleCounts, publicListingWhere, setListingLifecycle } from "@/lib/dal/listing-lifecycle";
+import { activeWindowFields, addDays } from "@/lib/gdoc-listings/lifecycle";
 
 const PUBLIC_STATUS = "active";
 
+/** Active, on the desk, and inside its active window (checked at query time). */
+async function publicWhere(): Promise<Prisma.SheetListingWhereInput> {
+  return publicListingWhere(await getLifecycleSettings(), new Date());
+}
+
 export async function listPublicSheetListings(): Promise<SheetListingView[]> {
   const rows = await getDb().sheetListing.findMany({
-    where: { status: PUBLIC_STATUS, removedAt: null },
+    where: await publicWhere(),
     orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
   });
   return rows.map(toView);
@@ -75,7 +83,7 @@ const catalogCardSelect = {
 
 export async function listPublicSheetListingCards(): Promise<SheetListingCardView[]> {
   const rows = await getDb().sheetListing.findMany({
-    where: { status: PUBLIC_STATUS, removedAt: null },
+    where: await publicWhere(),
     select: catalogCardSelect,
     orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
   });
@@ -87,18 +95,55 @@ export async function getPublicSheetListingById(id: string): Promise<SheetListin
   if (!needle) return null;
 
   const row = await getDb().sheetListing.findFirst({
-    where: {
-      status: PUBLIC_STATUS,
-      removedAt: null,
-      OR: [
-        { slug: needle },
-        { listingCode: needle.toUpperCase() },
-        { sourceMessageId: needle },
-        { sheetKey: normalizeAddress(needle) },
-      ],
-    },
+    where: { AND: [await publicWhere(), sheetListingNeedle(needle)] },
   });
   return row ? toView(row) : null;
+}
+
+function sheetListingNeedle(needle: string): Prisma.SheetListingWhereInput {
+  return {
+    OR: [
+      { slug: needle },
+      { listingCode: needle.toUpperCase() },
+      { sourceMessageId: needle },
+      { sheetKey: normalizeAddress(needle) },
+    ],
+  };
+}
+
+/**
+ * A home that exists but is not public (expired, inactive, sold, under contract). Lets the
+ * detail route render an "off-market" page instead of a 404 for links that used to work.
+ */
+export async function getOffMarketSheetListingById(id: string): Promise<SheetListingOffMarketView | null> {
+  const needle = id.trim();
+  if (!needle) return null;
+  const row = await getDb().sheetListing.findFirst({
+    where: { AND: [{ NOT: await publicWhere() }, sheetListingNeedle(needle)] },
+    select: {
+      slug: true,
+      title: true,
+      city: true,
+      localTargetArea: true,
+      propertyType: true,
+      listPrice: true,
+      finalDisplayPrice: true,
+      marginAmount: true,
+      status: true,
+      listingCode: true,
+    },
+  });
+  if (!row) return null;
+  return {
+    id: row.slug,
+    title: row.title,
+    city: row.city ?? "",
+    localTargetArea: row.localTargetArea ?? "",
+    propertyType: row.propertyType ?? "",
+    listPrice: publicDisplayPrice(row.listPrice, row.finalDisplayPrice, row.marginAmount),
+    status: row.status,
+    listingCode: row.listingCode ?? "",
+  };
 }
 
 const SIMILAR_LIMIT = 3;
@@ -144,10 +189,11 @@ export async function listPublicSimilarSheetListings(
 
   const rows = await getDb().sheetListing.findMany({
     where: {
-      status: PUBLIC_STATUS,
-      removedAt: null,
-      NOT: notSelf.length === 1 ? notSelf[0] : { OR: notSelf },
-      OR: matchOr,
+      AND: [
+        await publicWhere(),
+        { NOT: notSelf.length === 1 ? notSelf[0] : { OR: notSelf } },
+        { OR: matchOr },
+      ],
     },
     select: similarCardSelect,
     orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
@@ -167,7 +213,7 @@ export async function listPublicSimilarSheetListings(
 
 export async function listSheetListingSlugs(): Promise<string[]> {
   const rows = await getDb().sheetListing.findMany({
-    where: { status: PUBLIC_STATUS, removedAt: null },
+    where: await publicWhere(),
     select: { slug: true, listingCode: true },
     orderBy: { id: "asc" },
   });
@@ -176,7 +222,7 @@ export async function listSheetListingSlugs(): Promise<string[]> {
 
 export async function listSheetListingSitemapEntries(): Promise<Array<{ slug: string; updatedAt: string }>> {
   const rows = await getDb().sheetListing.findMany({
-    where: { status: PUBLIC_STATUS, removedAt: null },
+    where: await publicWhere(),
     select: { slug: true, updatedAt: true },
     orderBy: { id: "asc" },
   });
@@ -186,9 +232,11 @@ export async function listSheetListingSitemapEntries(): Promise<Array<{ slug: st
 export async function getSheetListingAdminSummary(): Promise<SheetListingAdminSummary> {
   await requireAdmin();
   const db = getDb();
-  const [total, active, inactive, sold, underContract, withMargin, customMargins, latest] = await Promise.all([
+  const settings = await getLifecycleSettings();
+  const now = new Date();
+  const [total, active, inactive, sold, underContract, withMargin, customMargins, latest, lifecycle] = await Promise.all([
     db.sheetListing.count(),
-    db.sheetListing.count({ where: { status: PUBLIC_STATUS, removedAt: null } }),
+    db.sheetListing.count({ where: publicListingWhere(settings, now) }),
     db.sheetListing.count({ where: { OR: [{ status: "inactive" }, { removedAt: { not: null } }] } }),
     db.sheetListing.count({ where: { status: "sold", removedAt: null } }),
     db.sheetListing.count({ where: { status: "under_contract", removedAt: null } }),
@@ -198,6 +246,7 @@ export async function getSheetListingAdminSummary(): Promise<SheetListingAdminSu
       select: { syncedAt: true },
       orderBy: { syncedAt: "desc" },
     }),
+    lifecycleCounts(settings, now),
   ]);
   return {
     total,
@@ -205,6 +254,9 @@ export async function getSheetListingAdminSummary(): Promise<SheetListingAdminSu
     inactive,
     sold,
     underContract,
+    expiringSoon: lifecycle.expiringSoon,
+    overdue: lifecycle.overdue,
+    expired: lifecycle.expired + lifecycle.overdue,
     hidden: Math.max(0, total - active),
     withMargin,
     customMargins,
@@ -225,8 +277,9 @@ export async function listAdminSheetListingPlaces(): Promise<SheetListingAdminPl
 
 export async function listAdminSheetListings(filters?: SheetListingAdminFilters): Promise<SheetListingAdminRow[]> {
   await requireAdmin();
+  const settings = await getLifecycleSettings();
   const rows = await getDb().sheetListing.findMany({
-    where: adminListWhere(filters),
+    where: adminListWhere(filters, settings, new Date()),
     orderBy: [{ syncedAt: "desc" }, { id: "desc" }],
     select: {
       slug: true,
@@ -247,6 +300,10 @@ export async function listAdminSheetListings(filters?: SheetListingAdminFilters)
       syncedAt: true,
       priceDropped: true,
       updated: true,
+      activatedAt: true,
+      expiresAt: true,
+      inactiveReason: true,
+      statusOverride: true,
     },
   });
   return rows.map(toAdminRow);
@@ -283,7 +340,37 @@ export async function getAdminSheetListingById(id: string): Promise<SheetListing
     longitude: row.longitude,
     sheetSyncStatus: row.sheetSyncStatus ?? "",
     removedAt: row.removedAt?.toISOString() ?? null,
+    photos: orderedPhotos(row.coverPhoto, parseStringArray(row.photos)),
+    photosOverride: row.photosOverride,
+    photosUpdatedAt: row.photosUpdatedAt?.toISOString() ?? null,
   };
+}
+
+/**
+ * Saves the admin-curated photo list. The first photo becomes the cover. When `keepOnSync`
+ * is on, the Google Sheets copy leaves photos, galleries, and the cover alone.
+ */
+export async function updateAdminSheetListingPhotos(
+  slug: string,
+  input: { photos: string[]; keepOnSync: boolean },
+): Promise<{ ok: true; slug: string; listingCode: string } | { ok: false; message: string }> {
+  await requireAdmin();
+  const existing = await findAdminSheetListing(slug);
+  if (!existing) return { ok: false, message: "That sheet home is not on this desk." };
+  const photos = input.photos;
+  const galleries: SheetGalleryGroup[] =
+    photos.length > 0 ? [{ id: "photos", label: photos.length === 1 ? "Cover photo" : "Photos", photos }] : [];
+  await getDb().sheetListing.update({
+    where: { id: existing.id },
+    data: {
+      photos: JSON.stringify(photos),
+      galleries: JSON.stringify(galleries),
+      coverPhoto: photos[0] ?? null,
+      photosOverride: input.keepOnSync,
+      photosUpdatedAt: new Date(),
+    },
+  });
+  return { ok: true, slug: existing.slug, listingCode: existing.listingCode ?? "" };
 }
 
 export async function updateAdminSheetListing(
@@ -319,6 +406,7 @@ export async function updateAdminSheetListing(
     latitude: number | null;
     longitude: number | null;
     manualHold: boolean;
+    actorEmail?: string;
   },
 ): Promise<{ ok: true; slug: string } | { ok: false; message: string }> {
   await requireAdmin();
@@ -353,9 +441,40 @@ export async function updateAdminSheetListing(
   const removedAt = input.status === "inactive" ? (existing.removedAt ?? now) : null;
   const margin = recomputeStoredMargin(input.listPrice, existing.marginAmount, existing.marginPercentBps);
 
+  // A status picked on the desk is a manual override: lock it so the sheet copy keeps it,
+  // and start a fresh active window when the home goes (back) to Active.
+  const previousStatus = existing.removedAt ? "inactive" : existing.status;
+  const statusChanged = previousStatus !== input.status;
+  const settings = statusChanged ? await getLifecycleSettings() : null;
+  const lifecycle: Prisma.SheetListingUpdateInput =
+    statusChanged && settings
+      ? {
+          statusOverride: true,
+          statusChangedAt: now,
+          inactiveReason: input.status === "inactive" ? "admin" : null,
+          ...(input.status === PUBLIC_STATUS ? activeWindowFields(now, { kind: "default" }, settings) : {}),
+        }
+      : {};
+
+  if (statusChanged) {
+    await getDb().sheetListingStatusEvent.create({
+      data: {
+        listingId: existing.id,
+        slug: existing.slug,
+        action: input.status === PUBLIC_STATUS ? "activated" : input.status === "inactive" ? "deactivated" : `status_${input.status}`,
+        reason: "edit_form",
+        actorEmail: input.actorEmail ?? "admin",
+        previousStatus,
+        nextStatus: input.status,
+        expiresAt: input.status === PUBLIC_STATUS && settings ? addDays(now, settings.expiryDays) : existing.expiresAt,
+      },
+    });
+  }
+
   await getDb().sheetListing.update({
     where: { id: existing.id },
     data: {
+      ...lifecycle,
       sheetKey: nextKey,
       addressKey: nextKey,
       title: input.title,
@@ -402,26 +521,22 @@ export async function updateAdminSheetListing(
   return { ok: true, slug: existing.slug };
 }
 
-export async function inactivateAdminSheetListing(slug: string): Promise<{ ok: true; slug: string } | { ok: false; message: string }> {
+export async function inactivateAdminSheetListing(
+  slug: string,
+  actorEmail = "admin",
+): Promise<{ ok: true; slug: string } | { ok: false; message: string }> {
   await requireAdmin();
-  const existing = await findAdminSheetListing(slug);
-  if (!existing) return { ok: false, message: "That sheet home is not on this desk." };
-  await getDb().sheetListing.update({
-    where: { id: existing.id },
-    data: { status: "inactive", removedAt: existing.removedAt ?? new Date() },
-  });
-  return { ok: true, slug: existing.slug };
+  const result = await setListingLifecycle(slug, { kind: "deactivate" }, actorEmail);
+  return result.ok ? { ok: true, slug: result.slugs[0] } : result;
 }
 
-export async function restoreAdminSheetListing(slug: string): Promise<{ ok: true; slug: string } | { ok: false; message: string }> {
+export async function restoreAdminSheetListing(
+  slug: string,
+  actorEmail = "admin",
+): Promise<{ ok: true; slug: string } | { ok: false; message: string }> {
   await requireAdmin();
-  const existing = await findAdminSheetListing(slug);
-  if (!existing) return { ok: false, message: "That sheet home is not on this desk." };
-  await getDb().sheetListing.update({
-    where: { id: existing.id },
-    data: { status: "active", removedAt: null },
-  });
-  return { ok: true, slug: existing.slug };
+  const result = await setListingLifecycle(slug, { kind: "activate", window: { kind: "default" }, lock: true }, actorEmail);
+  return result.ok ? { ok: true, slug: result.slugs[0] } : result;
 }
 
 export async function deleteAdminSheetListing(slug: string): Promise<{ ok: true } | { ok: false; message: string }> {
@@ -593,13 +708,23 @@ export async function listSheetListingRecords() {
       status: true,
       removedAt: true,
       manualHold: true,
+      photosOverride: true,
+      statusOverride: true,
+      inactiveReason: true,
+      activatedAt: true,
+      expiresAt: true,
     },
   });
 }
 
-const SYNC_LOCK_STALE_MS = 120_000;
+/**
+ * A lock older than this is treated as abandoned (the process died without releasing it).
+ * Longer than any sync can run (route maxDuration is 60s; the write transaction caps at 40s),
+ * so a slow copy is never taken over mid-run.
+ */
+export const SYNC_LOCK_STALE_MS = 5 * 60_000;
 
-export async function beginSheetSyncRun(trigger: SheetSyncTrigger) {
+export async function beginSheetSyncRun(trigger: SheetSyncTrigger, actorEmail?: string) {
   const db = getDb();
   const holder = randomUUID();
   await db.sheetSyncLock.upsert({
@@ -622,14 +747,20 @@ export async function beginSheetSyncRun(trigger: SheetSyncTrigger) {
         trigger,
         status: "skipped",
         error: "busy",
+        actorEmail: actorEmail ?? null,
         finishedAt: new Date(),
       },
     });
     throw new SheetSyncError("busy", "A sheet copy is already running.");
   }
 
+  // Runs left "running" by a process that died (we only get here once its lock went stale).
+  await db.sheetSyncRun.updateMany({
+    where: { status: "running", errorId: { not: holder } },
+    data: { status: "failed", error: "abandoned", finishedAt: new Date() },
+  });
   const run = await db.sheetSyncRun.create({
-    data: { errorId: holder, trigger, status: "running" },
+    data: { errorId: holder, trigger, status: "running", actorEmail: actorEmail ?? null },
     select: { id: true, errorId: true },
   });
   return run;
@@ -653,8 +784,19 @@ export async function releaseSheetSyncLock(holder: string) {
   });
 }
 
+export type SheetStatusEventDraft = {
+  listingId: number;
+  slug: string;
+  action: string;
+  reason: string | null;
+  previousStatus: string | null;
+  nextStatus: string | null;
+  expiresAt: Date | null;
+};
+
 export async function applySheetListingSync(input: {
   runId: number;
+  statusEvents?: SheetStatusEventDraft[];
   creates: Prisma.SheetListingCreateManyInput[];
   updates: Array<{ id: number; data: Prisma.SheetListingUpdateInput }>;
   staleIds: number[];
@@ -688,7 +830,7 @@ export async function applySheetListingSync(input: {
       if (input.staleIds.length > 0) {
         await tx.sheetListing.updateMany({
           where: { id: { in: input.staleIds }, removedAt: null },
-          data: { status: "inactive", removedAt: input.now },
+          data: { status: "inactive", removedAt: input.now, inactiveReason: "left_sheet", statusChangedAt: input.now },
         });
       }
       if (input.events.length > 0) {
@@ -701,6 +843,11 @@ export async function applySheetListingSync(input: {
             action: event.action,
             reason: event.reason,
           })),
+        });
+      }
+      if (input.statusEvents && input.statusEvents.length > 0) {
+        await tx.sheetListingStatusEvent.createMany({
+          data: input.statusEvents.map((event) => ({ ...event, actorEmail: "sheet-sync" })),
         });
       }
       if (input.marginEvents && input.marginEvents.length > 0) {
@@ -762,7 +909,7 @@ export async function listRecentSheetSyncRuns(limit = 8): Promise<SheetSyncRunVi
   await requireAdmin();
   const rows = await getDb().sheetSyncRun.findMany({
     orderBy: { startedAt: "desc" },
-    take: Math.min(20, Math.max(1, limit)),
+    take: Math.min(50, Math.max(1, limit)),
     include: { events: { orderBy: { id: "desc" }, take: 12 } },
   });
   return rows.map(toSyncRunView);
@@ -797,6 +944,7 @@ function toSyncRunView(row: {
   inactivatedCount: number;
   skippedJson: string | null;
   error: string | null;
+  actorEmail?: string | null;
   events: Array<{ listingCode: string | null; slug: string | null; action: string; reason: string; createdAt: Date }>;
 }): SheetSyncRunView {
   let skipped: Record<string, number> = {};
@@ -827,6 +975,8 @@ function toSyncRunView(row: {
     inactivatedCount: row.inactivatedCount,
     skipped,
     error: row.error ?? "",
+    actorEmail: row.actorEmail ?? "",
+    durationMs: row.finishedAt ? Math.max(0, row.finishedAt.getTime() - row.startedAt.getTime()) : null,
     events: row.events.map(toSyncEventView),
   };
 }
@@ -847,11 +997,28 @@ function toSyncEventView(row: {
   };
 }
 
-function adminListWhere(filters?: SheetListingAdminFilters): Prisma.SheetListingWhereInput {
+function adminListWhere(
+  filters: SheetListingAdminFilters | undefined,
+  settings: Awaited<ReturnType<typeof getLifecycleSettings>>,
+  now: Date,
+): Prisma.SheetListingWhereInput {
   if (!filters) return {};
   const clauses: Prisma.SheetListingWhereInput[] = [];
   if (filters.view === "active") {
-    clauses.push({ status: PUBLIC_STATUS, removedAt: null });
+    clauses.push(publicListingWhere(settings, now));
+  } else if (filters.view === "expiring") {
+    clauses.push(
+      settings.autoExpire
+        ? { status: PUBLIC_STATUS, removedAt: null, expiresAt: { gt: now, lte: addDays(now, settings.expiringSoonDays) } }
+        : { id: { in: [] } },
+    );
+  } else if (filters.view === "expired") {
+    clauses.push({
+      OR: [
+        { status: "inactive", inactiveReason: "expired" },
+        ...(settings.autoExpire ? [{ status: PUBLIC_STATUS, expiresAt: { lte: now } }] : []),
+      ],
+    });
   } else if (filters.view === "inactive") {
     clauses.push({ OR: [{ status: "inactive" }, { removedAt: { not: null } }] });
   } else if (filters.view === "sold") {
@@ -910,7 +1077,7 @@ async function loadMarginTargets(input: {
   } as const;
   if (input.scope === "filtered") {
     return getDb().sheetListing.findMany({
-      where: adminListWhere(input.filters),
+      where: adminListWhere(input.filters, await getLifecycleSettings(), new Date()),
       select,
       orderBy: { id: "asc" },
     });
@@ -979,6 +1146,10 @@ function toAdminRow(row: {
   syncedAt: Date;
   priceDropped: boolean;
   updated: boolean;
+  activatedAt?: Date | null;
+  expiresAt?: Date | null;
+  inactiveReason?: string | null;
+  statusOverride?: boolean;
 }): SheetListingAdminRow {
   const marginAmount = row.marginAmount ?? null;
   const marginPercentBps = row.marginPercentBps ?? null;
@@ -1001,6 +1172,10 @@ function toAdminRow(row: {
     syncedAt: row.syncedAt.toISOString(),
     priceDropped: row.priceDropped,
     updated: row.updated,
+    activatedAt: row.activatedAt?.toISOString() ?? null,
+    expiresAt: row.expiresAt?.toISOString() ?? null,
+    inactiveReason: row.inactiveReason ?? null,
+    statusOverride: row.statusOverride ?? false,
   };
 }
 
@@ -1241,6 +1416,11 @@ function toView(row: SheetListing): SheetListingView {
       titleCompany,
     }),
   };
+}
+
+function orderedPhotos(cover: string | null, photos: string[]) {
+  if (!cover || photos[0] === cover) return photos;
+  return [cover, ...photos.filter((photo) => photo !== cover)];
 }
 
 function parseStringArray(value: string | null) {

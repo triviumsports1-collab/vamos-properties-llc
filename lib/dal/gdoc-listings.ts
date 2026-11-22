@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import {
+  getOffMarketSheetListingById,
   getPublicSheetListingById,
   listPublicSheetListingCards,
   listPublicSheetListings,
@@ -15,11 +16,32 @@ import {
   SHEET_LISTINGS_TAG,
   type SheetGalleryGroup,
   type SheetListingCardView,
+  type SheetListingOffMarketView,
   type SheetListingSpec,
   type SheetListingView,
 } from "@/lib/gdoc-listings/types";
 
-export type { SheetGalleryGroup, SheetListingCardView, SheetListingSpec, SheetListingView };
+export type { SheetGalleryGroup, SheetListingCardView, SheetListingOffMarketView, SheetListingSpec, SheetListingView };
+
+/** A known home that is no longer public (expired, inactive, sold, under contract). */
+export async function getOffMarketSheetListing(id: string): Promise<SheetListingOffMarketView | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(SHEET_LISTINGS_TAG);
+  return getOffMarketSheetListingById(id);
+}
+
+export function similarSeedFromOffMarket(listing: SheetListingOffMarketView): SheetListingSimilarSeed {
+  return {
+    id: listing.id,
+    listingCode: listing.listingCode,
+    city: listing.city,
+    localTargetArea: listing.localTargetArea,
+    displayPrice: listing.listPrice,
+    listPrice: listing.listPrice,
+    propertyType: listing.propertyType,
+  };
+}
 
 export async function listSheetListings(): Promise<SheetListingView[]> {
   "use cache";

@@ -15,7 +15,7 @@ import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
 import type { SheetListingCardView, SheetListingView } from "@/lib/gdoc-listings/types";
 import { formatMoney } from "@/lib/listings/money";
-import { site } from "@/lib/site";
+import { site, smsHref } from "@/lib/site";
 
 export function SheetListingDetailView({
   listing,
@@ -30,6 +30,12 @@ export function SheetListingDetailView({
   const place = sheetListingPlace(listing);
   const typeLabel = sheetListingTypeLabel(listing.propertyType, locale);
   const pageUrl = sheetListingPublicUrl(listing, locale);
+  const textHref = smsHref(
+    locale === "es"
+      ? `Hola Vamos, me interesa la casa en ${listing.address}. ¿Sigue disponible? ${pageUrl}`
+      : `Hi Vamos, I'm interested in the home at ${listing.address}. Is it still available? ${pageUrl}`,
+  );
+  const textLabel = locale === "es" ? "Enviar texto sobre esta casa" : "Text about this home";
   const price = listing.displayPrice != null ? formatMoney(listing.displayPrice) : copy.callForPrice;
   const statusLabel = sheetListingForSaleLabel(listing.status, locale);
   const numberLocale = locale === "es" ? "es-US" : "en-US";
@@ -110,6 +116,12 @@ export function SheetListingDetailView({
                 className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-navy px-4 text-base font-semibold text-white lg:hidden"
               >
                 {copy.call} {site.phoneDisplay}
+              </a>
+              <a
+                href={textHref}
+                className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-line bg-panel px-4 text-base font-semibold text-ink lg:hidden"
+              >
+                {textLabel}
               </a>
 
               <div className="mt-6">
@@ -192,6 +204,12 @@ export function SheetListingDetailView({
                   className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-navy px-4 text-base font-semibold text-white"
                 >
                   {copy.call} {site.phoneDisplay}
+                </a>
+                <a
+                  href={textHref}
+                  className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-line bg-panel px-4 text-base font-semibold text-ink"
+                >
+                  {textLabel}
                 </a>
                 <div className="mt-6 border-t border-line pt-5">
                   <SheetListingInquiry listingId={listing.id} title={listing.title} address={place} locale={locale} />

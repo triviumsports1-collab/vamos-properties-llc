@@ -4,7 +4,8 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormNotice, Spinner } from "@/components/admin/status-form";
 import { SheetListingRowActions } from "@/components/admin/sheet-listing-row-actions";
-import { SheetListingStatusBadge } from "@/components/admin/sheet-listing-status";
+import { SheetListingLifecycleBadge } from "@/components/admin/sheet-listing-status";
+import type { LifecycleSettings } from "@/lib/gdoc-listings/lifecycle";
 import { formatWhen } from "@/lib/admin/clock";
 import { applySheetListingMarginForm } from "@/lib/gdoc-listings/margin-actions";
 import { formatMarginPercent } from "@/lib/gdoc-listings/margin";
@@ -24,9 +25,13 @@ type Filters = {
 export function SheetListingMarginDesk({
   listings,
   filters,
+  lifecycle,
+  nowIso,
 }: {
   listings: SheetListingAdminRow[];
   filters: Filters;
+  lifecycle: LifecycleSettings;
+  nowIso: string;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
@@ -121,7 +126,7 @@ export function SheetListingMarginDesk({
                   {listing.region ? ` · ${listing.region}` : ""}
                 </p>
                 <div className="mt-2">
-                  <SheetListingStatusBadge status={listing.status} removed={listing.removed} />
+                  <SheetListingLifecycleBadge listing={listing} settings={lifecycle} nowIso={nowIso} />
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <div>
@@ -151,6 +156,8 @@ export function SheetListingMarginDesk({
                   title={listing.title}
                   removed={listing.removed || listing.status === "inactive"}
                   publicVisible={!listing.removed && listing.status === "active"}
+                  renewDays={lifecycle.expiryDays}
+                  locked={listing.statusOverride}
                   compact
                 />
               </div>
@@ -212,7 +219,7 @@ export function SheetListingMarginDesk({
                   {listing.region ? <p className="mt-1 text-xs text-muted">{listing.region}</p> : null}
                 </td>
                 <td className="px-3 py-2.5">
-                  <SheetListingStatusBadge status={listing.status} removed={listing.removed} />
+                  <SheetListingLifecycleBadge listing={listing} settings={lifecycle} nowIso={nowIso} />
                 </td>
                 <td className="px-3 py-2.5">{listing.listPrice != null ? formatMoney(listing.listPrice) : "No asking price"}</td>
                 <td className="px-3 py-2.5">
@@ -242,6 +249,8 @@ export function SheetListingMarginDesk({
                     title={listing.title}
                     removed={listing.removed || listing.status === "inactive"}
                     publicVisible={!listing.removed && listing.status === "active"}
+                    renewDays={lifecycle.expiryDays}
+                    locked={listing.statusOverride}
                     compact
                   />
                 </td>

@@ -134,7 +134,7 @@ export default async function StopForeclosurePage() {
 
       <ClosingBand
         title="The date on the notice is the one that matters."
-        body="Send the address and that date. Patrick or Jaime will tell you whether a cash closing can happen before it."
+        body="Send the address and that date. Our specialists will tell you whether a cash closing can happen before it."
       />
     </>
   );

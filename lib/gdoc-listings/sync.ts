@@ -24,6 +24,14 @@ import type {
 import { resolveSyncMargin, sameMargin, type MarginFields } from "@/lib/gdoc-listings/margin";
 import { dropAmount } from "@/lib/listings/money";
 import { refreshSheetListingViews } from "@/lib/gdoc-listings/cache";
+import { expireOverdueListings, getLifecycleSettings } from "@/lib/dal/listing-lifecycle";
+import { rescheduleAfterSuccessfulSync } from "@/lib/dal/sheet-sync-schedule";
+import {
+  activeWindowFields,
+  sheetStatusProtected,
+  type LifecycleSettings,
+} from "@/lib/gdoc-listings/lifecycle";
+import type { SheetStatusEventDraft } from "@/lib/dal/sheet-listings";
 
 export type SheetSyncResult = {
   ok: boolean;
@@ -40,16 +48,26 @@ export type SheetSyncResult = {
 
 type ExistingRow = Awaited<ReturnType<typeof listSheetListingRecords>>[number];
 
-export async function syncSheetListings(trigger: SheetSyncTrigger = "webhook"): Promise<SheetSyncResult> {
+/**
+ * The one sync code path for every trigger (desk button, sheet webhook, scheduler). The DB
+ * lock in beginSheetSyncRun makes concurrent calls fail fast with SheetSyncError("busy").
+ * Lifecycle (expired / desk-locked status) and desk photos are protected inside applyDrafts.
+ */
+export async function syncSheetListings(
+  trigger: SheetSyncTrigger = "webhook",
+  options: { actorEmail?: string } = {},
+): Promise<SheetSyncResult> {
   if (!googleSheetsConfigured()) {
     throw new SheetSyncError("missing_credentials", "Google Sheets is not configured.");
   }
 
-  const run = await beginSheetSyncRun(trigger);
+  const run = await beginSheetSyncRun(trigger, options.actorEmail);
   try {
     const rows = await fetchSheetValueRows();
     const parsed = parseSheetRows(rows);
     const drafts = foldSheetDrafts(parsed.drafts);
+    // Expire overdue homes first so the copy below sees (and protects) their expired state.
+    const expiredNow = await expireOverdueListings("sheet-sync");
     const existing = await listSheetListingRecords();
     if (drafts.length === 0 && existing.some((row) => row.removedAt == null)) {
       throw new SheetSyncError("empty_sheet", "The sheet copy was empty, so existing homes were left alone.");
@@ -60,7 +78,10 @@ export async function syncSheetListings(trigger: SheetSyncTrigger = "webhook"): 
       ...drafts.map((draft) => draft.listingCode),
       ...drafts.map((draft) => draft.sheetSlug),
       ...existing.filter((row) => result.seenIds.has(row.id)).flatMap((row) => [row.slug, row.listingCode ?? ""]),
+      ...expiredNow.slugs,
     ]);
+    // The scheduler already moved its own slot forward when it claimed this run.
+    if (trigger !== "auto") await rescheduleAfterSuccessfulSync(new Date()).catch(() => undefined);
     console.log("[SHEET_LISTINGS_SYNC]", {
       event: "ok",
       errorId: run.errorId,
@@ -109,6 +130,8 @@ async function applyDrafts(
   const marginEvents: SheetMarginAuditDraft[] = [];
   const marginBatchId = randomUUID();
   const engine = await getSheetPricingRule();
+  const lifecycle = await getLifecycleSettings();
+  const statusEvents: SheetStatusEventDraft[] = [];
   const seenIds = new Set<number>();
   let unchanged = 0;
   let held = 0;
@@ -128,11 +151,13 @@ async function applyDrafts(
     const contentHash = sheetListingContentHash(draft);
     const price = priceFields(current, draft, now);
 
+    // Expired homes and admin-locked statuses are never changed by the sheet.
+    const statusLocked = current ? sheetStatusProtected(current) : false;
+
     if (
       current &&
       current.contentHash === contentHash &&
-      current.removedAt == null &&
-      current.status === draft.status &&
+      (statusLocked || (current.removedAt == null && current.status === draft.status)) &&
       current.previousPrice === price.previousPrice
     ) {
       unchanged += 1;
@@ -143,7 +168,7 @@ async function applyDrafts(
       const slug = pickSlug(draft, reservedSlugs);
       reservedSlugs.add(slug);
       const margin = resolveSyncMargin(draft.listPrice, undefined, engine);
-      creates.push(toCreate(draft, slug, contentHash, price, now, margin));
+      creates.push({ ...toCreate(draft, slug, contentHash, price, now, margin), ...createLifecycle(draft, now, lifecycle) });
       events.push(eventFor(draft, slug, "created", "new_row"));
       const createdMargin = marginAudit(draft, slug, emptyMargin(draft.listPrice), margin, engine.enabled, "new_row");
       if (createdMargin) marginEvents.push(createdMargin);
@@ -156,11 +181,14 @@ async function applyDrafts(
       reservedSlugs.add(nextSlug);
     }
     const margin = resolveSyncMargin(draft.listPrice, current, engine);
+    const status = statusLocked ? null : statusFieldsFor(current, draft, now, lifecycle);
     updates.push({
       id: current.id,
-      data: toUpdate(draft, nextSlug, contentHash, price, now, margin),
+      data: { ...toUpdate(draft, nextSlug, contentHash, price, now, margin, current.photosOverride), ...(status?.data ?? {}) },
     });
-    events.push(eventFor(draft, nextSlug, "updated", updateReason(current, price)));
+    if (status?.event) statusEvents.push({ listingId: current.id, slug: nextSlug, ...status.event });
+    const keptStatus = statusLocked && (current.removedAt ? "inactive" : current.status) !== draft.status;
+    events.push(eventFor(draft, nextSlug, "updated", keptStatus ? `${updateReason(current, price)};status_kept` : updateReason(current, price)));
     const previousMargin = {
       marginAmount: current.marginAmount,
       marginPercentBps: current.marginPercentBps,
@@ -177,7 +205,10 @@ async function applyDrafts(
     if (updatedMargin) marginEvents.push(updatedMargin);
   }
 
-  const stale = existing.filter((row) => !seenIds.has(row.id) && row.removedAt == null && !row.manualHold);
+  // Desk-locked homes stay as the admin set them even after they leave the sheet.
+  const stale = existing.filter(
+    (row) => !seenIds.has(row.id) && row.removedAt == null && !row.manualHold && !row.statusOverride,
+  );
   for (const row of stale) {
     events.push({
       listingCode: row.listingCode ?? "",
@@ -207,6 +238,7 @@ async function applyDrafts(
     updates,
     staleIds: stale.map((row) => row.id),
     events,
+    statusEvents,
     marginEvents,
     marginBatchId,
     counts: {
@@ -335,8 +367,18 @@ function toUpdate(
   price: ReturnType<typeof priceFields>,
   now: Date,
   margin: MarginFields & { marginOverride: boolean },
+  keepAdminPhotos: boolean,
 ): Prisma.SheetListingUpdateInput {
+  // Admin-curated photos win over the sheet: skip photo columns so manual edits survive the copy.
+  const photoFields: Prisma.SheetListingUpdateInput = keepAdminPhotos
+    ? {}
+    : {
+        photos: JSON.stringify(draft.photos),
+        galleries: JSON.stringify(draft.galleries),
+        coverPhoto: draft.coverPhoto || null,
+      };
   return {
+    ...photoFields,
     sheetKey: draft.sheetKey,
     slug,
     listingCode: draft.listingCode || null,
@@ -355,11 +397,7 @@ function toUpdate(
     baths: draft.baths || null,
     sqft: draft.sqft,
     propertyType: draft.propertyType || null,
-    status: draft.status,
     description: draft.description || null,
-    photos: JSON.stringify(draft.photos),
-    galleries: JSON.stringify(draft.galleries),
-    coverPhoto: draft.coverPhoto || null,
     driveFolderUrl: draft.driveFolderUrl || null,
     hoa: draft.hoa || null,
     ac: draft.ac || null,
@@ -387,9 +425,43 @@ function toUpdate(
     marginPercentBps: margin.marginPercentBps,
     finalDisplayPrice: margin.finalDisplayPrice,
     marginOverride: margin.marginOverride,
-    removedAt: null,
     syncedAt: now,
   };
+}
+
+/** Lifecycle columns for a brand-new row: Active rows start a window right away. */
+function createLifecycle(draft: SheetListingDraft, now: Date, settings: LifecycleSettings) {
+  if (draft.status === "active") {
+    return { ...activeWindowFields(now, { kind: "default" }, settings), statusChangedAt: now, inactiveReason: null };
+  }
+  return { statusChangedAt: now, inactiveReason: draft.status === "inactive" ? "sheet" : null };
+}
+
+/**
+ * Status columns for an unlocked existing row. Coming back to Active (from the sheet or after
+ * leaving it) starts a new window; staying Active keeps the running window.
+ */
+function statusFieldsFor(current: ExistingRow, draft: SheetListingDraft, now: Date, settings: LifecycleSettings) {
+  const wasActive = current.status === "active" && current.removedAt == null;
+  const data: Prisma.SheetListingUpdateInput = { status: draft.status, removedAt: null };
+  let event: Omit<SheetStatusEventDraft, "listingId" | "slug"> | null = null;
+  if (draft.status === "active") {
+    if (!wasActive || current.activatedAt == null) {
+      const window = activeWindowFields(now, { kind: "default" }, settings);
+      Object.assign(data, window, { inactiveReason: null, statusChangedAt: wasActive ? undefined : now });
+      event = {
+        action: wasActive ? "window_started" : "sheet_activated",
+        reason: wasActive ? "first_sync" : (current.inactiveReason ?? current.status),
+        previousStatus: current.removedAt ? "inactive" : current.status,
+        nextStatus: "active",
+        expiresAt: window.expiresAt,
+      };
+    }
+  } else {
+    Object.assign(data, { inactiveReason: draft.status === "inactive" ? "sheet" : null });
+    if (wasActive || current.status !== draft.status) Object.assign(data, { statusChangedAt: now });
+  }
+  return { data, event };
 }
 
 function pickSlug(draft: SheetListingDraft, reserved: Set<string>) {
@@ -445,7 +517,9 @@ function marginAudit(
 
 function refreshSheetListingPages(slugs: string[]) {
   try {
-    refreshSheetListingViews(slugs);
+    // expireNow works from Route Handlers (scheduler, webhook) and Server Actions alike, so
+    // the first visitor after a copy gets fresh data instead of the stale cached page.
+    refreshSheetListingViews(slugs, { expireNow: true });
   } catch (error) {
     console.error("[SHEET_LISTINGS_SYNC]", {
       skipped: "revalidate_failed",

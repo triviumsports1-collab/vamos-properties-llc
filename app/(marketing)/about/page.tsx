@@ -8,9 +8,9 @@ import { hreflang } from "@/lib/i18n/routes";
 import { site } from "@/lib/site";
 
 export const metadata = {
-  title: "About Patrick and Jaime",
+  title: "About Vamos Properties",
   description:
-    "Vamos Properties LLC is Patrick and Jaime, local buyers who help Maricopa County homeowners sell as-is or talk through a mortgage that is behind.",
+    "Vamos Properties is a Maricopa County real estate acquisitions and advisory company. Our local team helps homeowners sell as-is or work through a mortgage that is behind.",
   alternates: { canonical: "/about", ...hreflang("/about", "/es/nosotros") },
 };
 
@@ -21,13 +21,13 @@ export default async function AboutPage() {
   return (
     <>
       <Section>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">The people who answer</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Who we are</p>
         <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-          Two people in the Valley, not a national desk.
+          A local acquisitions team, not a national call center.
         </h1>
         <div className="mt-6 max-w-2xl space-y-4 text-lg leading-8 text-ink">
           <p>
-            Vamos Properties LLC buys houses in Maricopa County from owners who need a private way out. Patrick and Jaime answer the phone. The same person you meet is the person who stays with the file.
+            Vamos Properties buys houses in Maricopa County from owners who need a private way out. Our acquisitions team answers directly and works with you one-on-one, and the specialist you meet stays with your file through closing.
           </p>
           <p>
             A cash closing runs through a title company. You see the number before you sign, including the fact that a cash price is usually below a listed price. If the better fit is taking over the payments, we will say what stays in your name before anyone celebrates.
@@ -69,7 +69,7 @@ export default async function AboutPage() {
           </li>
           <li className="bg-panel p-5">
             <h3 className="text-lg font-semibold text-ink">That a stranger’s review is your result</h3>
-            <p className="mt-2 leading-7 text-muted">We do not publish seller names, star ratings, or a count of deals we did not do. You get Patrick or Jaime, and a number you can refuse.</p>
+            <p className="mt-2 leading-7 text-muted">We do not publish seller names, star ratings, or a count of deals we did not do. You get a dedicated Vamos specialist and a number you can refuse.</p>
           </li>
         </ul>
       </Section>
@@ -83,7 +83,7 @@ export default async function AboutPage() {
           <div>
             <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Tell us the address when you are ready.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              You will hear back from Patrick or Jaime, not from a rotating closer. If you would rather talk first, call{" "}
+              You will hear back from a dedicated Vamos specialist, not from a rotating closer. If you would rather talk first, call{" "}
               <a href={site.phoneTel} className="font-semibold text-link">{site.phoneDisplay}</a>
               {" "}or email{" "}
               <a href={`mailto:${site.email}`} className="font-semibold text-link">{site.email}</a>.
@@ -94,7 +94,7 @@ export default async function AboutPage() {
       </Section>
 
       <ClosingBand
-        title="The person on the first call stays with the file."
+        title="The specialist on the first call stays with your file."
         body="Leave the address. If we are with another homeowner, we still return it the same day."
       />
     </>

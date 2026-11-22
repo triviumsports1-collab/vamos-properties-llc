@@ -79,7 +79,7 @@ export default async function SpanishForeclosurePage() {
           </li>
           <li className="bg-panel p-5">
             <h3 className="text-lg font-semibold text-ink">La llamada del mismo día</h3>
-            <p className="mt-2 leading-7 text-muted">Patrick o Jaime preguntan el saldo, el estado de la casa y quién tiene que firmar. No hace falta limpiar antes.</p>
+            <p className="mt-2 leading-7 text-muted">Nuestros especialistas preguntan el saldo, el estado de la casa y quién tiene que firmar. No hace falta limpiar antes.</p>
           </li>
           <li className="bg-panel p-5">
             <h3 className="text-lg font-semibold text-ink">Un número, o un no</h3>
@@ -123,7 +123,7 @@ export default async function SpanishForeclosurePage() {
 
       <ClosingBand
         title="Mándenos la dirección y la fecha del aviso."
-        body="Patrick o Jaime le llaman el mismo día. Pedir una oferta no lo obliga a vender."
+        body="Nuestros especialistas le llaman el mismo día. Pedir una oferta no lo obliga a vender."
         offerLabel="Pedir mi oferta"
       />
     </div>

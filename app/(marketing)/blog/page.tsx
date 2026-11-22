@@ -34,7 +34,7 @@ export default async function BlogPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Blog</p>
         <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight text-ink sm:text-5xl">Notes on selling a house in Phoenix.</h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-muted">
-          Plain writing from Patrick and Jaime. If you already know the address, skip the reading and send it.
+          Plain-language guidance from the Vamos Properties team. If you already know the address, skip the reading and send it.
         </p>
         {posts.length === 0 ? (
           <p className="mt-10 border border-line px-4 py-6 text-base text-ink">Nothing published yet. Call if you would rather talk it through.</p>
@@ -57,7 +57,7 @@ export default async function BlogPage() {
           <LeadForm sourcePath="/blog" language="en" />
         </div>
       </Section>
-      <ClosingBand title="When you are ready, send the address." body="Patrick or Jaime read it. You are not signing anything by asking." />
+      <ClosingBand title="When you are ready, send the address." body="Our specialists read it. You are not signing anything by asking." />
     </>
   );
 }

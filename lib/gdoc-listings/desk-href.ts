@@ -1,4 +1,4 @@
-export type SheetDeskTab = "inventory" | "rules";
+export type SheetDeskTab = "inventory" | "rules" | "sync";
 
 export type SheetDeskQuery = {
   tab?: SheetDeskTab;
@@ -12,12 +12,12 @@ export type SheetDeskQuery = {
 };
 
 export function parseSheetDeskTab(value: string | undefined): SheetDeskTab {
-  return value === "rules" ? "rules" : "inventory";
+  return value === "rules" || value === "sync" ? value : "inventory";
 }
 
 export function sheetDeskHref(input: SheetDeskQuery) {
   const params = new URLSearchParams();
-  if (input.tab === "rules") params.set("tab", "rules");
+  if (input.tab === "rules" || input.tab === "sync") params.set("tab", input.tab);
   if (input.view && input.view !== "all") params.set("view", input.view);
   if (input.q) params.set("q", input.q);
   if (input.min) params.set("min", input.min);

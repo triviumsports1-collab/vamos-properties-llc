@@ -13,7 +13,7 @@ export default function ThankYouPage() {
     <Section>
       <article className="max-w-xl">
         <p className="border border-line bg-panel px-4 py-4 text-base leading-7 text-ink" role="status">
-          Saved. Patrick or Jaime have your address and will call or text the number you gave us.
+          Saved. Our team has your address and will call or text the number you gave us.
         </p>
         <h1 className="mt-8 text-4xl font-semibold leading-tight text-ink">We have it.</h1>
         <p className="mt-5 text-lg leading-8 text-muted">

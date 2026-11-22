@@ -62,7 +62,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 const trust = [
   ["Sin costo por preguntar", "Revisar la dirección no cuesta nada."],
   ["Tal como está", "Sin reparaciones y sin desfile de visitas."],
-  ["Respuesta el mismo día", "Patrick o Jaime llaman durante el día."],
+  ["Respuesta el mismo día", "Nuestros especialistas llaman durante el día."],
   ["Puede decir que no", "Una oferta no es una promesa de vender."],
 ];
 
@@ -71,7 +71,7 @@ const comparisonRows = [
   ["Reparaciones y visitas", "Normalmente se esperan", "Ninguna", "Ninguna"],
   ["Comisión de agente", "Normalmente sale de la venta", "Usted no paga ninguna", "Usted no paga ninguna"],
   ["Su nombre en el préstamo", "Sale cuando se paga el préstamo", "Sale cuando se paga el préstamo al cierre", "Puede quedar en el préstamo"],
-  ["Con quién habla", "Un agente y luego el prestamista del comprador", "Patrick o Jaime, y luego una compañía de título", "Patrick o Jaime. El préstamo puede quedar a su nombre"],
+  ["Con quién habla", "Un agente y luego el prestamista del comprador", "Un especialista de Vamos, y luego una compañía de título", "Un especialista de Vamos. El préstamo puede quedar a su nombre"],
   ["Conviene cuando", "Puede esperar y quiere precio de mercado", "Quiere vender tal como está y con fecha", "Una venta de contado dejaría poco después del pago"],
 ];
 
@@ -97,7 +97,7 @@ export default async function AreaPageEs({ params }: AreaParams) {
       body: "Use el formulario o llame. La dirección, lo que debe y la fecha de cualquier aviso bastan para empezar.",
     },
     {
-      title: "Hable con Patrick o Jaime",
+      title: "Hable con el equipo de Vamos",
       body: "Uno de ellos le llama, pregunta por la casa y el préstamo, y la ve. Recibe un número con el cálculo, no un rango.",
     },
     {
@@ -371,9 +371,10 @@ export default async function AreaPageEs({ params }: AreaParams) {
 
       {/* People */}
       <Section>
-        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick Szymczak y Jaime Miranda</h2>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Dirección</p>
+        <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Dirigida por fundadores locales, con un equipo dedicado.</h2>
         <p className="mt-3 max-w-2xl leading-7 text-muted">
-          Usted habla con uno de ellos. No con un centro de llamadas.{" "}
+          Nuestro equipo de Vamos Properties responde directamente y se comunica con usted de manera personalizada. No es un centro de llamadas.{" "}
           <Link href="/es/nosotros" className="font-semibold text-link">Conózcanos</Link>
         </p>
         <div className="mt-6 grid gap-8 sm:grid-cols-2">
@@ -398,7 +399,7 @@ export default async function AreaPageEs({ params }: AreaParams) {
             <Eyebrow>Su oferta en {name}</Eyebrow>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Empiece con la dirección en {name}.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Patrick o Jaime la revisan y le llaman. Puede decir que no después de la llamada.
+              Nuestros especialistas la revisan y le llaman. Puede decir que no después de la llamada.
             </p>
             <h3 className="mt-10 text-lg font-semibold text-ink">¿Vende por una razón específica?</h3>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -446,7 +447,7 @@ export default async function AreaPageEs({ params }: AreaParams) {
 
       <ClosingBand
         title={`¿Vende una casa en ${name}? Envíe la dirección.`}
-        body="Patrick o Jaime la revisan y le llaman. Preguntar no le obliga a nada."
+        body="Nuestros especialistas la revisan y le llaman. Preguntar no le obliga a nada."
         offerLabel="Reciba su oferta"
       />
     </>

@@ -3,7 +3,7 @@ const rows = [
   ["Repairs and showings", "Usually expected", "None", "None"],
   ["Agent commission", "Typically paid from the sale", "None from you", "None from you"],
   ["Your name on the loan", "Comes off when the loan is paid", "Comes off when the loan is paid at closing", "Can stay on the loan"],
-  ["Who you talk to", "An agent, then the buyer’s lender", "Patrick or Jaime, then a title company", "Patrick or Jaime. The loan can stay in your name"],
+  ["Who you talk to", "An agent, then the buyer’s lender", "A dedicated Vamos specialist, then a title company", "A dedicated Vamos specialist. The loan can stay in your name"],
   ["The closing date", "Depends on a buyer and their loan", "A date title can actually meet", "Depends on the payoff and the papers"],
   ["Fits when", "You can wait and want a retail price", "You want an as-is sale and a date", "A cash sale would leave little after the payoff"],
 ];

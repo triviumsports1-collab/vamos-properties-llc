@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AssignForm } from "@/components/admin/assign-form";
+import { LeadAlertList } from "@/components/admin/lead-alerts";
 import { NoteForm } from "@/components/admin/note-form";
 import { ReplyBadge } from "@/components/admin/reply-badge";
 import { StatusForm } from "@/components/admin/status-form";
@@ -12,6 +13,7 @@ import { formatPhone, formatSaleDate, formatWhen, languageLabel, phoneHref, sale
 import { lostReasonLabel, statusLabel } from "@/lib/admin/pipeline";
 import { getLeadDetail, listStaff } from "@/lib/dal/admin";
 import { leadSituations, paths } from "@/lib/site";
+import { listLeadAlerts } from "@/lib/notifications/lead-alerts";
 
 export const metadata: Metadata = {
   title: "Lead",
@@ -34,7 +36,7 @@ async function Detail({ params }: DetailProps) {
   const leadId = Number(id);
   if (!Number.isInteger(leadId) || leadId < 1) notFound();
 
-  const [{ lead }, staff] = await Promise.all([getLeadDetail(leadId), listStaff()]);
+  const [{ lead }, staff, alerts] = await Promise.all([getLeadDetail(leadId), listStaff(), listLeadAlerts(leadId)]);
   if (!lead) notFound();
 
   const hint = saleHint(lead.daysUntilSale);
@@ -115,6 +117,11 @@ async function Detail({ params }: DetailProps) {
               <h2 className="text-lg font-semibold text-ink">Pipeline</h2>
               <StatusForm leadId={lead.id} status={lead.status} lostReason={lead.lostReason} />
               <AssignForm leadId={lead.id} assignedToId={lead.assignedToId} staff={staff} />
+            </section>
+            <section className="border border-line bg-panel p-5">
+              <h2 className="text-lg font-semibold text-ink">Lead email</h2>
+              <p className="mt-1 text-sm text-muted">Founder email sent through Resend when this lead came in.</p>
+              <LeadAlertList alerts={alerts} />
             </section>
             <section className="border border-line bg-panel p-5">
               <h2 className="text-lg font-semibold text-ink">Calls, texts, and email</h2>

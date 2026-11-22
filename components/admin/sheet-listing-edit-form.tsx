@@ -102,7 +102,7 @@ export function SheetListingEditForm({ listing }: { listing: SheetListingAdminDe
               </option>
             ))}
           </select>
-          <p className="mt-1 text-sm text-muted">Only Active homes show on the public sheet catalog.</p>
+          <p className="mt-1 text-sm text-muted">Only Active homes show on the public sheet catalog. Changing the status here locks it, so the Google Sheet copy will not change it back; switching to Active starts a fresh active window.</p>
         </div>
         <Area label="Notes / description" name="description" rows={6} maxLength={8000} defaultValue={listing.description} />
         <Area label="Update notes" name="updateNotes" rows={3} maxLength={4000} defaultValue={listing.updateNotes} />

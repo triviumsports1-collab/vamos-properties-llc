@@ -23,12 +23,12 @@ export function LocalBusinessJsonLd() {
         "@type": "LocalBusiness",
         "@id": businessId,
         name: "Vamos Properties",
-        legalName: site.name,
+        legalName: site.legalName,
         url: site.url,
         logo: `${site.url}/brand/vamos-logo.jpg`,
         image: `${site.url}${site.ogImagePath}`,
         description:
-          "Local cash home buyers in Maricopa County, Arizona. We buy houses as-is and help homeowners who are behind on the mortgage or facing a trustee sale.",
+          "Vamos Properties is a Maricopa County, Arizona real estate acquisitions and advisory company. Our local team buys houses as-is and helps homeowners who are behind on the mortgage or facing a trustee sale.",
         telephone: site.phoneTel.replace(/^tel:/, ""),
         email: site.email,
         knowsLanguage: ["en", "es"],
@@ -37,8 +37,8 @@ export function LocalBusinessJsonLd() {
           { "@type": "Person", name: "Jaime Miranda" },
         ],
         employee: [
-          { "@type": "Person", name: "Patrick Szymczak", email: site.patrickEmail, jobTitle: "Founder" },
-          { "@type": "Person", name: "Jaime Miranda", email: site.jaimeEmail, jobTitle: "Founder" },
+          { "@type": "Person", name: "Patrick Szymczak", email: site.patrickEmail, jobTitle: "Co-founder" },
+          { "@type": "Person", name: "Jaime Miranda", email: site.jaimeEmail, jobTitle: "Co-founder" },
         ],
         areaServed: [
           ...areas.map((area) => ({

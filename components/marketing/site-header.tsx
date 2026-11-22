@@ -41,7 +41,7 @@ export function SiteHeader({
           />
           <span className="flex flex-col justify-center leading-none">
             <span className="text-[0.95rem] font-semibold tracking-[0.16em] text-amber">VAMOS</span>
-            <span className="mt-1 text-[0.58rem] font-medium tracking-[0.2em] text-white/70">PROPERTIES LLC</span>
+            <span className="mt-1 text-[0.58rem] font-medium tracking-[0.2em] text-white/70">PROPERTIES</span>
           </span>
         </Link>
 

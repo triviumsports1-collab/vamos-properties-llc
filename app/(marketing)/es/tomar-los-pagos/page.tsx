@@ -149,7 +149,7 @@ export default async function SpanishTakeoverPage() {
 
       <ClosingBand
         title="Si el contado no alcanza, hablamos de los pagos."
-        body="Patrick o Jaime le explican la diferencia. Pedir información no lo obliga a nada."
+        body="Nuestros especialistas le explican la diferencia. Pedir información no lo obliga a nada."
         offerLabel="Pedir mi oferta"
       />
     </div>

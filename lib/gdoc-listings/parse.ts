@@ -426,6 +426,16 @@ function isSheetPhoto(url: string) {
   }
 }
 
+/** Normalizes an admin- or sheet-supplied photo URL; returns "" when it is not a usable photo. */
+export function normalizeListingPhotoUrl(value: string) {
+  const url = normalizeSheetPhoto(value);
+  return url && isSheetPhoto(url) ? url : "";
+}
+
+export function listingPhotoKey(url: string) {
+  return photoKey(url);
+}
+
 function normalizeSheetPhoto(value: string) {
   const url = safeHttpUrl(value) || value.trim();
   if (!url) return "";

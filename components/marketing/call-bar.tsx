@@ -1,7 +1,6 @@
-import { site } from "@/lib/site";
+import { site, smsHref, textUsBody } from "@/lib/site";
 
 export function CallBar({ spanish }: { spanish: boolean }) {
-
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 bg-navy md:hidden"
@@ -11,9 +10,15 @@ export function CallBar({ spanish }: { spanish: boolean }) {
         paddingRight: "env(safe-area-inset-right)",
       }}
     >
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-[1fr_1fr_1.4fr]">
         <a href={site.phoneTel} className="inline-flex min-h-14 items-center justify-center px-3 text-sm font-semibold text-white">
-          {spanish ? "Llamar" : "Call or text"}
+          {spanish ? "Llamar" : "Call"}
+        </a>
+        <a
+          href={smsHref(spanish ? textUsBody.es : textUsBody.en)}
+          className="inline-flex min-h-14 items-center justify-center border-l border-white/20 px-3 text-sm font-semibold text-white"
+        >
+          {spanish ? "Texto" : "Text"}
         </a>
         <a href="#offer" className="inline-flex min-h-14 items-center justify-center bg-amber px-3 text-sm font-semibold text-amber-ink">
           {spanish ? "Pedir mi oferta" : "Get your cash offer"}

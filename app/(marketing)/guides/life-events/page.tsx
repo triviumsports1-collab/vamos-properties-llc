@@ -100,7 +100,7 @@ export default async function LifeEventsGuidePage() {
 
       <ClosingBand
         title="Tell us which situation it is."
-        body="Patrick or Jaime will ask the next question. You can stop there."
+        body="Our specialists will ask the next question. You can stop there."
       />
     </>
   );

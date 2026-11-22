@@ -4,12 +4,12 @@ import { LeadForm } from "@/components/marketing/lead-form";
 import { LocalBusinessJsonLd } from "@/components/marketing/local-business";
 import { Section } from "@/components/marketing/section";
 import { hreflang } from "@/lib/i18n/routes";
-import { site } from "@/lib/site";
+import { site, smsHref, textUsBody } from "@/lib/site";
 
 export const metadata = {
   title: "Contact",
   description:
-    "Call or text Vamos Properties in Phoenix, or send the address. Patrick or Jaime reply the same day.",
+    "Call or text Vamos Properties in Phoenix, or send the address. Our specialists reply the same day.",
   alternates: { canonical: "/contact", ...hreflang("/contact", "/es/contacto") },
 };
 
@@ -38,6 +38,9 @@ export default async function ContactPage() {
               <a href={site.phoneTel} className="text-2xl font-semibold text-ink sm:text-3xl">
                 {site.phoneDisplay}
               </a>
+              <a href={smsHref(textUsBody.en)} className="mt-2 flex min-h-11 items-center text-base font-semibold text-link">
+                Text us instead
+              </a>
             </dd>
           </div>
           <div>
@@ -64,7 +67,7 @@ export default async function ContactPage() {
           <div>
             <h2 className="text-3xl font-semibold text-ink sm:text-4xl">If the phone is easier, use it.</h2>
             <p className="mt-4 text-lg leading-8 text-muted">
-              The form is for the address, your name, and what is going on. Patrick or Jaime reply the same day.
+              The form is for the address, your name, and what is going on. Our specialists reply the same day.
             </p>
           </div>
           <LeadForm sourcePath="/contact" language="en" />

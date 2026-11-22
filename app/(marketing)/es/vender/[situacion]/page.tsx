@@ -59,7 +59,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 const trust = [
   ["Sin costo por preguntar", "Revisar la dirección no cuesta nada."],
   ["Tal como está", "Sin reparaciones y sin desfile de visitas."],
-  ["Respuesta el mismo día", "Patrick o Jaime llaman durante el día."],
+  ["Respuesta el mismo día", "Nuestros especialistas llaman durante el día."],
   ["Puede decir que no", "Una oferta no es una promesa de vender."],
 ];
 
@@ -296,9 +296,10 @@ export default async function SituacionPage({ params }: SituacionParams) {
 
       {/* People */}
       <Section tone="mist">
-        <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Patrick Szymczak y Jaime Miranda</h2>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Dirección</p>
+        <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Dirigida por fundadores locales, con un equipo dedicado.</h2>
         <p className="mt-3 max-w-2xl leading-7 text-muted">
-          Usted habla con uno de ellos. No con un centro de llamadas.{" "}
+          Nuestro equipo de Vamos Properties responde directamente y se comunica con usted de manera personalizada. No es un centro de llamadas.{" "}
           <Link href="/es/nosotros" className="font-semibold text-link">Conózcanos</Link>
         </p>
         <div className="mt-6 grid gap-8 sm:grid-cols-2">
@@ -323,7 +324,7 @@ export default async function SituacionPage({ params }: SituacionParams) {
             <Eyebrow>Su oferta</Eyebrow>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Empiece con la dirección.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Patrick o Jaime la revisan y le llaman. Puede decir que no después de la llamada.
+              Nuestros especialistas la revisan y le llaman. Puede decir que no después de la llamada.
             </p>
             <h3 className="mt-10 text-lg font-semibold text-ink">Si prefiere leer primero</h3>
             <ul className="mt-3 grid gap-3">
@@ -372,7 +373,7 @@ export default async function SituacionPage({ params }: SituacionParams) {
 
       <ClosingBand
         title="Envíe la dirección. Luego decida."
-        body="Patrick o Jaime la revisan y le llaman. Preguntar no lo obliga a nada."
+        body="Nuestros especialistas la revisan y le llaman. Preguntar no lo obliga a nada."
         offerLabel="Reciba su oferta"
       />
     </>

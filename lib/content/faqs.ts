@@ -9,7 +9,7 @@ export const homeFaqs: Faq[] = [
   {
     question: "Who actually calls me?",
     answer:
-      "Patrick or Jaime. Not a call center, and not a different person every time the file moves. The person on the first call stays with you through title.",
+      "A dedicated Vamos Properties specialist. Not a call center, and not a different person every time the file moves. The specialist on the first call stays with you through title.",
   },
   {
     question: "What if I still owe more than the house is worth?",

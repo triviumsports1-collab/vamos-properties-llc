@@ -3,12 +3,12 @@ import { LeadForm } from "@/components/marketing/lead-form";
 import { LocalBusinessJsonLd } from "@/components/marketing/local-business";
 import { Section } from "@/components/marketing/section";
 import { hreflang } from "@/lib/i18n/routes";
-import { site } from "@/lib/site";
+import { site, smsHref, textUsBody } from "@/lib/site";
 
 export const metadata = {
   title: "Contacto",
   description:
-    "Llame o escriba a Vamos Properties en Phoenix, o envíe la dirección. Patrick o Jaime responden el mismo día.",
+    "Llame o escriba a Vamos Properties en Phoenix, o envíe la dirección. Nuestros especialistas responden el mismo día.",
   alternates: {
     canonical: "/es/contacto",
     ...hreflang("/contact", "/es/contacto"),
@@ -40,6 +40,9 @@ export default async function SpanishContactPage() {
               <a href={site.phoneTel} className="text-2xl font-semibold text-ink sm:text-3xl">
                 {site.phoneDisplay}
               </a>
+              <a href={smsHref(textUsBody.es)} className="mt-2 flex min-h-11 items-center text-base font-semibold text-link">
+                O envíenos un texto
+              </a>
             </dd>
           </div>
           <div>
@@ -66,7 +69,7 @@ export default async function SpanishContactPage() {
           <div>
             <h2 className="text-3xl font-semibold text-ink sm:text-4xl">Envíenos la dirección.</h2>
             <p className="mt-4 text-lg leading-8 text-muted">
-              Patrick o Jaime responden el mismo día. Si es después de las 7:00 p.m., le respondemos por la mañana.
+              Nuestros especialistas responden el mismo día. Si es después de las 7:00 p.m., le respondemos por la mañana.
             </p>
           </div>
           <LeadForm sourcePath="/es/contacto" language="es" />

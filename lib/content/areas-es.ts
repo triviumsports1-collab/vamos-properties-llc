@@ -22,14 +22,14 @@ export const areasEs: Record<string, AreaEs> = {
     description:
       "Venda su casa en Phoenix tal como está, de Maryvale a Ahwatukee, o hable con Vamos sobre una hipoteca atrasada.",
     heroLine:
-      "De Maryvale a Ahwatukee, con valor acumulado o ya atrasada. Patrick o Jaime revisan la dirección y le llaman el mismo día.",
+      "De Maryvale a Ahwatukee, con valor acumulado o ya atrasada. Nuestros especialistas revisan la dirección y le llaman el mismo día.",
     opening:
       "Phoenix no es un solo mercado. Una casa de bloque de los años 60 en Maryvale, un lote pequeño cerca de Central y una casa más nueva en Ahwatukee pueden estar atrasadas por la misma razón y aun así necesitar tres ofertas distintas.",
     fact: "Las ventas de fideicomisario de casas en Phoenix se registran en la Oficina del Registrador del Condado de Maricopa. La fecha del aviso es el reloj, no el día en que la carta empezó a preocuparle.",
     paragraphs: [
       "Si el aviso ya está registrado, una venta de contado busca pagar el préstamo en una compañía de título antes de esa fecha. Tomar los pagos es otra conversación, y el préstamo puede quedar a su nombre.",
       "Compramos tal como está. Eso incluye techos viejos, coolers que dejaron de funcionar, casas con inquilinos y casas heredadas que nadie ha vaciado. No necesita un letrero en el jardín ni fines de semana de visitas.",
-      "Patrick o Jaime le preguntarán en qué parte de Phoenix está la casa, cuánto debe y si alguien más está en el título. El nombre de la ciudad no basta para darle un precio.",
+      "Nuestros especialistas le preguntarán en qué parte de Phoenix está la casa, cuánto debe y si alguien más está en el título. El nombre de la ciudad no basta para darle un precio.",
     ],
     situations: [
       {
@@ -126,7 +126,7 @@ export const areasEs: Record<string, AreaEs> = {
     description:
       "Hable con Vamos sobre una casa en Gilbert que necesita vender tal como está, con valor acumulado o con pagos atrasados.",
     heroLine:
-      "Heritage District, Val Vista, Power Ranch y el sur de Gilbert. Con valor acumulado o no, una venta tal como está y un número claro de Patrick o Jaime.",
+      "Heritage District, Val Vista, Power Ranch y el sur de Gilbert. Con valor acumulado o no, una venta tal como está y un número claro de nuestro equipo.",
     opening:
       "Los dueños en Gilbert a menudo tienen más valor acumulado de lo que creen, y también más presión: un pago, un divorcio o una casa heredada que no quieren manejar desde otro estado.",
     fact: "Las casitas del Heritage District y las casas de producción del sur de Gilbert no tienen el mismo precio. La oferta sigue la cuadra, no el nombre de la ciudad.",
@@ -219,7 +219,7 @@ export const areasEs: Record<string, AreaEs> = {
     description:
       "Venda su casa en Scottsdale tal como está, de Old Town al norte de Shea, o pregunte a Vamos sobre una hipoteca atrasada.",
     heroLine:
-      "De Old Town a DC Ranch. Una calle bonita también puede esconder un pago atrasado, un aviso de la HOA o una herencia. Patrick o Jaime le dan un número y las ventajas y desventajas.",
+      "De Old Town a DC Ranch. Una calle bonita también puede esconder un pago atrasado, un aviso de la HOA o una herencia. Nuestros especialistas le dan un número y las ventajas y desventajas.",
     opening:
       "Scottsdale se ve impecable desde Scottsdale Road, y la gente supone que nadie está atrasado. Un divorcio, un cambio de trabajo, las cuotas de la HOA más la hipoteca, o una casa heredada desde otro estado igual ponen a los dueños contra el reloj.",
     fact: "Una venta de fideicomisario de una casa en Scottsdale sigue siendo un registro del Condado de Maricopa. La fecha del aviso es el reloj.",
@@ -399,7 +399,7 @@ export const areasEs: Record<string, AreaEs> = {
       {
         question: "¿Cómo recibo la oferta?",
         answer:
-          "Envíe la dirección con el formulario o llame. Patrick o Jaime hacen unas preguntas, ven la casa y le dan un número con el cálculo. Puede decir que no.",
+          "Envíe la dirección con el formulario o llame. Nuestros especialistas hacen unas preguntas, ven la casa y le dan un número con el cálculo. Puede decir que no.",
       },
     ],
   },
@@ -501,7 +501,7 @@ export const areasEs: Record<string, AreaEs> = {
     description:
       "Un comprador de contado en Tempe para casas que necesita vender sin listar, incluidas casas de renta y casas heredadas.",
     heroLine:
-      "Cerca de la universidad, el sur de Tempe, el lago y el norte. Rentas, compañeros de cuarto y casas heredadas incluidas. Un número tal como está de Patrick o Jaime.",
+      "Cerca de la universidad, el sur de Tempe, el lago y el norte. Rentas, compañeros de cuarto y casas heredadas incluidas. Un número tal como está de nuestro equipo.",
     opening:
       "Las casas de Tempe suelen estar en lotes pequeños, cerca de la universidad o del lago, y son difíciles de mostrar si la situación en casa ya está complicada.",
     fact: "Los condominios y townhomes en Tempe pueden tener cartas de pago de la asociación que tardan más que la casa misma. Empiece ese reloj temprano.",
@@ -855,7 +855,7 @@ export const areasEs: Record<string, AreaEs> = {
       {
         question: "¿Qué tan pronto me llaman?",
         answer:
-          "Patrick o Jaime llaman de 8:00 a.m. a 7:00 p.m., los siete días. Si envía la dirección después, le llamamos a la mañana siguiente.",
+          "Nuestros especialistas llaman de 8:00 a.m. a 7:00 p.m., los siete días. Si envía la dirección después, le llamamos a la mañana siguiente.",
       },
     ],
   },
@@ -1164,13 +1164,13 @@ export const areasEs: Record<string, AreaEs> = {
       },
       {
         name: "El lado del condado de Pinal",
-        note: "Algunas direcciones de Queen Creek están en el condado de Pinal. La venta funciona igual, pero los registros del condado son otros.",
+        note: "Algunas direcciones de Queen Creek están en el condado de Pinal. Compramos en los dos lados. La venta funciona igual, solo cambian los registros del condado.",
       },
     ],
     localNotes: [
       {
         title: "Dos condados, un pueblo",
-        body: "La mayor parte de Queen Creek está en Maricopa, pero una parte está en Pinal. El condado de su escritura decide dónde se archivan registros y avisos.",
+        body: "La mayor parte de Queen Creek está en Maricopa, pero una parte está en Pinal. Compramos en los dos lados. El condado de su escritura solo decide dónde se archivan registros y avisos.",
       },
       {
         title: "Pozos, fosas sépticas y animales",
@@ -1189,7 +1189,7 @@ export const areasEs: Record<string, AreaEs> = {
       {
         question: "Mi casa está del lado del condado de Pinal. ¿Pueden comprarla?",
         answer:
-          "Envíe la dirección. Muchas direcciones del lado de Pinal están lo bastante cerca para hablar. Le diremos con claridad si queda fuera de donde compramos.",
+          "Sí. Compramos en los dos lados de Queen Creek, el del condado de Maricopa y el del condado de Pinal. La venta funciona igual; solo cambia el registrador del condado.",
       },
       {
         question: "¿Compran en Hastings Farms?",
@@ -1212,7 +1212,7 @@ export const areasEs: Record<string, AreaEs> = {
     fact: "Sun City y Sun City West son comunidades no incorporadas con restricción de edad en el condado de Maricopa. Cada una tiene sus centros recreativos y reglas que un comprador debe seguir, así que los papeles de la venta las incluyen.",
     paragraphs: [
       "Compramos casas en Sun City y Sun City West tal como están: cocinas originales, techos y plomería viejos, y toda una vida de cosas adentro.",
-      "Como son comunidades con restricción de edad, las reglas pueden afectar quién vive en la casa y cómo se escribe una venta. Las revisamos antes de prometer, no después.",
+      "Compramos en Sun City y en Sun City West. Como son comunidades con restricción de edad, sus reglas definen cómo se escribe una venta, así que las revisamos antes de fijar una fecha de cierre, no después.",
       "Muchas de estas ventas las maneja la familia. Si usted es heredero, fideicomisario o tiene un poder notarial, díganos cuál, porque la compañía de título pedirá ese documento.",
     ],
     situations: [
@@ -1254,7 +1254,7 @@ export const areasEs: Record<string, AreaEs> = {
     localNotes: [
       {
         title: "Primero las reglas de edad",
-        body: "Sun City y Sun City West tienen restricción de edad. Revisamos cómo afectan una venta antes de prometer una fecha.",
+        body: "Compramos en Sun City y en Sun City West. Tienen restricción de edad, así que revisamos cómo afectan los papeles antes de prometer una fecha.",
       },
       {
         title: "Papeles de los centros recreativos",
@@ -1269,7 +1269,7 @@ export const areasEs: Record<string, AreaEs> = {
       {
         question: "¿Pueden comprar una casa en una comunidad con restricción de edad?",
         answer:
-          "Revisamos las reglas de la comunidad antes de escribir algo. Algunas reglas afectan quién vive en la casa o cómo se estructura una venta. Le diremos lo que encontremos, sin adivinar.",
+          "Sí. Compramos en Sun City y en Sun City West. Revisamos las reglas de la comunidad antes de escribir algo, porque definen cómo se arma la venta, no si compramos.",
       },
       {
         question: "Mi padre se mudó a una residencia asistida. ¿Puedo vender su casa?",

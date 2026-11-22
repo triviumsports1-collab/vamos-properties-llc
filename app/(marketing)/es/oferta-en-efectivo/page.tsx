@@ -12,7 +12,7 @@ import { site, spanishForeclosurePath } from "@/lib/site";
 export const metadata = {
   title: "Reciba una oferta de contado por su casa en Phoenix",
   description:
-    "Vamos compra casas tal como están en el condado de Maricopa. Sin reparaciones, sin visitas, sin cobro por preguntar. Patrick o Jaime llaman el mismo día.",
+    "Vamos compra casas tal como están en el condado de Maricopa. Sin reparaciones, sin visitas, sin cobro por preguntar. Nuestros especialistas llaman el mismo día.",
   alternates: {
     canonical: "/es/oferta-en-efectivo",
     ...hreflang("/cash-offer", "/es/oferta-en-efectivo"),
@@ -26,7 +26,7 @@ const steps = [
   },
   {
     title: "Le llamamos y vemos la casa",
-    body: "Patrick o Jaime preguntan sobre el préstamo, el estado de la propiedad y quién está en el título. Si los números funcionan, inspeccionamos la casa. No hay que limpiar antes.",
+    body: "Nuestros especialistas preguntan sobre el préstamo, el estado de la propiedad y quién está en el título. Si los números funcionan, inspeccionamos la casa. No hay que limpiar antes.",
   },
   {
     title: "Recibe un número",
@@ -152,7 +152,7 @@ export default async function SpanishCashOfferPage() {
 
       <ClosingBand
         title="Envíe la dirección y le decimos el número."
-        body="Patrick o Jaime llaman el mismo día. Pedir una oferta no lo obliga a vender."
+        body="Nuestros especialistas llaman el mismo día. Pedir una oferta no lo obliga a vender."
         offerLabel="Pedir mi oferta"
       />
     </div>

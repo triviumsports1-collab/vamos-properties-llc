@@ -87,7 +87,7 @@ export default async function SellHubPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Not sure which fits?</p>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Send the address anyway.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Most houses fit more than one of these. Patrick or Jaime read the form and call you back. You can say no after the call.
+              Most houses fit more than one of these. Our specialists read the form and call you back. You can say no after the call.
             </p>
           </div>
           <LeadForm sourcePath="/sell" language="en" />

@@ -11,8 +11,14 @@ import {
   inactivateAdminSheetListing,
   restoreAdminSheetListing,
   updateAdminSheetListing,
+  updateAdminSheetListingPhotos,
 } from "@/lib/dal/sheet-listings";
-import { sheetListingAdminSchema, sheetListingSlugSchema } from "@/lib/gdoc-listings/admin-schema";
+import {
+  sheetListingAdminSchema,
+  sheetListingPhotosSchema,
+  sheetListingSlugSchema,
+} from "@/lib/gdoc-listings/admin-schema";
+import { listingPhotoKey, normalizeListingPhotoUrl } from "@/lib/gdoc-listings/parse";
 import { sheetSyncErrorCode } from "@/lib/gdoc-listings/errors";
 import { googleSheetsConfigured } from "@/lib/gdoc-listings/google";
 import { syncSheetListings, type SheetSyncResult } from "@/lib/gdoc-listings/sync";
@@ -24,7 +30,7 @@ export async function runSheetListingSync(
   _previous: SheetSyncFormState,
   _formData: FormData,
 ): Promise<SheetSyncFormState> {
-  await requireAdmin();
+  const actor = await requireAdmin();
   if (!googleSheetsConfigured()) {
     return fail("Google Sheets is not configured on this server.");
   }
@@ -33,8 +39,8 @@ export async function runSheetListingSync(
   }
 
   try {
-    const result = await syncSheetListings("admin");
-    refreshSheetListingViews();
+    const result = await syncSheetListings("admin", { actorEmail: actor.email });
+    refreshSheetListingViews([], { immediate: true });
     return { ok: true, message: summarize(result), stamp: Date.now() };
   } catch (error) {
     const code = sheetSyncErrorCode(error);
@@ -51,7 +57,7 @@ export async function runSheetListingSync(
 }
 
 export async function saveSheetListingForm(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
-  await requireAdmin();
+  const actor = await requireAdmin();
   const parsed = sheetListingAdminSchema.safeParse({
     slug: field(formData, "slug"),
     title: field(formData, "title"),
@@ -147,6 +153,7 @@ export async function saveSheetListingForm(_previous: AdminFormState, formData: 
       latitude,
       longitude,
       manualHold: parsed.data.manualHold === "yes",
+      actorEmail: actor.email,
     });
     if (!result.ok) return formFail(result.message);
     refreshSheetDesk(result.slug);
@@ -160,15 +167,66 @@ export async function saveSheetListingForm(_previous: AdminFormState, formData: 
   }
 }
 
+export async function saveSheetListingPhotosForm(
+  _previous: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+  let photos: unknown;
+  try {
+    photos = JSON.parse(field(formData, "photos") || "[]");
+  } catch {
+    return formFail("The photo list could not be read. Reload the page and try again.");
+  }
+  const parsed = sheetListingPhotosSchema.safeParse({
+    slug: field(formData, "slug"),
+    photos,
+    keepOnSync: field(formData, "keepOnSync") === "yes",
+  });
+  if (!parsed.success) return formFail(parsed.error.issues[0]?.message || "Check the photos.");
+
+  const clean: string[] = [];
+  const seen = new Set<string>();
+  for (const [index, value] of parsed.data.photos.entries()) {
+    const url = normalizeListingPhotoUrl(value);
+    if (!url) return formFail(`Photo ${index + 1} is not a usable image link. Use an https image URL.`);
+    const key = listingPhotoKey(url);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    clean.push(url);
+  }
+
+  try {
+    const result = await updateAdminSheetListingPhotos(parsed.data.slug, {
+      photos: clean,
+      keepOnSync: parsed.data.keepOnSync,
+    });
+    if (!result.ok) return formFail(result.message);
+    refreshSheetListingViews([result.slug, result.listingCode.toLowerCase(), result.listingCode], { immediate: true });
+    const count = clean.length === 1 ? "1 photo" : `${clean.length} photos`;
+    return formSaved(
+      parsed.data.keepOnSync
+        ? `Saved ${count}. The next sheet copy will keep these photos.`
+        : `Saved ${count}. The next sheet copy may replace them with the sheet's photos.`,
+    );
+  } catch (error) {
+    console.error("[SHEET_LISTINGS_ADMIN]", {
+      id: randomUUID(),
+      name: error instanceof Error ? error.name : "Error",
+    });
+    return formFail("Those photos did not save. Try again.");
+  }
+}
+
 export async function inactivateSheetListingForm(
   _previous: AdminFormState,
   formData: FormData,
 ): Promise<AdminFormState> {
-  return runSlugMutation(formData, inactivateAdminSheetListing, "Taken off the public page.");
+  return runSlugMutation(formData, inactivateAdminSheetListing, "Set Inactive. The sheet copy will keep it off the public page.");
 }
 
 export async function restoreSheetListingForm(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
-  return runSlugMutation(formData, restoreAdminSheetListing, "Restored to Active on the public page.");
+  return runSlugMutation(formData, restoreAdminSheetListing, "Restored to Active with a fresh active window.");
 }
 
 export async function deleteSheetListingForm(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
@@ -196,14 +254,14 @@ export async function deleteSheetListingForm(_previous: AdminFormState, formData
 
 async function runSlugMutation(
   formData: FormData,
-  work: (slug: string) => Promise<{ ok: true; slug: string } | { ok: false; message: string }>,
+  work: (slug: string, actorEmail: string) => Promise<{ ok: true; slug: string } | { ok: false; message: string }>,
   saved: string,
 ): Promise<AdminFormState> {
-  await requireAdmin();
+  const actor = await requireAdmin();
   const parsed = sheetListingSlugSchema.safeParse({ slug: field(formData, "slug") });
   if (!parsed.success) return formFail(parsed.error.issues[0]?.message || "That sheet home is missing.");
   try {
-    const result = await work(parsed.data.slug);
+    const result = await work(parsed.data.slug, actor.email);
     if (!result.ok) return formFail(result.message);
     refreshSheetDesk(result.slug);
     return formSaved(saved);
@@ -234,7 +292,7 @@ function formSaved(message: string): AdminFormState {
 }
 
 function refreshSheetDesk(slug: string) {
-  refreshSheetListingViews([slug]);
+  refreshSheetListingViews([slug], { immediate: true });
 }
 
 function parseCoord(value: string, min: number, max: number) {

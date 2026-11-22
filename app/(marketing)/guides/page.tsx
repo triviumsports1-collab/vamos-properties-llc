@@ -58,7 +58,7 @@ export default async function GuidesPage() {
 
       <ClosingBand
         title="When you are ready, send the address."
-        body="Patrick or Jaime read it. You are not signing anything by asking."
+        body="Our specialists read it. You are not signing anything by asking."
       />
     </>
   );

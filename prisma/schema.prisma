@@ -54,6 +54,7 @@ model Lead {
   assignedTo      User?       @relation(fields: [assignedToId], references: [id])
   consents        Consent[]
   events          LeadEvent[]
+  notifications   LeadNotification[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -62,6 +63,28 @@ model Lead {
   @@index([createdAt])
   @@index([trusteeSaleDate])
   @@index([assignedToId])
+}
+
+/// Founder email alert log (Resend), one row per lead per channel. channel = "email".
+model LeadNotification {
+  id            Int       @id @default(autoincrement())
+  lead          Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId        Int
+  channel       String
+  // Masked destination, e.g. "in••@vamos-properties.com"
+  target        String
+  // pending | sent | failed | skipped
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  providerId    String?
+  error         String?
+  lastAttemptAt DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([leadId, channel])
+  @@index([status, updatedAt])
 }
 
 model Consent {
@@ -183,6 +206,8 @@ model SheetListing {
   photos          String?   @db.Text
   galleries       String?   @db.Text
   coverPhoto      String?   @db.Text
+  photosOverride  Boolean   @default(false)
+  photosUpdatedAt DateTime?
   driveFolderUrl  String?   @db.Text
   hoa             String?
   ac              String?
@@ -208,10 +233,20 @@ model SheetListing {
   contentHash     String
   manualHold      Boolean   @default(false)
   removedAt       DateTime?
+  // Lifecycle: the active window runs from activatedAt to expiresAt (null expiresAt = no expiry).
+  activatedAt     DateTime?
+  expiresAt       DateTime?
+  // Admin set the status by hand; Google Sheets sync will not change status while this is on.
+  statusOverride  Boolean   @default(false)
+  // Why the home is inactive: expired | admin | sheet | left_sheet.
+  inactiveReason  String?
+  statusChangedAt DateTime?
+  statusEvents    SheetListingStatusEvent[]
   syncedAt        DateTime
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  @@index([status, expiresAt])
   @@index([status, addressKey, listPrice])
   @@index([removedAt])
   @@index([localTargetArea])
@@ -220,6 +255,34 @@ model SheetListing {
   @@index([marginAmount])
   @@index([marginUpdatedById])
   @@index([marginOverride])
+}
+
+/// Singleton (id = 1) for listing expiry rules.
+model ListingLifecycleSetting {
+  id               Int      @id @default(1)
+  autoExpire       Boolean  @default(true)
+  expiryDays       Int      @default(14)
+  expiringSoonDays Int      @default(3)
+  updatedByEmail   String?
+  updatedAt        DateTime @updatedAt
+}
+
+/// Audit trail for listing status / active-window changes.
+model SheetListingStatusEvent {
+  id             Int           @id @default(autoincrement())
+  listing        SheetListing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId      Int?
+  slug           String
+  action         String
+  reason         String?
+  actorEmail     String
+  previousStatus String?
+  nextStatus     String?
+  expiresAt      DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([createdAt])
 }
 
 model SheetPricingRule {
@@ -307,6 +370,22 @@ model SheetListingMarginEvent {
   @@index([actorId])
 }
 
+/// Singleton (id = 1): Google Sheets sync schedule. The scheduler endpoint reads this on every tick.
+model SheetSyncSetting {
+  id                  Int       @id @default(1)
+  // manual | auto
+  mode                String    @default("manual")
+  intervalMinutes     Int       @default(60)
+  // Next auto run. Claimed atomically by the scheduler so overlapping ticks run a slot once.
+  nextSyncAt          DateTime?
+  consecutiveFailures Int       @default(0)
+  lastAutoRunAt       DateTime?
+  // Heartbeat: last time any scheduler tick reached the endpoint (shows whether cron is wired).
+  lastTickAt          DateTime?
+  updatedByEmail      String?
+  updatedAt           DateTime  @updatedAt
+}
+
 model SheetSyncLock {
   id       Int       @id @default(1)
   holder   String?
@@ -329,6 +408,8 @@ model SheetSyncRun {
   inactivatedCount  Int              @default(0)
   skippedJson       String?          @db.Text
   error             String?
+  // Who asked for the run when it came from the desk (null for webhook / scheduler).
+  actorEmail        String?
   events            SheetSyncEvent[]
 
   @@index([startedAt])

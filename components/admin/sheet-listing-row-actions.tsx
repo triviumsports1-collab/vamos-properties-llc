@@ -11,18 +11,24 @@ import {
   restoreSheetListingForm,
 } from "@/lib/gdoc-listings/admin-actions";
 import { sheetListingHref } from "@/lib/gdoc-listings/display";
+import { setSheetListingLifecycleForm } from "@/lib/gdoc-listings/lifecycle-actions";
 
 export function SheetListingRowActions({
   slug,
   title,
   removed,
   publicVisible,
+  renewDays,
+  locked = false,
   compact = false,
 }: {
   slug: string;
   title: string;
   removed: boolean;
   publicVisible: boolean;
+  /** Default window length; shows a one-click "Renew N days" action when set. */
+  renewDays?: number;
+  locked?: boolean;
   compact?: boolean;
 }) {
   const router = useRouter();
@@ -32,8 +38,9 @@ export function SheetListingRowActions({
   const [offState, offAction, offPending] = useActionState(inactivateSheetListingForm, idleForm);
   const [onState, onAction, onPending] = useActionState(restoreSheetListingForm, idleForm);
   const [delState, delAction, delPending] = useActionState(deleteSheetListingForm, idleForm);
-  const stamp = Math.max(offState.stamp, onState.stamp, delState.stamp);
-  const notice = latestNotice([offState, onState, delState]);
+  const [renewState, renewAction, renewPending] = useActionState(setSheetListingLifecycleForm, idleForm);
+  const stamp = Math.max(offState.stamp, onState.stamp, delState.stamp, renewState.stamp);
+  const notice = latestNotice([offState, onState, delState, renewState]);
 
   useEffect(() => {
     if (!stamp) return;
@@ -58,13 +65,28 @@ export function SheetListingRowActions({
           Public page
         </Link>
       ) : null}
+      {renewDays ? (
+        <form action={renewAction} aria-busy={renewPending}>
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="intent" value="renew" />
+          <input type="hidden" name="window" value="default" />
+          <button
+            type="submit"
+            disabled={renewPending}
+            title={`Set Active and restart the window: ${renewDays} days from now`}
+            className="inline-flex min-h-11 w-full items-center border border-line bg-paper px-3 text-sm text-ink disabled:opacity-60"
+          >
+            {renewPending ? <Spinner label="Renewing…" /> : `Renew ${renewDays} days`}
+          </button>
+        </form>
+      ) : null}
       {removed ? (
         <button
           type="button"
           className="inline-flex min-h-11 items-center border border-line bg-paper px-3 text-sm text-ink"
           onClick={() => onRef.current?.showModal()}
         >
-          Restore
+          Set active
         </button>
       ) : (
         <button
@@ -72,7 +94,7 @@ export function SheetListingRowActions({
           className="inline-flex min-h-11 items-center border border-line bg-paper px-3 text-sm text-ink"
           onClick={() => offRef.current?.showModal()}
         >
-          Take off page
+          Set inactive
         </button>
       )}
       <button
@@ -109,9 +131,9 @@ export function SheetListingRowActions({
 
       <ConfirmDialog
         dialogRef={offRef}
-        title="Take this home off the public page?"
-        body={`${title} will show as Inactive on this desk. It stays in the database. A later sheet copy can bring it back unless you keep the desk copy.`}
-        confirmLabel="Take it off"
+        title="Set this home to Inactive?"
+        body={`${title} leaves the public catalog and sitemap. The status is locked, so the next Google Sheet copy will not set it back to Active.`}
+        confirmLabel="Set inactive"
         pendingLabel="Hiding…"
         action={offAction}
         pending={offPending}
@@ -120,9 +142,9 @@ export function SheetListingRowActions({
       />
       <ConfirmDialog
         dialogRef={onRef}
-        title="Restore this home to Active?"
-        body={`${title} will show on the public sheet catalog again.`}
-        confirmLabel="Restore"
+        title="Set this home to Active?"
+        body={`${title} shows on the public catalog again with a fresh active window${renewDays ? ` of ${renewDays} days` : ""}. The status is locked against the sheet copy${locked ? "" : " from now on"}.`}
+        confirmLabel="Set active"
         pendingLabel="Restoring…"
         action={onAction}
         pending={onPending}

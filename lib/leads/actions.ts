@@ -3,9 +3,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { recordLeadEvent, saveLead } from "@/lib/dal/leads";
+import { after } from "next/server";
+import { saveLead } from "@/lib/dal/leads";
 import { allowLead } from "@/lib/leads/rate-limit";
-import { notifyFounders } from "@/lib/leads/notify";
+import { deliverLeadAlerts, prepareLeadAlerts } from "@/lib/notifications/lead-alerts";
 import { leadSchema } from "@/lib/leads/schema";
 import { site } from "@/lib/site";
 
@@ -85,28 +86,14 @@ export async function submitLead(
     };
   }
 
+  // Alerts (Google Voice text + founder email) never block or fail the submission: the lead
+  // is already saved, the pending alert rows are written here, and sending happens after the
+  // response. Anything that does not go out is retried by the scheduler and from the admin.
   try {
-    const delivery = await notifyFounders({
-      address: parsed.data.address,
-      name: parsed.data.name,
-      phone: parsed.data.phone,
-      email: parsed.data.email,
-      message: parsed.data.message,
-      situation: parsed.data.situation,
-      trusteeSaleDate: parsed.data.trusteeSaleDate ?? "",
-      preferredPath: parsed.data.preferredPath,
-      sourcePath: parsed.data.sourcePath,
-      language: parsed.data.language,
-    });
-    const note =
-      delivery === "sent"
-        ? "Founder email sent."
-        : delivery === "skipped"
-          ? "Founder email skipped. Resend is not configured."
-          : "Founder email failed.";
-    await recordLeadEvent(saved.id, delivery === "sent" ? "email_out" : "email_status", note);
+    await prepareLeadAlerts(saved.id);
+    after(() => deliverLeadAlerts(saved.id));
   } catch (error) {
-    console.error("lead_email_failed", {
+    console.error("lead_alerts_prepare_failed", {
       id: saved.id,
       name: error instanceof Error ? error.name : "Error",
     });

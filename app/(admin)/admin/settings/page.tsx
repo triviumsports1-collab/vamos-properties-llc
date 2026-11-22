@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { resendReady } from "@/lib/admin/mail";
 import { requireAdmin } from "@/lib/admin/auth";
 import { site } from "@/lib/site";
+import { leadAlertConfig, leadAlertStats } from "@/lib/notifications/lead-alerts";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -20,6 +21,8 @@ export default function SettingsPage() {
 async function Settings() {
   const actor = await requireAdmin();
   const emailReady = resendReady();
+  const alertConfig = leadAlertConfig();
+  const stats = await leadAlertStats();
 
   return (
     <AdminShell current="/admin/settings">
@@ -67,6 +70,37 @@ async function Settings() {
             <dd className="mt-1 text-base text-ink">The public catalog is /properties. The seller header and footer link there.</dd>
           </div>
         </dl>
+
+        <section className="mt-8 border border-line bg-panel p-5" aria-labelledby="leads-heading">
+          <h2 id="leads-heading" className="text-lg font-semibold text-ink">
+            Lead notifications
+          </h2>
+          <dl className="mt-4 grid gap-4">
+            <div>
+              <dt className="text-sm text-muted">Founder email on every lead (Resend)</dt>
+              <dd className="mt-1 text-base text-ink">
+                <span className="font-semibold">
+                  {alertConfig.email
+                    ? `On. To ${alertConfig.emailTargets}.`
+                    : "Off. Set RESEND_API_KEY, RESEND_FROM, and LEAD_NOTIFY_EMAIL. Leads are still saved here."}
+                </span>
+                <span className="block text-sm text-muted">
+                  Last 7 days: {stats.sent ?? 0} sent
+                  {stats.failed ? `, ${stats.failed} failed` : ""}
+                  {(stats.pending ?? 0) + (stats.sending ?? 0) ? `, ${(stats.pending ?? 0) + (stats.sending ?? 0)} waiting` : ""}.
+                  Emails that do not go out are retried automatically and from the lead page.
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted">Texts from visitors</dt>
+              <dd className="mt-1 text-base text-ink">
+                The site&rsquo;s Text buttons open the visitor&rsquo;s messaging app addressed to {site.phoneDisplay}. Texts
+                arrive in Google Voice.
+              </dd>
+            </div>
+          </dl>
+        </section>
       </main>
     </AdminShell>
   );

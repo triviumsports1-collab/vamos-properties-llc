@@ -23,16 +23,49 @@ function publicSiteUrl() {
   }
 }
 
-const jaimePhoneDisplay = process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "+1 (602) 332-9553";
-const jaimePhoneE164 = process.env.NEXT_PUBLIC_PHONE_E164 ?? "+16023329553";
+/** Primary business line: Google Voice, rings and receives texts on (602) 834-3983. */
+export const GOOGLE_VOICE_E164 = "+16028343983";
+export const GOOGLE_VOICE_DISPLAY = "(602) 834-3983";
+
+const jaimePhoneDisplay = process.env.NEXT_PUBLIC_PHONE_DISPLAY || GOOGLE_VOICE_DISPLAY;
+const jaimePhoneE164 = process.env.NEXT_PUBLIC_PHONE_E164 || GOOGLE_VOICE_E164;
+
+/**
+ * `sms:` link with a pre-filled body. `?&body=` is the form both iOS and Android Messages
+ * accept; Google Voice receives the text natively on the business line.
+ */
+/**
+ * Pre-filled opener for "Text us" links. It ends where the visitor naturally types next
+ * (the address), so one tap plus a few words sends a useful first text to Google Voice.
+ */
+export const textUsBody = {
+  en: "Hi Vamos, I'm thinking about selling my house at ",
+  es: "Hola Vamos, estoy pensando en vender mi casa en ",
+} as const;
+
+export function smsHref(body?: string) {
+  const base = `sms:${jaimePhoneE164}`;
+  if (!body) return base;
+  // RFC 3986 strict: encodeURIComponent leaves ' ( ) * ! unescaped; some SMS apps choke on them.
+  const encoded = encodeURIComponent(body).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+  return `${base}?&body=${encoded}`;
+}
 
 export const site = {
-  name: "Vamos Properties LLC",
+  /** Public brand name: titles, headers, footer, OpenGraph, JSON-LD `name`. */
+  name: "Vamos Properties",
+  /**
+   * Registered entity. Only for legal text that must name the entity: the TCPA call/text
+   * consent on lead forms and the JSON-LD `legalName` field. Never in branding or titles.
+   */
+  legalName: "Vamos Properties LLC",
   shortName: "Vamos",
   url: publicSiteUrl(),
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "GTM-5XGG59XD",
   phoneDisplay: jaimePhoneDisplay,
   phoneTel: `tel:${jaimePhoneE164}`,
+  phoneE164: jaimePhoneE164,
+  phoneSms: `sms:${jaimePhoneE164}`,
   email: "info@vamos-properties.com",
   patrickEmail: "patrick@vamos-properties.com",
   jaimeEmail: "jaime@vamos-properties.com",

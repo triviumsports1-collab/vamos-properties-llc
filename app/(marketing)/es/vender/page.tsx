@@ -95,7 +95,7 @@ export default async function VenderHubPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">¿No sabe cuál le queda?</p>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Envíe la dirección de todos modos.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Muchas casas encajan en más de una. Patrick o Jaime revisan el formulario y le llaman. Puede decir que no después de la llamada.
+              Muchas casas encajan en más de una. Nuestros especialistas revisan el formulario y le llaman. Puede decir que no después de la llamada.
             </p>
           </div>
           <LeadForm sourcePath="/es/vender" language="es" />

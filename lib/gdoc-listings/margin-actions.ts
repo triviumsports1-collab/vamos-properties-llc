@@ -73,7 +73,7 @@ export async function applySheetListingMarginForm(
       engine,
     });
     if (!result.ok) return fail(result.message);
-    refreshSheetListingViews(result.slugs);
+    refreshSheetListingViews(result.slugs, { immediate: true });
     return {
       ok: true,
       message: follow

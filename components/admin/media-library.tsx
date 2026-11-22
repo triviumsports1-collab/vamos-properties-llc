@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { prepareMediaUpload, removeMedia, saveMediaUpload } from "@/lib/admin/media-actions";
 import type { MediaAssetView } from "@/lib/dal/media";
 import { formatBytes, isHeic, mediaRule } from "@/lib/media/files";
+import { putFile } from "@/lib/media/upload-client";
 
 type UploadRow = {
   id: string;
@@ -280,21 +281,4 @@ export function MediaLibrary({
       )}
     </div>
   );
-}
-
-function putFile(url: string, file: File, onProgress: (percent: number) => void) {
-  return new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", url);
-    xhr.setRequestHeader("Content-Type", file.type);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
-    };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error("upload"));
-    };
-    xhr.onerror = () => reject(new Error("upload"));
-    xhr.send(file);
-  });
 }

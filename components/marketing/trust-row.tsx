@@ -1,7 +1,7 @@
 const items = [
   ["No fee to ask", "Looking at the address costs nothing."],
   ["As-is", "No repairs, and no parade of showings."],
-  ["Same-day reply", "Patrick or Jaime call during the day."],
+  ["Same-day reply", "Our specialists call during the day."],
   ["You can say no", "An offer is not a promise to sell."],
 ];
 

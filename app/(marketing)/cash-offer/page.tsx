@@ -14,7 +14,7 @@ import { site } from "@/lib/site";
 export const metadata = {
   title: "Get a cash offer on your Phoenix house",
   description:
-    "Vamos buys Maricopa County houses as-is. No repairs, no showings, and no fee to ask. Patrick or Jaime call the same day.",
+    "Vamos buys Maricopa County houses as-is. No repairs, no showings, and no fee to ask. Our specialists call the same day.",
   alternates: { canonical: "/cash-offer", ...hreflang("/cash-offer", "/es/oferta-en-efectivo") },
 };
 
@@ -25,7 +25,7 @@ const steps = [
   },
   {
     title: "We call and look",
-    body: "Patrick or Jaime ask about the loan, the condition, and who is on the title. If the numbers can work, we walk the house. You do not have to clean it first.",
+    body: "Our specialists ask about the loan, the condition, and who is on the title. If the numbers can work, we walk the house. You do not have to clean it first.",
   },
   {
     title: "You get a number",

@@ -25,7 +25,7 @@ export const areas: Area[] = [
     paragraphs: [
       "If the notice is already recorded, a cash sale is meant to pay the loan off at a title company before that date. Taking over the payments is a different conversation, and the loan can stay in your name.",
       "We buy as-is. That includes deferred roofs, swamp coolers that gave up, houses with tenants, and houses you inherited and have not cleaned out. You do not need a sign in the yard or a weekend of showings.",
-      "Patrick or Jaime will ask what part of Phoenix the house is in, what you owe, and whether anyone else is on the title. The city name alone is not enough to price it.",
+      "Our specialists will ask what part of Phoenix the house is in, what you owe, and whether anyone else is on the title. The city name alone is not enough to price it.",
     ],
     neighborhoods: [
       {
@@ -84,7 +84,7 @@ export const areas: Area[] = [
     paragraphs: [
       "We buy as-is. That includes a tired roof on an older ranch near Old Town, a lock that barely works, a tenant still in the house, and a north Scottsdale production home that would photograph well if you had the months to list it.",
       "Old Town, McCormick Ranch, and DC Ranch are not one price. A golf-course elevation does not fix a payment that is already late, and a smaller lot south of Indian School is a different walkthrough than a house north of Shea.",
-      "If the house would list well, we will say that a traditional sale might net more and that it will take longer. Our cash number is the certain one. Patrick or Jaime will ask the address, what you owe, and whether an association letter is already on the counter.",
+      "If the house would list well, we will say that a traditional sale might net more and that it will take longer. Our cash number is the certain one. Our specialists will ask the address, what you owe, and whether an association letter is already on the counter.",
     ],
     neighborhoods: [
       {
@@ -661,7 +661,7 @@ export const areas: Area[] = [
       },
       {
         name: "The Pinal County side",
-        note: "Some Queen Creek addresses are in Pinal County. The sale works the same way, but the county records are different, so tell us which side.",
+        note: "Some Queen Creek addresses are in Pinal County. We buy on both sides. The sale works the same way, only the county records are different, so tell us which side.",
       },
     ],
     zips: ["85142", "85140"],
@@ -675,7 +675,7 @@ export const areas: Area[] = [
       {
         question: "My house is on the Pinal County side. Can you still buy it?",
         answer:
-          "Send the address. Many Queen Creek addresses on the Pinal side are close enough to talk about. We will tell you plainly if it is outside the area we buy.",
+          "Yes. We buy on both the Maricopa County and the Pinal County sides of Queen Creek. The sale works the same way; only the county recorder is different.",
       },
       {
         question: "Is there a fee to get an offer?",
@@ -693,7 +693,7 @@ export const areas: Area[] = [
     fact: "Sun City and Sun City West are unincorporated, age-restricted communities in Maricopa County. Each has its own recreation centers and rules that a buyer has to follow, so the sale paperwork includes them.",
     paragraphs: [
       "We buy Sun City and Sun City West houses as they are: original kitchens, older roofs and plumbing, and a lifetime of belongings still inside.",
-      "Because these are age-restricted communities, the rules can affect who can live in the house and how a sale is written. We check them before we make promises, not after.",
+      "We buy in both Sun City and Sun City West. Because they are age-restricted communities, their rules shape how a sale is written, so we read them before we set a closing date, not after.",
       "Many of these sales are handled by family. If you are an heir, a trustee, or holding a power of attorney, tell us which, because the title company will ask for that document.",
     ],
     neighborhoods: [
@@ -720,7 +720,7 @@ export const areas: Area[] = [
       {
         question: "Can you buy a house in an age-restricted community?",
         answer:
-          "We look at the community's rules before we write anything. Some rules affect who can live in the house or how a sale is structured. We will tell you what we find, not guess.",
+          "Yes. We buy in Sun City and Sun City West. We read the community's rules before we write anything, because they shape how the sale is set up, not whether we will buy.",
       },
       {
         question: "My parent moved to assisted living. Can I sell their house?",

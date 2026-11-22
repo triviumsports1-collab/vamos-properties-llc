@@ -11,7 +11,7 @@ export default function LoginPage() {
       <p className="text-sm font-medium text-muted">Vamos Properties</p>
       <h1 className="mt-2 text-3xl font-semibold text-ink">Sign in to the desk</h1>
       <p className="mt-3 text-base leading-7 text-muted">
-        Patrick and Jaime use this desk to work new seller requests. It is not part of the public site.
+        The Vamos Properties team uses this desk to work new seller requests. It is not part of the public site.
       </p>
       <div className="mt-2 border border-line bg-panel p-6">
         <LoginForm />

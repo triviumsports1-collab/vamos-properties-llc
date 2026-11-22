@@ -21,7 +21,7 @@ export type AreaExtras = {
 export const areaExtras: Record<string, AreaExtras> = {
   phoenix: {
     heroLine:
-      "Maryvale to Ahwatukee, a house with equity or one that is already behind. Patrick or Jaime look at the address and call you back the same day.",
+      "Maryvale to Ahwatukee, a house with equity or one that is already behind. Our specialists look at the address and call you back the same day.",
     situations: [
       {
         title: "The notice is already recorded",
@@ -101,7 +101,7 @@ export const areaExtras: Record<string, AreaExtras> = {
 
   gilbert: {
     heroLine:
-      "Heritage District cottages, Val Vista, Power Ranch and the south edge. Equity or not, an as-is sale and a straight number from Patrick or Jaime.",
+      "Heritage District cottages, Val Vista, Power Ranch and the south edge. Equity or not, an as-is sale and a straight number from our team.",
     situations: [
       {
         title: "A divorce and one house",
@@ -173,7 +173,7 @@ export const areaExtras: Record<string, AreaExtras> = {
 
   scottsdale: {
     heroLine:
-      "Old Town to DC Ranch. A polished street can still hide a late payment, an HOA notice, or an estate. Patrick or Jaime give you a number and the tradeoffs.",
+      "Old Town to DC Ranch. A polished street can still hide a late payment, an HOA notice, or an estate. Our specialists give you a number and the tradeoffs.",
     situations: [
       {
         title: "A higher payment that stopped working",
@@ -314,7 +314,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How do I get the offer?",
         answer:
-          "Send the address with the form or call. Patrick or Jaime will ask a few questions, look at the house, and give you a number with the math behind it. You can say no.",
+          "Send the address with the form or call. Our specialists will ask a few questions, look at the house, and give you a number with the math behind it. You can say no.",
       },
     ],
   },
@@ -391,7 +391,7 @@ export const areaExtras: Record<string, AreaExtras> = {
 
   tempe: {
     heroLine:
-      "Near campus, south Tempe, the lake and north Tempe. Rentals, roommates and inherited houses included. An as-is number from Patrick or Jaime.",
+      "Near campus, south Tempe, the lake and north Tempe. Rentals, roommates and inherited houses included. An as-is number from our team.",
     situations: [
       {
         title: "A rental near campus you are done with",
@@ -671,7 +671,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -791,7 +791,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -839,7 +839,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -868,7 +868,7 @@ export const areaExtras: Record<string, AreaExtras> = {
     localNotes: [
       {
         title: "Two counties, one town",
-        body: "Most of Queen Creek is in Maricopa County, but part is in Pinal County. The county on your deed decides where records and notices are filed.",
+        body: "Most of Queen Creek is in Maricopa County, but part is in Pinal County. We buy on both sides. The county on your deed only decides where records and notices are filed.",
       },
       {
         title: "Wells, septic and animals",
@@ -887,7 +887,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -916,7 +916,7 @@ export const areaExtras: Record<string, AreaExtras> = {
     localNotes: [
       {
         title: "Age rules come first",
-        body: "Sun City and Sun City West are age-restricted. We check how those rules affect a sale before we promise a date.",
+        body: "We buy in both Sun City and Sun City West. They are age-restricted, so we check how those rules affect the paperwork before we promise a date.",
       },
       {
         title: "Recreation center paperwork",
@@ -935,7 +935,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -983,7 +983,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },
@@ -1031,7 +1031,7 @@ export const areaExtras: Record<string, AreaExtras> = {
       {
         question: "How soon will someone call me?",
         answer:
-          "Patrick or Jaime call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
+          "Our specialists call during business hours, 8:00 a.m. to 7:00 p.m., seven days. If you send the address after that, we call the next morning.",
       },
     ],
   },

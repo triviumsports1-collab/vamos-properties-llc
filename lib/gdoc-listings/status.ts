@@ -10,6 +10,8 @@ export type SheetListingStatus = (typeof sheetListingStatuses)[number]["value"];
 export const sheetListingViews = [
   { value: "all", label: "All" },
   { value: "active", label: "Active" },
+  { value: "expiring", label: "Expiring soon" },
+  { value: "expired", label: "Expired" },
   { value: "inactive", label: "Inactive" },
   { value: "under_contract", label: "Under contract" },
   { value: "sold", label: "Sold" },

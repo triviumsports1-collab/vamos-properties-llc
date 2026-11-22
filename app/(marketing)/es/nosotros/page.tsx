@@ -7,9 +7,9 @@ import { hreflang } from "@/lib/i18n/routes";
 import { site } from "@/lib/site";
 
 export const metadata = {
-  title: "Nosotros — Patrick y Jaime",
+  title: "Nosotros — Vamos Properties",
   description:
-    "Vamos Properties LLC es Patrick y Jaime, compradores locales que ayudan a dueños de casa en el condado de Maricopa a vender tal como está o a hablar sobre una hipoteca atrasada.",
+    "Vamos Properties es una empresa de adquisiciones y asesoría inmobiliaria en el condado de Maricopa. Nuestro equipo local ayuda a dueños de casa a vender tal como está o a resolver una hipoteca atrasada.",
   alternates: {
     canonical: "/es/nosotros",
     ...hreflang("/about", "/es/nosotros"),
@@ -23,20 +23,20 @@ export default async function SpanishAboutPage() {
   return (
     <div lang="es">
       <Section>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Las personas que contestan</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Quiénes somos</p>
         <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-          Dos personas en el Valle, no un centro de atención nacional.
+          Un equipo local de adquisiciones, no un centro de llamadas nacional.
         </h1>
         <div className="mt-6 max-w-2xl space-y-4 text-lg leading-8 text-ink">
           <p>
-            Vamos Properties LLC compra casas en el condado de Maricopa a dueños que necesitan una salida privada. Patrick y Jaime contestan el teléfono. La misma persona que conoce al principio es quien sigue con el expediente.
+            Vamos Properties compra casas en el condado de Maricopa a dueños que necesitan una salida privada. Nuestro equipo de Vamos Properties responde directamente y se comunica con usted de manera personalizada. El especialista que conoce al principio sigue con su expediente hasta el cierre.
           </p>
           <p>
             No somos una empresa nacional que manda a un representante. No tenemos un centro de llamadas. Cuando alguien llama a{" "}
             <a href={site.phoneTel} className="font-semibold text-link">
               {site.phoneDisplay}
             </a>
-            , contesta Patrick o Jaime.
+            , le contesta directamente nuestro equipo.
           </p>
           <p>
             Compramos casas tal como están. Si el contado no alcanza para pagar el préstamo, le decimos. Si hay una venta del fiduciario próxima, empezamos por esa fecha. Ninguna llamada le obliga a vender ni a aceptar una oferta.
@@ -45,7 +45,7 @@ export default async function SpanishAboutPage() {
       </Section>
 
       <Section tone="mist">
-        <Founders linked />
+        <Founders linked locale="es" />
       </Section>
 
       <Section>
@@ -92,7 +92,7 @@ export default async function SpanishAboutPage() {
 
       <ClosingBand
         title="Mándenos la dirección. Le llamamos hoy."
-        body="Patrick o Jaime responden el mismo día. Pedir una oferta no lo obliga a vender."
+        body="Nuestros especialistas responden el mismo día. Pedir una oferta no lo obliga a vender."
         offerLabel="Pedir mi oferta"
       />
     </div>

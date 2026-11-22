@@ -43,7 +43,7 @@ export async function saveSheetPricingRuleForm(
     if (apply) {
       const result = await applyGlobalSheetPricingRule(actor);
       if (!result.ok) return fail(result.message);
-      refreshSheetListingViews(result.slugs);
+      refreshSheetListingViews(result.slugs, { immediate: true });
       return {
         ok: true,
         message: summarizeApply(result.updated, result.skipped, result.held, result.unmatched),
@@ -76,7 +76,7 @@ export async function saveSheetPricingRuleForm(
       tiers,
     });
     if (!saved.ok) return fail(saved.message);
-    refreshSheetListingViews();
+    refreshSheetListingViews([], { immediate: true });
     return {
       ok: true,
       message: enabled

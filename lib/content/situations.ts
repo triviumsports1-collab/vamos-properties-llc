@@ -71,7 +71,7 @@ export const situations: Situation[] = [
       },
       {
         title: "Get a number for the house as it is",
-        body: "Patrick or Jaime look at the house and give every heir the same number with the math behind it. No one has to clean or repair anything first.",
+        body: "Our specialists look at the house and give every heir the same number with the math behind it. No one has to clean or repair anything first.",
       },
       {
         title: "Close when the paperwork allows",
@@ -395,7 +395,7 @@ export const situations: Situation[] = [
       },
       {
         title: "One visit, then a number",
-        body: "Patrick or Jaime walk the house once and give you a price with the repairs we accounted for. No inspection list follows.",
+        body: "Our specialists walk the house once and give you a price with the repairs we accounted for. No inspection list follows.",
       },
       {
         title: "Close on your date",

@@ -2,7 +2,12 @@ import { Suspense, type ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { ListingExpiryBar, ListingExpirySettingsForm } from "@/components/admin/listing-expiry";
 import { SheetDeskTabs } from "@/components/admin/sheet-desk-tabs";
+import { SheetSyncControlPanel } from "@/components/admin/sheet-sync-control-panel";
+import { cronSecret } from "@/lib/cron/auth";
+import { getSheetSyncStatus } from "@/lib/dal/sheet-sync-schedule";
+import { syncIntervalLabel } from "@/lib/gdoc-listings/sync-schedule";
 import { SheetListingMarginDesk } from "@/components/admin/sheet-listing-margin-desk";
 import { SheetListingToolbar } from "@/components/admin/sheet-listing-toolbar";
 import { SheetPricingRulePanel } from "@/components/admin/sheet-pricing-rule-panel";
@@ -14,6 +19,7 @@ import {
   listAdminSheetListings,
   listRecentSheetSyncRuns,
 } from "@/lib/dal/sheet-listings";
+import { getLifecycleSettingsView } from "@/lib/dal/listing-lifecycle";
 import { getSheetPricingRule, getSheetPricingRuleAdmin, listRecentSheetPricingRuleEvents } from "@/lib/dal/sheet-pricing";
 import { parseSheetDeskTab, sheetDeskHref, type SheetDeskQuery } from "@/lib/gdoc-listings/desk-href";
 import { formatGlobalRule } from "@/lib/gdoc-listings/margin";
@@ -69,38 +75,83 @@ async function SheetListingsDesk({ searchParams }: DeskProps) {
 
   const filters: SheetDeskQuery = { tab, view, q: query, min: minRaw, max: maxRaw, city, region, margin };
 
-  if (tab === "rules") {
-    const [summary, pricingRule, pricingEvents] = await Promise.all([
+  if (tab === "sync") {
+    const [summary, status, runs] = await Promise.all([
       getSheetListingAdminSummary(),
-      getSheetPricingRuleAdmin(),
-      listRecentSheetPricingRuleEvents(),
+      getSheetSyncStatus(),
+      listRecentSheetSyncRuns(25),
     ]);
     return (
       <DeskShell summary={summary} filters={filters}>
+        <SheetSyncControlPanel
+          initialStatus={status}
+          sheetsReady={summary.sheetsReady}
+          cronConfigured={Boolean(cronSecret())}
+          nowIso={new Date().toISOString()}
+        />
+        <SheetSyncHistory runs={runs} title="Sync log" defaultOpen />
+      </DeskShell>
+    );
+  }
+
+  if (tab === "rules") {
+    const [summary, pricingRule, pricingEvents, lifecycle] = await Promise.all([
+      getSheetListingAdminSummary(),
+      getSheetPricingRuleAdmin(),
+      listRecentSheetPricingRuleEvents(),
+      getLifecycleSettingsView(),
+    ]);
+    const updatedLabel = lifecycle.updatedAt
+      ? `Last changed ${formatWhen(lifecycle.updatedAt)}${lifecycle.updatedByEmail ? ` by ${lifecycle.updatedByEmail}` : ""}.`
+      : "Using the default of 14 days.";
+    return (
+      <DeskShell summary={summary} filters={filters}>
+        <ListingExpirySettingsForm settings={lifecycle} updatedLabel={updatedLabel} />
         <SheetPricingRulePanel rule={pricingRule} events={pricingEvents} />
       </DeskShell>
     );
   }
 
-  const [summary, places, listings, runs, rule] = await Promise.all([
+  const [summary, places, listings, runs, rule, lifecycle, syncStatus] = await Promise.all([
     getSheetListingAdminSummary(),
     listAdminSheetListingPlaces(),
     listAdminSheetListings({ view, query, minPrice, maxPrice, city, region, margin }),
     listRecentSheetSyncRuns(4),
     getSheetPricingRule(),
+    getLifecycleSettingsView(),
+    getSheetSyncStatus(),
   ]);
+  const nowIso = new Date().toISOString();
+  const syncLine =
+    syncStatus.mode === "auto"
+      ? `Auto sync · ${syncIntervalLabel(syncStatus.intervalMinutes).toLowerCase()}${syncStatus.nextSyncAt ? ` · next ${formatWhen(syncStatus.nextSyncAt)}` : ""}`
+      : "Manual sync";
 
   return (
     <DeskShell summary={summary} filters={filters}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusPills summary={summary} filters={filters} />
-        <Link
-          href={sheetDeskHref({ ...filters, tab: "rules" })}
-          className="inline-flex min-h-11 items-center text-sm text-pine"
-        >
-          Global rule · {formatGlobalRule(rule)}
-        </Link>
+        <div className="flex flex-wrap gap-x-4">
+          <Link href={sheetDeskHref({ ...filters, tab: "sync" })} className="inline-flex min-h-11 items-center text-sm text-pine">
+            {syncLine}
+            {syncStatus.health === "error" ? " · last copy failed" : ""}
+          </Link>
+          <Link
+            href={sheetDeskHref({ ...filters, tab: "rules" })}
+            className="inline-flex min-h-11 items-center text-sm text-pine"
+          >
+            Global rule · {formatGlobalRule(rule)}
+          </Link>
+        </div>
       </div>
+      <ListingExpiryBar
+        settings={lifecycle}
+        expiringSoon={summary.expiringSoon}
+        overdue={summary.overdue}
+        expiringHref={sheetDeskHref({ ...filters, view: "expiring" })}
+        expiredHref={sheetDeskHref({ ...filters, view: "expired" })}
+        settingsHref={`${sheetDeskHref({ ...filters, tab: "rules" })}#expiry`}
+      />
       <SheetListingToolbar query={filters} places={places} sheetsReady={summary.sheetsReady} resultCount={listings.length} />
       {listings.length === 0 ? (
         <p className="border border-line bg-panel px-4 py-6 text-base text-ink">
@@ -112,6 +163,8 @@ async function SheetListingsDesk({ searchParams }: DeskProps) {
         <SheetListingMarginDesk
           listings={listings}
           filters={{ view, q: query, min: minRaw, max: maxRaw, city, region, margin }}
+          lifecycle={lifecycle}
+          nowIso={nowIso}
         />
       )}
       <SheetSyncHistory runs={runs} />
@@ -128,7 +181,7 @@ function DeskShell({
   filters: SheetDeskQuery;
   children: ReactNode;
 }) {
-  const tab = filters.tab === "rules" ? "rules" : "inventory";
+  const tab = filters.tab === "rules" || filters.tab === "sync" ? filters.tab : "inventory";
   return (
     <AdminShell current="/admin/sheet-listings">
       <main className="mx-auto max-w-6xl px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:py-8">
@@ -141,8 +194,9 @@ function DeskShell({
             </p>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
           <Kpi label="Active" value={String(summary.active)} />
+          <Kpi label="Expiring soon" value={String(summary.expiringSoon)} />
           <Kpi label="With markup" value={String(summary.withMargin)} />
           <Kpi label="Custom" value={String(summary.customMargins)} />
           <Kpi label="Last copy" value={summary.lastSyncedAt ? formatWhen(summary.lastSyncedAt) : "Not copied"} />
@@ -176,7 +230,11 @@ function StatusPills({ summary, filters }: { summary: SheetListingAdminSummary; 
             ? summary.total
             : item.value === "active"
               ? summary.active
-              : item.value === "inactive"
+              : item.value === "expiring"
+                ? summary.expiringSoon
+                : item.value === "expired"
+                  ? summary.expired
+                  : item.value === "inactive"
                 ? summary.inactive
                 : item.value === "sold"
                   ? summary.sold

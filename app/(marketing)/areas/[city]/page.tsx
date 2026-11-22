@@ -82,7 +82,7 @@ export default async function AreaPage({ params }: AreaParams) {
       body: "Use the form or call. The address, what you owe, and the date on any notice are enough to start.",
     },
     {
-      title: "Talk to Patrick or Jaime",
+      title: "Talk to the Vamos team",
       body: `One of them calls you, asks about the house and the loan, and looks at it. You get a number with the math behind it, not a range.`,
     },
     {
@@ -346,7 +346,7 @@ export default async function AreaPage({ params }: AreaParams) {
             <Eyebrow>Get your {name} offer</Eyebrow>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Start with the {name} address.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Patrick or Jaime read it and call you back. You can say no after the call.
+              Our specialists read it and call you back. You can say no after the call.
             </p>
             <h3 className="mt-10 text-lg font-semibold text-ink">If you want to read first</h3>
             <ul className="mt-3 grid gap-3">
@@ -401,7 +401,7 @@ export default async function AreaPage({ params }: AreaParams) {
 
       <ClosingBand
         title={`Selling a house in ${name}? Send the address.`}
-        body="Patrick or Jaime read it and call you. You are not signing anything by asking."
+        body="Our specialists read it and call you. You are not signing anything by asking."
       />
     </>
   );

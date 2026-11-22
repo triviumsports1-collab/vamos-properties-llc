@@ -249,7 +249,7 @@ export default async function SituationPage({ params }: SituationParams) {
             <Eyebrow>Get your offer</Eyebrow>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">Start with the address.</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-muted">
-              Patrick or Jaime read it and call you back. You can say no after the call.
+              Our specialists read it and call you back. You can say no after the call.
             </p>
             <h3 className="mt-10 text-lg font-semibold text-ink">If you want to read first</h3>
             <ul className="mt-3 grid gap-3">
@@ -298,7 +298,7 @@ export default async function SituationPage({ params }: SituationParams) {
 
       <ClosingBand
         title="Send the address. Then decide."
-        body="Patrick or Jaime read it and call you. You are not signing anything by asking."
+        body="Our specialists read it and call you. You are not signing anything by asking."
       />
     </>
   );
