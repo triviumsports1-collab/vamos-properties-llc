@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, type FormEvent } from "react";
+import { PhoneText } from "@/components/marketing/phone-text";
 import { submitSheetListingLead } from "@/lib/gdoc-listings/actions";
 import { sheetListingLeadSchema } from "@/lib/gdoc-listings/schema";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
@@ -66,7 +67,7 @@ export function SheetListingInquiry({
       <p className="mt-2 text-sm leading-6 text-muted">{copy.askSub}</p>
       {banner ? (
         <p id="sheet-inquiry-status" role="status" className="mt-4 rounded-lg border border-line bg-mist px-3 py-3 text-base text-ink">
-          {banner}
+          <PhoneText text={banner} />
         </p>
       ) : null}
       <input type="hidden" name="listingId" value={listingId} />

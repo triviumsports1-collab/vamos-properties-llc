@@ -1,9 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "crons": [
-    {
+  "schedules": {
+    "sheet-sync-tick": {
+      "schedule": "*/15 * * * *",
       "path": "/api/cron/sync-sheets",
-      "schedule": "5 7 * * *"
+      "requestMethod": "GET"
     }
-  ]
+  }
 }

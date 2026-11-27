@@ -9,6 +9,8 @@
 export type SheetSyncMode = "manual" | "auto";
 
 export const MIN_SYNC_INTERVAL_MINUTES = 10;
+/** Minutes without a scheduler heartbeat before the admin desk reports the cron as stale. */
+export const SCHEDULER_TICK_ALLOWANCE_MINUTES = 45;
 export const MAX_SYNC_INTERVAL_MINUTES = 30 * 24 * 60;
 export const DEFAULT_SYNC_INTERVAL_MINUTES = 60;
 
@@ -101,6 +103,8 @@ export type SheetSyncHealth = "idle" | "syncing" | "error";
 export function schedulerLooksStale(lastTickAt: Date | null, settings: SheetSyncSettings, now: Date) {
   if (settings.mode !== "auto") return false;
   if (!lastTickAt) return true;
-  const allowance = Math.max(clampSyncInterval(settings.intervalMinutes) * 2, 30);
+  // Every scheduler tick writes the heartbeat, whatever the sync interval. Vercel Schedules
+  // fire every 15 min with up to 15 min jitter, so 3 missed windows (45 min) means it is down.
+  const allowance = SCHEDULER_TICK_ALLOWANCE_MINUTES;
   return now.getTime() - lastTickAt.getTime() > allowance * 60_000;
 }

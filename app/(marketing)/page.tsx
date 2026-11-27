@@ -97,7 +97,8 @@ export default async function HomePage() {
   return (
     <>
       <LocalBusinessJsonLd />
-      <section className="relative isolate min-h-[38rem] overflow-hidden bg-navy text-white">
+      {/* No overflow-hidden here: the address suggestions list has to be able to drop below the hero. */}
+      <section className="relative isolate min-h-[38rem] bg-navy text-white">
         <Image
           src="/phoenix-street.jpg"
           alt="Single-story homes on a quiet Phoenix street in late afternoon light"

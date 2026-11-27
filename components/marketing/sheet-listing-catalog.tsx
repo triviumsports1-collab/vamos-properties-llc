@@ -1,8 +1,10 @@
+import { PhoneText } from "@/components/marketing/phone-text";
 import { SheetListingCard } from "@/components/marketing/sheet-listing-card";
 import { sheetListingCatalogHref, sheetListingTypes } from "@/lib/gdoc-listings/display";
 import { propertyListingStrings } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/routes";
 import type { SheetListingCardView } from "@/lib/dal/gdoc-listings";
+import { site } from "@/lib/site";
 
 export function SheetListingCatalog({
   listings,
@@ -66,7 +68,7 @@ export function SheetListingCatalog({
       </form>
       {visible.length === 0 ? (
         <p className="mt-8 border border-line bg-panel px-4 py-6 text-base text-ink">
-          {needle || propertyType ? copy.noMatch : copy.catalogEmpty.replace("{phone}", "")}
+          {needle || propertyType ? copy.noMatch : <PhoneText text={copy.catalogEmpty.replace("{phone}", site.phoneDisplay)} />}
         </p>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

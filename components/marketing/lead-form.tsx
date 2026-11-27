@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState, type FormEvent } from "react";
+import { AddressAutocomplete } from "@/components/marketing/address-autocomplete";
+import { PhoneText } from "@/components/marketing/phone-text";
 import { submitLead, type LeadFormState } from "@/lib/leads/actions";
 import { leadSchema } from "@/lib/leads/schema";
 import { paths, site, situations } from "@/lib/site";
@@ -139,7 +141,7 @@ export function LeadForm({
       <p className="mt-2 text-sm leading-6 text-muted">{copy.note}</p>
       {banner ? (
         <p id="offer-status" className="mt-4 border border-line bg-paper px-3 py-3 text-sm leading-6 text-ink" role="alert">
-          {banner}
+          <PhoneText text={banner} />
         </p>
       ) : null}
 
@@ -162,14 +164,25 @@ export function LeadForm({
       <input type="hidden" name="utmMedium" value={utm.medium} />
       <input type="hidden" name="utmCampaign" value={utm.campaign} />
 
-      <Field
-        label={copy.address}
-        name="address"
-        error={fieldErrors.address}
-        autoComplete="street-address"
-        value={address}
-        onChange={setAddress}
-      />
+      <div className="mt-4">
+        <label className="block text-sm text-ink" htmlFor={`${sourcePath}-address`}>
+          {copy.address}
+        </label>
+        <div className="mt-1">
+          <AddressAutocomplete
+            id={`${sourcePath}-address`}
+            name="address"
+            required
+            value={address}
+            onChange={setAddress}
+            language={language}
+            ariaInvalid={fieldErrors.address ? true : undefined}
+            ariaDescribedBy={fieldErrors.address ? "address-error" : undefined}
+            className="min-h-12 w-full border border-line bg-paper px-3 text-base text-ink placeholder:text-muted"
+          />
+        </div>
+        {fieldErrors.address ? <FieldError id="address-error" message={fieldErrors.address} /> : null}
+      </div>
       <Field label={copy.name} name="name" error={fieldErrors.name} autoComplete="name" />
       <Field label={copy.phone} name="phone" error={fieldErrors.phone} autoComplete="tel" inputMode="tel" />
       <Field label={copy.email} name="email" error={fieldErrors.email} autoComplete="email" type="email" />

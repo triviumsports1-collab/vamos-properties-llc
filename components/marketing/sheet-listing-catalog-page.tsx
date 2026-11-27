@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { JsonLd } from "@/components/marketing/json-ld";
+import { PhoneText } from "@/components/marketing/phone-text";
 import { Section } from "@/components/marketing/section";
 import { SheetListingCatalog } from "@/components/marketing/sheet-listing-catalog";
 import { listSheetListingCards } from "@/lib/dal/gdoc-listings";
@@ -31,7 +32,7 @@ export async function SheetListingCatalogPage({
       <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">{copy.catalogIntro}</p>
       {cards.length === 0 ? (
         <p className="mt-8 border border-line bg-panel px-4 py-6 text-base text-ink">
-          {copy.catalogEmpty.replace("{phone}", site.phoneDisplay)}
+          <PhoneText text={copy.catalogEmpty.replace("{phone}", site.phoneDisplay)} />
         </p>
       ) : (
         <div className="mt-8">

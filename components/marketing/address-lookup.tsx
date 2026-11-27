@@ -1,14 +1,19 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { AddressAutocomplete } from "@/components/marketing/address-autocomplete";
 
 export function AddressLookup() {
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
 
-  function go(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const value = address.trim();
+  function go(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+    send(address);
+  }
+
+  function send(raw: string) {
+    const value = raw.trim();
     if (value.length < 5) {
       setError("Enter the street address so we know which house.");
       return;
@@ -28,13 +33,15 @@ export function AddressLookup() {
         Your address
       </label>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-        <input
+        {/* The box is always white, so its text uses fixed dark colors instead of theme tokens (which turn light in dark mode). */}
+        <AddressAutocomplete
           id="hero-address"
           value={address}
-          onChange={(event) => setAddress(event.target.value)}
-          autoComplete="street-address"
+          onChange={setAddress}
+          onSelect={send}
+          tone="hero"
           placeholder="1234 W Example Ave, Phoenix"
-          className="min-h-14 w-full bg-white px-4 text-base text-ink placeholder:text-muted"
+          className="min-h-14 w-full bg-white px-4 text-base text-[#142033] caret-[#142033] [color-scheme:light] placeholder:text-[#5c6b7c]"
         />
         <button
           type="submit"
