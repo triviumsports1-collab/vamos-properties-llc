@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { excerptFromHtml, slugify } from "@/lib/blog/content";
+import { excerptFromHtml, plainText, slugify } from "@/lib/blog/content";
 import { sanitizePostHtml } from "@/lib/blog/html";
 import { BLOG_TAG } from "@/lib/dal/blog";
 import { getDb } from "@/src/prisma/db";
@@ -42,7 +42,11 @@ const postSchema = z.object({
   title: z.string().trim().min(1).max(180),
   slug: z.string().trim().max(80),
   excerpt: z.string().trim().max(300),
-  status: z.enum(["draft", "published"]),
+  status: z.enum(["draft", "scheduled", "published"]),
+  /** ISO date-time. Required for "scheduled"; optional backdate for "published". */
+  publishAt: z.string().trim().max(40).default(""),
+  /** Background autosave: only ever writes to a post that is still a draft. */
+  autosave: z.boolean().default(false),
   html: z.string().max(100_000),
   featuredImageUrl: optionalUrl,
   featuredImageAlt: z.string().trim().max(180),
@@ -87,6 +91,20 @@ export async function savePost(input: z.input<typeof postSchema>) {
     return { ok: false as const, message: parsed.error.issues[0]?.message ?? "Check the post and try again." };
   }
   const data = parsed.data;
+  if (data.autosave && (!data.id || data.status !== "draft")) {
+    return { ok: false as const, message: "Autosave only runs on saved drafts." };
+  }
+  let publishAt: Date | null = null;
+  if (data.publishAt) {
+    publishAt = new Date(data.publishAt);
+    if (Number.isNaN(publishAt.getTime())) return { ok: false as const, message: "Pick a valid publish date and time." };
+  }
+  if (data.status === "scheduled" && (!publishAt || publishAt.getTime() <= Date.now() + 60_000)) {
+    return { ok: false as const, message: "Pick a publish time in the future to schedule this post." };
+  }
+  if (data.status !== "draft" && !plainText(sanitizePostHtml(data.html))) {
+    return { ok: false as const, message: "Write the article before publishing it." };
+  }
   const db = getDb();
   const slug = await uniqueSlug(slugify(data.slug || data.title), data.id);
   const body = sanitizePostHtml(data.html);
@@ -107,12 +125,9 @@ export async function savePost(input: z.input<typeof postSchema>) {
           select: { id: true, slug: true, publishedAt: true, status: true },
         });
         if (!current) return null;
+        if (data.autosave && current.status !== "draft") return "not-draft" as const;
         previousSlug = current.slug;
-        const publishedAt = current.publishedAt
-          ? current.publishedAt
-          : data.status === "published"
-            ? new Date(nowIso)
-            : null;
+        const publishedAt = resolvePublishedAt(data.status, publishAt, current, nowIso);
         await tx.post.update({
           where: { id: postId },
           data: {
@@ -146,7 +161,7 @@ export async function savePost(input: z.input<typeof postSchema>) {
             metaDescription: data.metaDescription || null,
             canonicalUrl: data.canonicalUrl || null,
             ogImageUrl: data.ogImageUrl || null,
-            publishedAt: data.status === "published" ? new Date(nowIso) : null,
+            publishedAt: resolvePublishedAt(data.status, publishAt, null, nowIso),
             authorId: actor.id,
           },
         });
@@ -181,12 +196,33 @@ export async function savePost(input: z.input<typeof postSchema>) {
         .filter((category) => categoryIds.includes(category.id))
         .map((category) => category.slug);
       const tagSlugs = existingTags.filter((tag) => tagIds.includes(tag.id)).map((tag) => tag.slug);
-      return { id: postId, slug, previousSlug, categorySlugs, tagSlugs };
+      const stored = await tx.post.findFirst({ where: { id: postId! }, select: { updatedAt: true, publishedAt: true } });
+      return {
+        id: postId!,
+        slug,
+        previousSlug,
+        categorySlugs,
+        tagSlugs,
+        updatedAt: stored?.updatedAt.toISOString() ?? nowIso,
+        publishedAt: stored?.publishedAt?.toISOString() ?? null,
+      };
     },
     { timeout: 30_000 },
   );
 
   if (!saved) return { ok: false as const, message: "That post is no longer on the desk." };
+  if (saved === "not-draft") return { ok: false as const, message: "This post is live, so autosave is paused. Save changes yourself." };
+  const result = {
+    ok: true as const,
+    message: "Post saved.",
+    id: saved.id,
+    slug: saved.slug,
+    status: data.status,
+    updatedAt: saved.updatedAt,
+    publishedAt: saved.publishedAt,
+  };
+  // A background autosave of a draft changes nothing public.
+  if (data.autosave) return result;
   refreshBlog([
     `/blog/${saved.slug}`,
     `/blog/${saved.previousSlug}`,
@@ -194,7 +230,26 @@ export async function savePost(input: z.input<typeof postSchema>) {
     ...saved.categorySlugs.map((item) => `/blog/category/${item}`),
     ...saved.tagSlugs.map((item) => `/blog/tag/${item}`),
   ]);
-  return { ok: true as const, message: "Post saved.", id: saved.id, slug: saved.slug };
+  return result;
+}
+
+/**
+ * - draft: keeps any earlier date (so unpublishing and republishing keeps the original date).
+ * - scheduled: the future time picked in the editor.
+ * - published: a picked past time (backdating), else the original publish date, else now.
+ */
+function resolvePublishedAt(
+  status: "draft" | "scheduled" | "published",
+  picked: Date | null,
+  current: { status: string; publishedAt: Date | null } | null,
+  nowIso: string,
+) {
+  const now = new Date(nowIso);
+  if (status === "scheduled") return picked;
+  if (status === "draft") return picked ?? current?.publishedAt ?? null;
+  if (picked && picked.getTime() <= now.getTime() + 60_000) return picked;
+  if (current?.status === "published" && current.publishedAt) return current.publishedAt;
+  return now;
 }
 
 export async function deletePost(id: number) {

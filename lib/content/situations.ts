@@ -562,6 +562,343 @@ export const situations: Situation[] = [
       { href: "/guides/cash-sale", label: "Guide: how a cash sale works" },
     ],
   },
+  {
+    slug: "behind-on-property-taxes",
+    label: "Behind on property taxes",
+    title: "Behind on Property Taxes in Maricopa County? Sell for Cash",
+    description:
+      "Behind on property taxes in Maricopa County? How delinquent taxes, the tax lien sale, and a lien holder's foreclosure work in Arizona, and how a cash sale pays the taxes at closing.",
+    eyebrow: "Behind on property taxes in Arizona",
+    h1: "Behind on property taxes? The sale can pay them.",
+    heroLine:
+      "Delinquent taxes keep adding interest, and once a tax lien is sold the clock starts running toward a lien holder's foreclosure. A cash sale pays what is owed at the title company before it gets that far.",
+    blurb: "Delinquent taxes, a tax lien sold at auction, or a letter from a lien holder.",
+    intro: [
+      "Most owners who fall behind on property taxes in the Valley do not have a mortgage escrow account. The house is paid off, inherited, or the loan never collected taxes, so the bill comes straight to the owner, and one bad year turns into two.",
+      "In Maricopa County, taxes that stay unpaid can be offered at the Treasurer's annual tax lien sale. An investor pays the taxes and gets a certificate of purchase that earns interest against your house. If the taxes are still unpaid three years after that sale, the lien holder can ask the Superior Court to foreclose and take the house.",
+      "If keeping the house is not realistic, a sale is often the cleanest way out. We buy it as it is, and the title company pays the delinquent taxes, the interest, and any lien certificate from the sale price, with what is left going to you.",
+    ],
+    fact: {
+      text: "Delinquent Arizona property taxes earn interest at up to 16% a year (A.R.S. § 42-18053). Three years after a tax lien is sold, the lien holder can file to foreclose (A.R.S. § 42-18201).",
+      note: "You can look up the parcel on the Maricopa County Treasurer's site to see what is delinquent and whether a lien has been sold.",
+    },
+    problems: [
+      {
+        title: "The interest keeps growing",
+        body: "Each year that goes unpaid adds interest and fees on top of the tax itself. The total can grow faster than an owner on a fixed income can catch up.",
+      },
+      {
+        title: "A letter from a lien holder",
+        body: "Before filing to foreclose, a lien holder has to send notice to the owner. If that letter has arrived, the time left to redeem is short and it is worth acting now.",
+      },
+      {
+        title: "A paid-off house with no cash to spare",
+        body: "Many owners behind on taxes have plenty of equity and very little monthly income. The house is worth a lot, but the money is all in the walls.",
+      },
+      {
+        title: "Repairs on top of the tax bill",
+        body: "A house that is behind on taxes often needs a roof, an AC, or plumbing too. A cash price accounts for that, so you do not have to pay for repairs before you sell.",
+      },
+    ],
+    steps: [
+      {
+        title: "Tell us what is owed",
+        body: "The address, which tax years are unpaid, any letter from a lien holder, and whether there is still a mortgage on the house.",
+      },
+      {
+        title: "Get a number for the house as it is",
+        body: "Our specialists look at the house and show you the price, the estimated taxes and interest to be paid, and what is left for you.",
+      },
+      {
+        title: "Close before the deadline",
+        body: "A Maricopa County title company orders the payoff from the Treasurer, pays the taxes and redeems any lien from the sale, then pays you the rest.",
+      },
+    ],
+    rules: [
+      {
+        title: "When taxes become delinquent",
+        body: "Arizona property taxes are billed in two halves. The first half becomes delinquent after November 1 and the second half after May 1. Interest is charged on delinquent amounts.",
+      },
+      {
+        title: "Redeeming a tax lien",
+        body: "Until a court enters a judgment, the owner can usually redeem by paying the Treasurer the taxes, interest, and fees owed. A sale that closes in time does exactly that from the price.",
+      },
+      {
+        title: "The lien holder's foreclosure",
+        body: "Three years after the lien sale, the certificate holder can sue in Superior Court to foreclose the right to redeem. If the court grants it, the Treasurer issues a deed to the lien holder and the owner loses the house.",
+      },
+    ],
+    gather: [
+      "The parcel number or the latest tax bill",
+      "Which tax years are unpaid, if you know",
+      "Any letter from a tax lien holder or an attorney",
+      "The latest mortgage statement, if there is a loan",
+      "HOA name and contact, if there is one",
+      "Names of everyone on the deed",
+    ],
+    faqs: [
+      {
+        question: "Can I sell a house with delinquent property taxes?",
+        answer:
+          "Yes. Unpaid taxes are a lien on the house, and the title company pays them from the sale price at closing, the same way it pays off a mortgage. You do not have to pay them first.",
+      },
+      {
+        question: "My tax lien was sold. Is it too late?",
+        answer:
+          "Usually not. A sold lien can generally be redeemed until a court enters a foreclosure judgment, and a lien holder cannot file to foreclose until three years after the lien sale. Call us as soon as you can, especially if you have received a notice from the lien holder.",
+      },
+      {
+        question: "How much will the taxes take out of my sale?",
+        answer:
+          "The title company gets an exact payoff from the Maricopa County Treasurer, including interest and fees. We give you an estimate at the start so you can see what is left after taxes, any mortgage, and closing costs.",
+      },
+      {
+        question: "Is there a way to keep the house instead?",
+        answer:
+          "Sometimes. You can pay the Treasurer directly, and some seniors qualify for a valuation freeze through the Maricopa County Assessor. If keeping the house works for you, we will say so. If it does not, we can show you what a sale leaves you.",
+      },
+      {
+        question: "I also have a mortgage. Does that change anything?",
+        answer:
+          "A mortgage usually requires the taxes to be paid, so a lender may pay them and add the amount to your loan, or treat it as a default. At closing, the title company pays the lender and the taxes from the sale. Tell us both balances early.",
+      },
+      {
+        question: "The house was inherited and the taxes went unpaid. Can we still sell?",
+        answer:
+          "Yes, once someone has the authority to sign for the estate. Our inherited house page explains how a beneficiary deed, a small-estate affidavit, or probate decides who that is.",
+      },
+    ],
+    related: [
+      { href: "/stop-foreclosure", label: "Also behind on the mortgage?" },
+      { href: "/guides/cash-sale", label: "Guide: how a cash sale works" },
+      { href: "/sell/inherited-house", label: "Inherited a house with unpaid taxes?" },
+      { href: "/sell/behind-on-hoa-dues", label: "Behind on HOA dues too?" },
+    ],
+  },
+  {
+    slug: "house-with-solar-panels",
+    label: "House with solar panels",
+    title: "Sell a House with Leased or Financed Solar in Phoenix",
+    description:
+      "Selling a Phoenix-area house with leased, PPA, or financed solar panels? How a solar lease transfer, a buyout, or a UCC filing affects the sale, and how a cash buyer can close without a lender's approval.",
+    eyebrow: "Selling a house with solar in Arizona",
+    h1: "Sell a house with solar panels, even if the lease is the problem.",
+    heroLine:
+      "A solar lease or loan can stall a normal sale: the buyer has to qualify with the solar company, the lender will not count the panels, and a filing shows up on title. We look at your solar contract first and price the house with it.",
+    blurb: "A solar lease, a PPA, or a solar loan that a buyer or lender will not take on.",
+    intro: [
+      "In the Valley, solar panels are on a lot of roofs, and a lot of them are not owned by the homeowner. That matters the day you sell. A system you paid for adds value. A leased system or a power purchase agreement (PPA) belongs to the solar company, and the buyer usually has to be approved to take it over. A solar loan has to be paid or dealt with at closing.",
+      "Traditional sales fall apart over this more often than people expect. The buyer's lender may not count leased panels in the appraisal, the buyer may not want a 20-year payment, or the solar company may take weeks to approve a transfer.",
+      "A cash sale removes the buyer's lender from the picture. We read your solar contract, find out what the company needs to transfer or pay it off, and give you a number that already accounts for it, so you know what you walk away with before you sign.",
+    ],
+    fact: {
+      text: "A financed or leased solar system is often backed by a UCC fixture filing recorded with the Maricopa County Recorder. It shows up in the title search, and the title company will want it paid, released, or handled before closing.",
+      note: "Your solar contract says whether it is a purchase, a loan, a lease, or a PPA. That one word decides most of what happens next, so have it handy.",
+    },
+    problems: [
+      {
+        title: "The buyer has to qualify with the solar company",
+        body: "Most leases and PPAs only transfer if the solar company approves the new owner, often with a credit check. If the buyer does not qualify or does not want the payment, the deal can stall.",
+      },
+      {
+        title: "The lender will not count leased panels",
+        body: "Panels the solar company owns are usually not part of the house for appraisal purposes. A buyer's lender may also need the solar filing handled before it will fund the loan.",
+      },
+      {
+        title: "A buyout costs more than you expected",
+        body: "Paying off a lease or PPA early can mean the remaining payments or a set buyout price. A solar loan balance can be larger than owners remember, especially with a deferred tax-credit payment.",
+      },
+      {
+        title: "Roof work with panels in the way",
+        body: "If the roof needs repair, the panels have to come off and go back on, often by the solar company. A cash price can account for the roof and the panels as they are.",
+      },
+    ],
+    steps: [
+      {
+        title: "Send the address and the solar contract",
+        body: "Tell us the solar company and whether it is a lease, a PPA, or a loan. The monthly payment and the years left help us do the math.",
+      },
+      {
+        title: "Get a number with the solar in it",
+        body: "We find out the transfer requirements or the payoff, then give you one price that already accounts for the panels, the roof, and the rest of the house.",
+      },
+      {
+        title: "Close on your date",
+        body: "A Maricopa County title company pays the mortgage and any solar loan or filing from the sale, and we work with the solar company on the transfer.",
+      },
+    ],
+    rules: [
+      {
+        title: "Who owns the panels",
+        body: "If you paid cash or used a loan, you own the system and it sells with the house. With a lease or a PPA, the solar company owns it, and your contract controls whether and how it transfers.",
+      },
+      {
+        title: "The solar filing on title",
+        body: "A UCC fixture filing gives the solar company or lender a recorded interest in the equipment. The title company will find it and ask for a payoff, a release, or the company's sign-off on the transfer.",
+      },
+      {
+        title: "The utility account moves too",
+        body: "The interconnection and export credit with APS or SRP are tied to the account holder. After closing, the new owner has to be set up with the utility and the solar company.",
+      },
+    ],
+    gather: [
+      "Your solar contract (lease, PPA, or loan agreement)",
+      "The solar company's name and your account number",
+      "The monthly solar payment and the years left on it",
+      "A recent solar loan or lease payoff statement, if you have one",
+      "The latest mortgage statement",
+      "Any roof or panel repair history",
+    ],
+    faqs: [
+      {
+        question: "Can I sell my house if the solar panels are leased?",
+        answer:
+          "Yes. A leased system usually has to be transferred to the new owner with the solar company's approval, bought out, or in some cases removed. We read your lease and tell you which of those applies and what it costs before you decide.",
+      },
+      {
+        question: "Do solar panels add value to a house in Arizona?",
+        answer:
+          "Panels you own outright can add value because they lower the power bill. Leased panels or a PPA usually do not add appraised value, because the solar company owns them, and the payment can make some buyers walk away.",
+      },
+      {
+        question: "What happens to my solar loan when I sell?",
+        answer:
+          "A solar loan is usually paid off at closing from the sale price, the same way the mortgage is. The title company gets a payoff from the solar lender and releases the filing once it is paid.",
+      },
+      {
+        question: "Will you take over my solar lease?",
+        answer:
+          "In many cases we can apply to assume the lease or PPA, if the solar company approves us. When that is not possible or does not make sense, we account for the buyout in the price and show you the math.",
+      },
+      {
+        question: "What is a UCC filing on my solar panels?",
+        answer:
+          "It is a public record that gives the solar company or lender an interest in the equipment. It is not a mortgage on your house, but the title company treats it as something that has to be cleared or handled before closing.",
+      },
+      {
+        question: "The roof needs work and the panels are on it. Do I fix it first?",
+        answer:
+          "No. We buy the house as it is, roof and panels included. Tell us what you know about the roof, and we will factor the repair and the panel removal into the number.",
+      },
+    ],
+    related: [
+      { href: "/sell/as-is", label: "Selling a house that needs repairs" },
+      { href: "/cash-offer", label: "How a cash offer is priced" },
+      { href: "/take-over-payments", label: "Taking over the payments" },
+    ],
+  },
+  {
+    slug: "behind-on-hoa-dues",
+    label: "Behind on HOA dues",
+    title: "Behind on HOA Dues in Arizona? Sell Before HOA Foreclosure",
+    description:
+      "Behind on HOA dues in Maricopa County? When an Arizona HOA can foreclose (A.R.S. § 33-1807), what it can and cannot add to the lien, and how a cash sale pays the HOA at closing.",
+    eyebrow: "Behind on HOA dues in Arizona",
+    h1: "Behind on HOA dues? Sell before the HOA forecloses.",
+    heroLine:
+      "Late fees, collection letters, and an attorney's charges can turn a few missed assessments into a lien that can be foreclosed in court. A cash sale pays the HOA from the price and closes the account.",
+    blurb: "Missed assessments, a collection attorney, or an HOA lien on the house.",
+    intro: [
+      "HOA dues are easy to fall behind on. They are separate from the mortgage, they are often paid by hand, and a job change, a medical bill, or a special assessment can push them to the bottom of the pile.",
+      "In Arizona, unpaid assessments become a lien on the house. Once the HOA hands the account to a collection attorney, legal fees are added on top of the dues, and the balance can grow quickly. If the owner is a year behind or owes $1,200 or more, the HOA can file to foreclose that lien in Superior Court.",
+      "If catching up is not realistic, selling is often the cleanest way to stop it. We buy the house as it is, and the title company pays the HOA balance, the mortgage, and any other liens from the sale, with what is left going to you.",
+    ],
+    fact: {
+      text: "An Arizona HOA can foreclose its lien only after the owner has been delinquent for one year or owes $1,200 or more, whichever comes first (A.R.S. § 33-1807 for planned communities, § 33-1256 for condominiums).",
+      note: "The amount is assessments, late charges, and collection costs. Fines for rule violations generally cannot be the basis of an HOA foreclosure.",
+    },
+    problems: [
+      {
+        title: "Collection fees bigger than the dues",
+        body: "Once an attorney is involved, the fees can be larger than the missed assessments. Each month of waiting usually adds more.",
+      },
+      {
+        title: "A lien recorded against the house",
+        body: "The HOA's lien sits on title. You cannot refinance or sell normally until it is paid, and it can lead to a court foreclosure.",
+      },
+      {
+        title: "Behind on the mortgage too",
+        body: "When money is tight, the HOA and the mortgage often fall behind together. An HOA foreclosure does not erase the mortgage, so both have to be solved.",
+      },
+      {
+        title: "Violation notices on top of the balance",
+        body: "Yard, paint, or repair violations can add fines and pressure. We buy the house with the violations open, so you do not have to fix them first.",
+      },
+    ],
+    steps: [
+      {
+        title: "Tell us what the HOA says you owe",
+        body: "The address, the HOA name, the latest statement or attorney letter, and whether you are also behind on the mortgage.",
+      },
+      {
+        title: "Get a number for the house as it is",
+        body: "Our specialists look at the house and show you the price, the estimated HOA payoff, the mortgage payoff, and what is left for you.",
+      },
+      {
+        title: "Close and pay the HOA",
+        body: "A Maricopa County title company requests the HOA's payoff and resale disclosure, pays the HOA and the mortgage from the sale, and pays you the rest.",
+      },
+    ],
+    rules: [
+      {
+        title: "When an HOA can foreclose",
+        body: "Only after one year of delinquency or $1,200 owed, whichever comes first. The HOA has to go through the Superior Court, so there is a lawsuit and time to respond before any sale.",
+      },
+      {
+        title: "Late charges are capped",
+        body: "Arizona limits an HOA late charge to the greater of $15 or 10% of the unpaid assessment (A.R.S. § 33-1803). Ask for an itemized statement and check it.",
+      },
+      {
+        title: "The HOA's payoff at closing",
+        body: "When you sell, the HOA has to provide a payoff and a resale disclosure to the title company (A.R.S. § 33-1806), and its fee for that is limited by law. The balance is paid from the sale price.",
+      },
+    ],
+    gather: [
+      "The HOA's name and management company",
+      "The latest HOA statement or collection letter",
+      "Any letter or lawsuit from the HOA's attorney",
+      "The latest mortgage statement",
+      "Any violation notices from the HOA",
+      "Names of everyone on the deed",
+    ],
+    faqs: [
+      {
+        question: "Can an HOA foreclose on my house in Arizona?",
+        answer:
+          "Yes, but only after you have been delinquent for one year or owe $1,200 or more, whichever comes first, and only through a court case. Fines for rule violations generally cannot be the basis of the foreclosure.",
+      },
+      {
+        question: "Can I sell my house if I owe the HOA?",
+        answer:
+          "Yes. The title company gets a payoff from the HOA and pays it from the sale price at closing, along with the mortgage. You do not have to pay the HOA first.",
+      },
+      {
+        question: "The HOA's attorney sent me a letter. How much time do I have?",
+        answer:
+          "It depends on how far behind you are and whether a lawsuit has been filed. Read the letter for dates and call us or an attorney soon. A sale can close in time when the paperwork is in order, but more time gives you more choices.",
+      },
+      {
+        question: "Can I negotiate the HOA balance?",
+        answer:
+          "Sometimes. Many HOAs will agree to a payment plan, and some will reduce collection fees or late charges to get paid. Ask for an itemized statement in writing. If a sale is the plan, the title company pays the agreed amount at closing.",
+      },
+      {
+        question: "Does an HOA foreclosure wipe out my mortgage?",
+        answer:
+          "No. A first mortgage recorded before the HOA debt generally stays on the house, and you can still owe the lender. That is one reason a sale that pays both is often better than letting the HOA foreclose.",
+      },
+      {
+        question: "The house has open HOA violations. Will you still buy it?",
+        answer:
+          "Yes. Tell us what the HOA cited. We account for the repairs in the price and handle them after closing, so you do not have to fix the yard, the paint, or the roof first.",
+      },
+    ],
+    related: [
+      { href: "/stop-foreclosure", label: "Also behind on the mortgage?" },
+      { href: "/sell/behind-on-property-taxes", label: "Behind on property taxes too?" },
+      { href: "/guides/cash-sale", label: "Guide: how a cash sale works" },
+    ],
+  },
 ];
 
 export function getSituation(slug: string) {

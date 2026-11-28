@@ -72,6 +72,8 @@ export const site = {
   jaimePhoneDisplay,
   jaimePhoneTel: `tel:${jaimePhoneE164}`,
   whatsappNumber: digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || jaimePhoneE164),
+  instagramUrl: "https://www.instagram.com/vamos_properties_az/",
+  instagramHandle: "@vamos_properties_az",
   hours: "8:00 a.m. to 7:00 p.m., seven days",
   area: "Maricopa County, Arizona",
   ogImagePath: "/phoenix-street.jpg",
@@ -87,7 +89,7 @@ export const site = {
  * YouTube, Yelp, BBB...). Add each URL here once it exists; it feeds `sameAs` in the
  * LocalBusiness JSON-LD so Google can tie the profiles to this site.
  */
-export const businessProfiles: string[] = [];
+export const businessProfiles: string[] = [site.instagramUrl];
 
 export const situations = [
   { value: "behind", label: "Behind on payments" },

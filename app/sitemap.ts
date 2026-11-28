@@ -65,15 +65,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...guides.map((guide) => `/guides/${guide.slug}`),
     ...blogPaths.map((item) => item.path),
   ].map((path) =>
-    entry(path, blogPaths.find((item) => item.path === path)?.updatedAt.slice(0, 10) ?? STATIC_LAST_MODIFIED),
+    entry(
+      path,
+      blogPaths.find((item) => item.path === path)?.updatedAt.slice(0, 10) ??
+        guides.find((guide) => path === `/guides/${guide.slug}`)?.updatedAt ??
+        STATIC_LAST_MODIFIED,
+    ),
   );
 
+  const situationDates = situationsEs.map((item) => item.updatedAt ?? STATIC_LAST_MODIFIED);
+  // The hubs list every situation, so they change whenever any situation page does.
+  const hubLastModified = [STATIC_LAST_MODIFIED, ...situationDates].sort().at(-1) ?? STATIC_LAST_MODIFIED;
   const situationPairs = [
-    { en: "/sell", es: "/es/vender" },
-    ...situationsEs.map((item) => ({ en: `/sell/${item.enSlug}`, es: `/es/vender/${item.slug}` })),
-  ].flatMap((languages) => [
-    entry(languages.en, STATIC_LAST_MODIFIED, languages),
-    entry(languages.es, STATIC_LAST_MODIFIED, languages),
+    { en: "/sell", es: "/es/vender", lastModified: hubLastModified },
+    ...situationsEs.map((item, index) => ({
+      en: `/sell/${item.enSlug}`,
+      es: `/es/vender/${item.slug}`,
+      lastModified: situationDates[index],
+    })),
+  ].flatMap(({ lastModified, ...languages }) => [
+    entry(languages.en, lastModified, languages),
+    entry(languages.es, lastModified, languages),
   ]);
 
   return [...paired, ...areaPairs, ...situationPairs, ...listings, ...englishOnly];

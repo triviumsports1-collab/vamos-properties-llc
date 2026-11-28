@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { publishDueScheduledPosts } from "@/lib/blog/schedule";
 import { cronAuthorized, cronSecret } from "@/lib/cron/auth";
 import { expireOverdueListings } from "@/lib/dal/listing-lifecycle";
 import { claimDueSyncSlot, recordAutoSyncResult, recordSchedulerTick } from "@/lib/dal/sheet-sync-schedule";
@@ -42,6 +43,14 @@ async function tick(request: Request) {
   } catch (error) {
     // A failed sweep must not block the sync; public pages still hide overdue homes at query time.
     log("expiry_failed", { name: errorName(error) });
+  }
+
+  // Scheduled blog posts go live on the first tick after their publish time.
+  try {
+    const scheduled = await publishDueScheduledPosts(now);
+    if (scheduled.published > 0) log("posts_published", { count: scheduled.published });
+  } catch (error) {
+    log("schedule_failed", { name: errorName(error) });
   }
 
   let alerts: { checked: number; sent: number; failed: number } | null = null;

@@ -17,7 +17,7 @@ export function SiteFooterLive() {
 
   return (
     <footer className="bg-navy text-white" lang={spanish ? "es" : undefined}>
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1fr_1fr_1fr_auto]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1.3fr_auto]">
         <div>
           <p className="text-2xl font-semibold tracking-tight">{site.name}</p>
           <p className="mt-3 leading-7 text-white/75">{strings.tagline}</p>
@@ -27,12 +27,39 @@ export function SiteFooterLive() {
           <a href={`mailto:${site.email}`} className="mt-1 inline-flex min-h-11 items-center break-all text-white/80 hover:text-white">
             {site.email}
           </a>
+          <a
+            href={site.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Instagram ${site.instagramHandle}`}
+            className="mt-1 inline-flex min-h-11 items-center gap-2 text-white/80 hover:text-white"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
+            </svg>
+            {site.instagramHandle}
+          </a>
         </div>
 
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/60">{strings.helpHeading}</p>
           <ul className="mt-4 space-y-2">
             {strings.links.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/60">{strings.situationsHeading}</p>
+          <ul className="mt-4 space-y-2">
+            {strings.situationLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="inline-flex min-h-11 items-center text-white/80 hover:text-white">
                   {link.label}

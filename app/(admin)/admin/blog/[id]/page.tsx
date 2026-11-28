@@ -5,8 +5,9 @@ import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BlogDeskNav } from "@/components/admin/blog-nav";
 import { PostEditor } from "@/components/admin/post-editor";
-import { getAdminPost, listCategories } from "@/lib/dal/blog";
+import { getAdminPost, listCategories, listTags } from "@/lib/dal/blog";
 import { listMedia } from "@/lib/dal/media";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Edit post" };
 
@@ -24,28 +25,29 @@ async function Editor({ params }: EditParams) {
   const { id } = await params;
   const postId = Number(id);
   if (!Number.isInteger(postId)) notFound();
-  const [post, categories, media] = await Promise.all([
+  const [post, categories, tags, media] = await Promise.all([
     getAdminPost(postId),
     listCategories(),
+    listTags(),
     listMedia({ q: "", kind: "", folder: "" }),
   ]);
   if (!post) notFound();
 
   return (
     <AdminShell current="/admin/blog">
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <h1 className="text-3xl font-semibold text-ink">Edit post</h1>
-        {post.status === "published" ? (
-          <p className="mt-3 text-base text-muted">
-            Public link: <Link href={`/blog/${post.slug}`} className="font-semibold text-link">{`/blog/${post.slug}`}</Link>
-          </p>
-        ) : (
-          <p className="mt-3 text-base text-muted">This draft is not on the public site.</p>
-        )}
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <p className="text-sm text-muted">
+          <Link href="/admin/blog" className="font-semibold text-link">← All posts</Link>
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold text-ink">Edit post</h1>
         <BlogDeskNav current="posts" />
+        {/* key: remount with fresh server data after a save refreshes the route */}
         <PostEditor
+          key={`${post.id}:${post.updatedAt}`}
           post={post}
           categories={categories}
+          tagSuggestions={tags.map((tag) => tag.name)}
+          siteHost={new URL(site.url).host}
           media={media.map((item) => ({ id: item.id, url: item.url, fileName: item.fileName, kind: item.kind, alt: item.alt }))}
         />
       </main>

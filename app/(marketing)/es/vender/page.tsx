@@ -2,19 +2,21 @@ import { cacheLife } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClosingBand } from "@/components/marketing/closing-band";
+import { FaqList } from "@/components/marketing/faq-list";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { LeadForm } from "@/components/marketing/lead-form";
 import { Section } from "@/components/marketing/section";
+import type { Faq } from "@/lib/content/faqs";
 import { situationsEs } from "@/lib/content/situations-es";
 import { hreflang } from "@/lib/i18n/routes";
 import { site, spanishForeclosurePath } from "@/lib/site";
 
 const title = "Venda su casa en cualquier situación en Phoenix";
 const description =
-  "¿Heredó una casa, está en un divorcio, cansado de rentar, con reparaciones o se muda? Cómo funciona una venta de contado en cada situación en el condado de Maricopa.";
+  "¿Heredó, se divorcia, debe impuestos o cuotas de HOA, tiene paneles solares, inquilinos o reparaciones? Cómo funciona una venta de contado en Maricopa.";
 
 export const metadata: Metadata = {
-  title,
+  title: { absolute: title },
   description,
   alternates: { canonical: "/es/vender", ...hreflang("/sell", "/es/vender") },
   openGraph: {
@@ -22,11 +24,34 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: "es_US",
     url: "/es/vender",
-    title: `${title} · Vamos Properties`,
+    title,
     description,
     images: [{ url: site.ogImagePath, alt: site.ogImageAlt }],
   },
 };
+
+const faqs: Faq[] = [
+  {
+    question: "¿Qué tipo de casas compra Vamos Properties?",
+    answer:
+      "Casas en el condado de Maricopa en cualquier condición: heredadas, vacías, rentadas, atrasadas con los pagos, con impuestos o cuotas de HOA atrasadas, con paneles solares rentados o que necesitan reparaciones grandes. Si su situación no aparece, envíe la dirección de todos modos.",
+  },
+  {
+    question: "¿La razón por la que vendo cambia la oferta?",
+    answer:
+      "La razón cambia los papeles y el tiempo, no si vemos la casa. El precio sale de la casa: lo que se vendieron casas parecidas cerca, lo que necesita y lo que se debe sobre ella.",
+  },
+  {
+    question: "¿Y si mi casa encaja en más de una situación?",
+    answer:
+      "La mayoría encaja en varias. Una casa heredada también puede necesitar reparaciones y deber impuestos. Lea la página que más se parezca y cuéntenos todo en la primera llamada. La compañía de títulos resuelve cada parte al cierre.",
+  },
+  {
+    question: "¿Tengo que aceptar su oferta?",
+    answer:
+      "No. Pedir un número es gratis y no pone la casa bajo contrato. Si listar con un agente le dejaría claramente más y tiene tiempo, se lo decimos.",
+  },
+];
 
 const otherPaths = [
   {
@@ -57,6 +82,19 @@ export default async function VenderHubPage() {
           ],
         }}
       />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Situaciones que compramos",
+          itemListElement: situationsEs.map((item, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: item.label,
+            url: `${site.url}/es/vender/${item.slug}`,
+          })),
+        }}
+      />
       <Section>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-link">Situaciones que compramos</p>
         <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight text-ink sm:text-5xl">
@@ -64,6 +102,10 @@ export default async function VenderHubPage() {
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-muted">
           Elija la que se parezca a la suya. Cada página explica quién tiene que firmar, qué reglas de Arizona importan y qué tener listo para la primera llamada.
+        </p>
+        <p className="mt-4 max-w-2xl leading-7 text-muted">
+          Compramos casas en todo el condado de Maricopa tal como están, con una compañía de títulos local, en la fecha que usted elija. ¿No sabe por dónde empezar? Lea{" "}
+          <Link href="/es/oferta-en-efectivo" className="font-semibold text-link">cómo se calcula una oferta de contado</Link>.
         </p>
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
           {situationsEs.map((item) => (
@@ -73,7 +115,11 @@ export default async function VenderHubPage() {
                   {item.label}
                 </Link>
               </h2>
-              <p className="mt-3 leading-7 text-muted">{item.blurb}</p>
+              <p className="mt-3 font-semibold leading-7 text-ink">{item.blurb}</p>
+              <p className="mt-2 leading-7 text-muted">{item.description}</p>
+              <Link href={`/es/vender/${item.slug}`} className="mt-3 inline-flex min-h-11 items-center font-semibold text-link">
+                Leer: {item.label.toLowerCase()} →
+              </Link>
             </li>
           ))}
           {otherPaths.map((item) => (
@@ -100,6 +146,10 @@ export default async function VenderHubPage() {
           </div>
           <LeadForm sourcePath="/es/vender" language="es" />
         </div>
+      </Section>
+
+      <Section>
+        <FaqList faqs={faqs} heading="Preguntas sobre vender en su situación" />
       </Section>
 
       <ClosingBand

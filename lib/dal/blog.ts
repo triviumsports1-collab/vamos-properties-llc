@@ -41,13 +41,19 @@ export type PublicPost = PostCard & {
   comments: PublicComment[];
 };
 
+export type PostStatus = "draft" | "scheduled" | "published";
+
+function postStatus(value: string): PostStatus {
+  return value === "published" || value === "scheduled" ? value : "draft";
+}
+
 export type AdminPost = {
   id: number;
   slug: string;
   title: string;
   excerpt: string;
   html: string;
-  status: "draft" | "published";
+  status: PostStatus;
   featuredImageUrl: string;
   featuredImageAlt: string;
   metaTitle: string;
@@ -292,6 +298,7 @@ export async function listAdminPosts() {
       title: true,
       status: true,
       updatedAt: true,
+      publishedAt: true,
       categories: { select: { category: { select: { name: true } } } },
     },
   });
@@ -299,7 +306,8 @@ export async function listAdminPosts() {
     id: post.id,
     slug: post.slug,
     title: post.title,
-    status: post.status === "published" ? "published" : "draft",
+    status: postStatus(post.status),
+    publishedAt: toIso(post.publishedAt),
     updatedAt: toIso(post.updatedAt) ?? "",
     categories: post.categories.map((link) => link.category.name),
   }));
@@ -335,7 +343,7 @@ export async function getAdminPost(id: number): Promise<AdminPost | null> {
     title: post.title,
     excerpt: post.excerpt ?? "",
     html: sanitizePostHtml(post.body),
-    status: post.status === "published" ? "published" : "draft",
+    status: postStatus(post.status),
     featuredImageUrl: post.featuredImageUrl ?? "",
     featuredImageAlt: post.featuredImageAlt ?? "",
     metaTitle: post.metaTitle ?? "",

@@ -58,15 +58,29 @@ export const footerStrings: Record<Locale, {
   hoursLabel: string;
   helpHeading: string;
   citiesHeading: string;
+  situationsHeading: string;
   langHeading: string;
   disclaimer: string;
   links: Array<{ href: string; label: string }>;
+  /** Kept short on purpose: the footer is a client component, so it must not import the full situation content. */
+  situationLinks: Array<{ href: string; label: string }>;
 }> = {
   en: {
     tagline: "Local buyers for homeowners in Maricopa County, Arizona. Call 8:00 a.m. to 7:00 p.m., seven days.",
     hoursLabel: "How we can help",
     helpHeading: "How we can help",
     citiesHeading: "Cities",
+    situationsHeading: "Situations we buy",
+    situationLinks: [
+      { href: "/sell/behind-on-property-taxes", label: "Behind on property taxes" },
+      { href: "/sell/behind-on-hoa-dues", label: "Behind on HOA dues" },
+      { href: "/sell/house-with-solar-panels", label: "House with solar panels" },
+      { href: "/sell/inherited-house", label: "Inherited house or probate" },
+      { href: "/sell/divorce", label: "Divorce" },
+      { href: "/sell/rental-property", label: "Rental with tenants" },
+      { href: "/sell/as-is", label: "House that needs repairs" },
+      { href: "/sell/relocation", label: "Moving or relocating" },
+    ],
     langHeading: "En español",
     disclaimer:
       "Asking for an offer does not obligate you to sell. A cash price is usually below a listed price because the house is bought as-is and the closing costs are covered. Taking over payments can leave the loan in your name. Have a lawyer review anything you sign. This site is not legal advice.",
@@ -86,6 +100,17 @@ export const footerStrings: Record<Locale, {
     hoursLabel: "Cómo podemos ayudar",
     helpHeading: "Cómo podemos ayudar",
     citiesHeading: "Ciudades",
+    situationsHeading: "Situaciones que compramos",
+    situationLinks: [
+      { href: "/es/vender/impuestos-atrasados", label: "Impuestos a la propiedad atrasados" },
+      { href: "/es/vender/cuotas-hoa-atrasadas", label: "Cuotas de la HOA atrasadas" },
+      { href: "/es/vender/casa-con-paneles-solares", label: "Casa con paneles solares" },
+      { href: "/es/vender/casa-heredada", label: "Casa heredada o sucesión" },
+      { href: "/es/vender/divorcio", label: "Divorcio" },
+      { href: "/es/vender/casa-de-alquiler", label: "Casa de alquiler con inquilinos" },
+      { href: "/es/vender/tal-como-esta", label: "Casa que necesita reparaciones" },
+      { href: "/es/vender/mudanza", label: "Mudanza o reubicación" },
+    ],
     langHeading: "También en inglés",
     disclaimer:
       "Pedir una oferta no lo obliga a vender. Un precio de contado suele ser menor que el de una casa listada, porque se compra tal como está y los costos de cierre van incluidos. Tomar los pagos puede dejar el préstamo a su nombre. Pida a un abogado que revise lo que firme. Este sitio no es un consejo legal.",

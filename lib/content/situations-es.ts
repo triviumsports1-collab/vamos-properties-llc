@@ -22,6 +22,8 @@ export type SituationEs = {
   gather: string[];
   faqs: Faq[];
   related: Array<{ href: string; label: string }>;
+  /** YYYY-MM-DD of the last content change to this page pair; feeds the sitemap's lastmod. */
+  updatedAt?: string;
 };
 
 const cashOffer = { href: "/es/oferta-en-efectivo", label: "Cómo se calcula una oferta de contado" };
@@ -549,6 +551,345 @@ export const situationsEs: SituationEs[] = [
       },
     ],
     related: [cashOffer, takeOver, foreclosure],
+  },
+  {
+    enSlug: "behind-on-property-taxes",
+    slug: "impuestos-atrasados",
+    updatedAt: "2026-11-27",
+    label: "Impuestos a la propiedad atrasados",
+    title: "¿Debe impuestos a la propiedad en Maricopa? Venda al contado",
+    description:
+      "¿Debe impuestos a la propiedad en el condado de Maricopa? Cómo funcionan los impuestos morosos, la subasta de gravámenes y la ejecución de un tenedor del gravamen en Arizona, y cómo una venta de contado los paga al cierre.",
+    eyebrow: "Impuestos a la propiedad atrasados en Arizona",
+    h1: "¿Debe impuestos a la propiedad? La venta puede pagarlos.",
+    heroLine:
+      "Los impuestos morosos siguen sumando intereses, y una vez que se vende el gravamen empieza a correr el plazo para que el tenedor pida la ejecución. Una venta de contado paga lo que se debe en la compañía de títulos antes de llegar a eso.",
+    blurb: "Impuestos morosos, un gravamen vendido en subasta o una carta de un tenedor del gravamen.",
+    intro: [
+      "La mayoría de los dueños que se atrasan con los impuestos en el Valle no tienen una cuenta de depósito (escrow) con su préstamo. La casa está pagada, fue heredada o el préstamo nunca cobró los impuestos, así que la factura llega directo al dueño, y un año malo se convierte en dos.",
+      "En el condado de Maricopa, los impuestos que siguen sin pagarse pueden ofrecerse en la subasta anual de gravámenes del Tesorero. Un inversionista paga los impuestos y recibe un certificado de compra que gana intereses contra su casa. Si los impuestos siguen sin pagarse tres años después de esa subasta, el tenedor puede pedir a la Corte Superior la ejecución y quedarse con la casa.",
+      "Si quedarse con la casa no es realista, vender suele ser la salida más limpia. La compramos tal como está, y la compañía de títulos paga los impuestos atrasados, los intereses y cualquier certificado de gravamen con el precio de venta. Lo que queda es para usted.",
+    ],
+    fact: {
+      text: "Los impuestos a la propiedad morosos en Arizona generan intereses de hasta 16% al año (A.R.S. § 42-18053). Tres años después de vender el gravamen, el tenedor puede presentar la ejecución (A.R.S. § 42-18201).",
+      note: "Puede buscar la parcela en el sitio del Tesorero del condado de Maricopa para ver qué está moroso y si ya se vendió un gravamen.",
+    },
+    problems: [
+      {
+        title: "Los intereses siguen creciendo",
+        body: "Cada año sin pagar suma intereses y cargos encima del impuesto. El total puede crecer más rápido de lo que un dueño con ingreso fijo puede ponerse al día.",
+      },
+      {
+        title: "Una carta del tenedor del gravamen",
+        body: "Antes de presentar la ejecución, el tenedor tiene que avisar al dueño. Si ya le llegó esa carta, el tiempo para redimir es corto y vale la pena actuar ya.",
+      },
+      {
+        title: "Una casa pagada y sin dinero disponible",
+        body: "Muchos dueños atrasados con los impuestos tienen mucho valor en la casa y muy poco ingreso al mes. La casa vale mucho, pero el dinero está en las paredes.",
+      },
+      {
+        title: "Reparaciones además de los impuestos",
+        body: "Una casa atrasada con los impuestos muchas veces también necesita techo, aire acondicionado o plomería. Un precio de contado lo toma en cuenta, así no paga reparaciones antes de vender.",
+      },
+    ],
+    steps: [
+      {
+        title: "Díganos qué se debe",
+        body: "La dirección, qué años de impuestos no se han pagado, cualquier carta de un tenedor del gravamen y si todavía hay una hipoteca en la casa.",
+      },
+      {
+        title: "Reciba un número por la casa como está",
+        body: "Nuestros especialistas ven la casa y le muestran el precio, los impuestos e intereses estimados por pagar y lo que le queda a usted.",
+      },
+      {
+        title: "Cierre antes del plazo",
+        body: "Una compañía de títulos del condado de Maricopa pide el saldo al Tesorero, paga los impuestos y redime cualquier gravamen con la venta, y luego le paga a usted el resto.",
+      },
+    ],
+    rules: [
+      {
+        title: "Cuándo se vuelven morosos los impuestos",
+        body: "Los impuestos a la propiedad en Arizona se cobran en dos mitades. La primera mitad se vuelve morosa después del 1 de noviembre y la segunda después del 1 de mayo. Se cobran intereses sobre lo moroso.",
+      },
+      {
+        title: "Redimir un gravamen fiscal",
+        body: "Hasta que una corte dicte sentencia, el dueño por lo general puede redimir pagando al Tesorero los impuestos, intereses y cargos. Una venta que cierra a tiempo hace exactamente eso con el precio.",
+      },
+      {
+        title: "La ejecución del tenedor del gravamen",
+        body: "Tres años después de la subasta, el tenedor del certificado puede demandar en la Corte Superior para terminar el derecho a redimir. Si la corte lo concede, el Tesorero emite una escritura al tenedor y el dueño pierde la casa.",
+      },
+    ],
+    gather: [
+      "El número de parcela o la última factura de impuestos",
+      "Qué años de impuestos no se han pagado, si lo sabe",
+      "Cualquier carta de un tenedor del gravamen o de un abogado",
+      "El último estado de cuenta de la hipoteca, si hay préstamo",
+      "Nombre y contacto de la HOA, si hay una",
+      "Los nombres de todos los que aparecen en la escritura",
+    ],
+    faqs: [
+      {
+        question: "¿Puedo vender una casa con impuestos a la propiedad morosos?",
+        answer:
+          "Sí. Los impuestos sin pagar son un gravamen sobre la casa, y la compañía de títulos los paga con el precio de venta al cierre, igual que paga una hipoteca. No tiene que pagarlos antes.",
+      },
+      {
+        question: "Ya vendieron el gravamen de mis impuestos. ¿Es demasiado tarde?",
+        answer:
+          "Por lo general no. Un gravamen vendido normalmente se puede redimir hasta que una corte dicte la sentencia de ejecución, y el tenedor no puede presentar la ejecución hasta tres años después de la subasta. Llámenos lo antes posible, sobre todo si ya recibió un aviso del tenedor.",
+      },
+      {
+        question: "¿Cuánto se llevarán los impuestos de mi venta?",
+        answer:
+          "La compañía de títulos pide el saldo exacto al Tesorero del condado de Maricopa, con intereses y cargos. Le damos un estimado desde el inicio para que vea lo que queda después de los impuestos, cualquier hipoteca y los costos de cierre.",
+      },
+      {
+        question: "¿Hay forma de quedarme con la casa?",
+        answer:
+          "A veces. Puede pagar directamente al Tesorero, y algunas personas mayores califican para congelar el valor de la propiedad con el Asesor del condado de Maricopa. Si quedarse con la casa le funciona, se lo diremos. Si no, le mostramos lo que le deja una venta.",
+      },
+      {
+        question: "También tengo hipoteca. ¿Eso cambia algo?",
+        answer:
+          "Una hipoteca normalmente exige que los impuestos estén pagados, así que el prestamista puede pagarlos y sumarlos a su préstamo, o tratarlo como incumplimiento. Al cierre, la compañía de títulos paga al prestamista y los impuestos con la venta. Díganos los dos saldos desde el principio.",
+      },
+      {
+        question: "La casa fue heredada y no se pagaron los impuestos. ¿Podemos vender?",
+        answer:
+          "Sí, una vez que alguien tenga la autoridad para firmar por el patrimonio. Nuestra página de casa heredada explica cómo una escritura de beneficiario, una declaración jurada de patrimonio pequeño o una sucesión deciden quién es.",
+      },
+    ],
+    related: [
+      foreclosure,
+      cashOffer,
+      { href: "/es/vender/casa-heredada", label: "¿Heredó una casa con impuestos sin pagar?" },
+      { href: "/es/vender/cuotas-hoa-atrasadas", label: "¿También debe cuotas de la HOA?" },
+    ],
+  },
+  {
+    enSlug: "house-with-solar-panels",
+    slug: "casa-con-paneles-solares",
+    updatedAt: "2026-11-28",
+    label: "Casa con paneles solares",
+    title: "Vender una casa con paneles solares rentados en Phoenix",
+    description:
+      "¿Vende una casa en el área de Phoenix con paneles solares rentados, con PPA o financiados? Cómo afectan la venta la transferencia del contrato, la liquidación o un registro UCC, y cómo un comprador de contado cierra sin aprobación de un banco.",
+    eyebrow: "Vender una casa con paneles solares en Arizona",
+    h1: "Venda una casa con paneles solares, aunque el contrato sea el problema.",
+    heroLine:
+      "Un contrato o préstamo solar puede frenar una venta normal: el comprador tiene que calificar con la compañía solar, el banco no cuenta los paneles y aparece un registro en el título. Primero leemos su contrato solar y le damos un precio que ya lo incluye.",
+    blurb: "Un contrato de renta solar, un PPA o un préstamo solar que el comprador o el banco no aceptan.",
+    intro: [
+      "En el Valle hay paneles solares en muchos techos, y muchos no son del dueño de la casa. Eso importa el día que vende. Un sistema que usted pagó agrega valor. Un sistema rentado o un acuerdo de compra de energía (PPA) es de la compañía solar, y normalmente el comprador tiene que ser aprobado para tomarlo. Un préstamo solar se tiene que pagar o resolver al cierre.",
+      "Las ventas tradicionales se caen por esto más de lo que la gente espera. El banco del comprador puede no contar los paneles rentados en el avalúo, el comprador puede no querer un pago de 20 años, o la compañía solar puede tardar semanas en aprobar la transferencia.",
+      "Una venta de contado saca al banco del comprador de la ecuación. Leemos su contrato solar, averiguamos qué necesita la compañía para transferirlo o liquidarlo y le damos un número que ya lo toma en cuenta, para que sepa con cuánto se queda antes de firmar.",
+    ],
+    fact: {
+      text: "Un sistema solar financiado o rentado muchas veces está respaldado por un registro UCC de accesorios fijos (fixture filing) en el Registrador del condado de Maricopa. Aparece en la búsqueda de título, y la compañía de títulos pedirá que se pague, se libere o se resuelva antes del cierre.",
+      note: "Su contrato solar dice si es una compra, un préstamo, una renta o un PPA. Esa palabra decide casi todo lo que sigue, así que téngalo a la mano.",
+    },
+    problems: [
+      {
+        title: "El comprador tiene que calificar con la compañía solar",
+        body: "La mayoría de las rentas y los PPA solo se transfieren si la compañía solar aprueba al nuevo dueño, muchas veces con revisión de crédito. Si el comprador no califica o no quiere el pago, la venta se detiene.",
+      },
+      {
+        title: "El banco no cuenta los paneles rentados",
+        body: "Los paneles que son de la compañía solar normalmente no cuentan como parte de la casa en el avalúo. El banco del comprador también puede pedir que se resuelva el registro solar antes de dar el préstamo.",
+      },
+      {
+        title: "Liquidar cuesta más de lo esperado",
+        body: "Terminar una renta o un PPA antes de tiempo puede significar pagar lo que falta o un precio fijo de liquidación. El saldo de un préstamo solar puede ser mayor de lo que el dueño recuerda.",
+      },
+      {
+        title: "Arreglar el techo con los paneles encima",
+        body: "Si el techo necesita reparación, hay que quitar los paneles y volver a ponerlos, muchas veces con la compañía solar. Un precio de contado puede incluir el techo y los paneles como están.",
+      },
+    ],
+    steps: [
+      {
+        title: "Mande la dirección y el contrato solar",
+        body: "Díganos la compañía solar y si es renta, PPA o préstamo. El pago mensual y los años que faltan nos ayudan a hacer el cálculo.",
+      },
+      {
+        title: "Reciba un número con lo solar incluido",
+        body: "Averiguamos los requisitos de transferencia o la liquidación y le damos un solo precio que ya incluye los paneles, el techo y el resto de la casa.",
+      },
+      {
+        title: "Cierre en su fecha",
+        body: "Una compañía de títulos del condado de Maricopa paga la hipoteca y cualquier préstamo o registro solar con la venta, y nosotros trabajamos con la compañía solar en la transferencia.",
+      },
+    ],
+    rules: [
+      {
+        title: "De quién son los paneles",
+        body: "Si pagó de contado o con préstamo, el sistema es suyo y se vende con la casa. Con una renta o un PPA, es de la compañía solar, y su contrato decide si se transfiere y cómo.",
+      },
+      {
+        title: "El registro solar en el título",
+        body: "Un registro UCC le da a la compañía solar o al prestamista un interés registrado en el equipo. La compañía de títulos lo encontrará y pedirá una liquidación, una liberación o la aprobación de la transferencia.",
+      },
+      {
+        title: "La cuenta de la luz también cambia",
+        body: "La interconexión y el crédito por la energía que exporta con APS o SRP están a nombre del titular de la cuenta. Después del cierre, el nuevo dueño tiene que darse de alta con la compañía de luz y la compañía solar.",
+      },
+    ],
+    gather: [
+      "Su contrato solar (renta, PPA o préstamo)",
+      "El nombre de la compañía solar y su número de cuenta",
+      "El pago solar mensual y los años que faltan",
+      "Un estado de liquidación reciente del préstamo o la renta, si lo tiene",
+      "El último estado de cuenta de la hipoteca",
+      "Cualquier historial de reparaciones del techo o los paneles",
+    ],
+    faqs: [
+      {
+        question: "¿Puedo vender mi casa si los paneles solares son rentados?",
+        answer:
+          "Sí. Un sistema rentado normalmente se transfiere al nuevo dueño con la aprobación de la compañía solar, se liquida o, en algunos casos, se retira. Leemos su contrato y le decimos cuál aplica y cuánto cuesta antes de que decida.",
+      },
+      {
+        question: "¿Los paneles solares aumentan el valor de una casa en Arizona?",
+        answer:
+          "Los paneles que son suyos pueden agregar valor porque bajan la factura de luz. Los paneles rentados o con PPA normalmente no agregan valor en el avalúo, porque son de la compañía solar, y el pago puede hacer que algunos compradores se retiren.",
+      },
+      {
+        question: "¿Qué pasa con mi préstamo solar cuando vendo?",
+        answer:
+          "Un préstamo solar normalmente se paga al cierre con el precio de venta, igual que la hipoteca. La compañía de títulos pide el saldo al prestamista solar y libera el registro una vez pagado.",
+      },
+      {
+        question: "¿Ustedes pueden tomar mi contrato de renta solar?",
+        answer:
+          "En muchos casos podemos solicitar tomar la renta o el PPA, si la compañía solar nos aprueba. Cuando no es posible o no conviene, incluimos la liquidación en el precio y le mostramos el cálculo.",
+      },
+      {
+        question: "¿Qué es un registro UCC en mis paneles solares?",
+        answer:
+          "Es un registro público que le da a la compañía solar o al prestamista un interés en el equipo. No es una hipoteca sobre su casa, pero la compañía de títulos lo trata como algo que se debe resolver antes del cierre.",
+      },
+      {
+        question: "El techo necesita reparación y los paneles están encima. ¿Lo arreglo primero?",
+        answer:
+          "No. Compramos la casa tal como está, con el techo y los paneles. Díganos lo que sepa del techo y tomamos en cuenta la reparación y el retiro de los paneles en el número.",
+      },
+    ],
+    related: [{ href: "/es/vender/tal-como-esta", label: "Vender una casa que necesita reparaciones" }, cashOffer, takeOver],
+  },
+  {
+    enSlug: "behind-on-hoa-dues",
+    slug: "cuotas-hoa-atrasadas",
+    updatedAt: "2026-11-28",
+    label: "Cuotas de la HOA atrasadas",
+    title: "¿Debe cuotas de la HOA en Arizona? Venda antes de la ejecución",
+    description:
+      "¿Atrasado con las cuotas de la HOA en el condado de Maricopa? Cuándo una HOA de Arizona puede ejecutar su gravamen (A.R.S. § 33-1807), qué puede y qué no puede sumar, y cómo una venta de contado le paga a la HOA al cierre.",
+    eyebrow: "Cuotas de la HOA atrasadas en Arizona",
+    h1: "¿Debe cuotas de la HOA? Venda antes de que la HOA ejecute.",
+    heroLine:
+      "Recargos, cartas de cobranza y honorarios de abogado pueden convertir unas cuotas atrasadas en un gravamen que se ejecuta en la corte. Una venta de contado le paga a la HOA con el precio y cierra la cuenta.",
+    blurb: "Cuotas sin pagar, un abogado de cobranza o un gravamen de la HOA sobre la casa.",
+    intro: [
+      "Es fácil atrasarse con las cuotas de la HOA. Van aparte de la hipoteca, muchas veces se pagan a mano, y un cambio de trabajo, una cuenta médica o una cuota especial las manda al fondo de la pila.",
+      "En Arizona, las cuotas sin pagar se convierten en un gravamen sobre la casa. Cuando la HOA pasa la cuenta a un abogado de cobranza, se suman honorarios a las cuotas y el saldo crece rápido. Si el dueño lleva un año atrasado o debe $1,200 o más, la HOA puede pedir la ejecución de ese gravamen en la Corte Superior.",
+      "Si ponerse al día no es realista, vender suele ser la forma más limpia de detenerlo. Compramos la casa tal como está, y la compañía de títulos paga el saldo de la HOA, la hipoteca y cualquier otro gravamen con la venta. Lo que queda es para usted.",
+    ],
+    fact: {
+      text: "Una HOA de Arizona solo puede ejecutar su gravamen cuando el dueño lleva un año atrasado o debe $1,200 o más, lo que ocurra primero (A.R.S. § 33-1807 para comunidades planificadas, § 33-1256 para condominios).",
+      note: "El monto incluye cuotas, recargos y costos de cobranza. Las multas por violar reglas, por lo general, no pueden ser la base de una ejecución de la HOA.",
+    },
+    problems: [
+      {
+        title: "Honorarios de cobranza más altos que las cuotas",
+        body: "Cuando entra un abogado, los honorarios pueden ser mayores que las cuotas atrasadas. Cada mes que pasa normalmente suma más.",
+      },
+      {
+        title: "Un gravamen registrado contra la casa",
+        body: "El gravamen de la HOA queda en el título. No puede refinanciar ni vender de forma normal hasta pagarlo, y puede terminar en una ejecución en la corte.",
+      },
+      {
+        title: "También atrasado con la hipoteca",
+        body: "Cuando el dinero no alcanza, la HOA y la hipoteca muchas veces se atrasan juntas. Una ejecución de la HOA no borra la hipoteca, así que hay que resolver las dos.",
+      },
+      {
+        title: "Avisos de violación además del saldo",
+        body: "Violaciones por el jardín, la pintura o reparaciones pueden sumar multas y presión. Compramos la casa con las violaciones abiertas, así no tiene que arreglarlas primero.",
+      },
+    ],
+    steps: [
+      {
+        title: "Díganos lo que la HOA dice que debe",
+        body: "La dirección, el nombre de la HOA, el último estado de cuenta o carta del abogado y si también está atrasado con la hipoteca.",
+      },
+      {
+        title: "Reciba un número por la casa como está",
+        body: "Nuestros especialistas ven la casa y le muestran el precio, el saldo estimado de la HOA, el saldo de la hipoteca y lo que le queda a usted.",
+      },
+      {
+        title: "Cierre y pague a la HOA",
+        body: "Una compañía de títulos del condado de Maricopa pide a la HOA el saldo y la declaración de reventa, paga a la HOA y la hipoteca con la venta y le paga a usted el resto.",
+      },
+    ],
+    rules: [
+      {
+        title: "Cuándo puede ejecutar una HOA",
+        body: "Solo después de un año de atraso o $1,200 adeudados, lo que ocurra primero. La HOA tiene que ir a la Corte Superior, así que hay una demanda y tiempo para responder antes de cualquier venta.",
+      },
+      {
+        title: "Los recargos tienen límite",
+        body: "Arizona limita el recargo de una HOA a $15 o 10% de la cuota sin pagar, lo que sea mayor (A.R.S. § 33-1803). Pida un estado de cuenta detallado y revíselo.",
+      },
+      {
+        title: "El saldo de la HOA al cierre",
+        body: "Cuando vende, la HOA tiene que dar a la compañía de títulos un saldo y una declaración de reventa (A.R.S. § 33-1806), y la ley limita lo que puede cobrar por eso. El saldo se paga con el precio de venta.",
+      },
+    ],
+    gather: [
+      "El nombre de la HOA y de la compañía administradora",
+      "El último estado de cuenta o carta de cobranza de la HOA",
+      "Cualquier carta o demanda del abogado de la HOA",
+      "El último estado de cuenta de la hipoteca",
+      "Cualquier aviso de violación de la HOA",
+      "Los nombres de todos los que aparecen en la escritura",
+    ],
+    faqs: [
+      {
+        question: "¿Una HOA puede quitarme la casa en Arizona?",
+        answer:
+          "Sí, pero solo después de un año de atraso o de deber $1,200 o más, lo que ocurra primero, y solo con un caso en la corte. Las multas por violar reglas, por lo general, no pueden ser la base de la ejecución.",
+      },
+      {
+        question: "¿Puedo vender mi casa si le debo a la HOA?",
+        answer:
+          "Sí. La compañía de títulos pide el saldo a la HOA y lo paga con el precio de venta al cierre, junto con la hipoteca. No tiene que pagarle a la HOA primero.",
+      },
+      {
+        question: "El abogado de la HOA me mandó una carta. ¿Cuánto tiempo tengo?",
+        answer:
+          "Depende de cuánto debe y de si ya se presentó una demanda. Busque las fechas en la carta y llámenos a nosotros o a un abogado pronto. Una venta puede cerrar a tiempo si los papeles están en orden, pero más tiempo le da más opciones.",
+      },
+      {
+        question: "¿Puedo negociar el saldo con la HOA?",
+        answer:
+          "A veces. Muchas HOA aceptan un plan de pagos, y algunas reducen honorarios o recargos para cobrar. Pida un estado de cuenta detallado por escrito. Si el plan es vender, la compañía de títulos paga el monto acordado al cierre.",
+      },
+      {
+        question: "¿Una ejecución de la HOA borra mi hipoteca?",
+        answer:
+          "No. Una primera hipoteca registrada antes de la deuda con la HOA, por lo general, sigue sobre la casa, y usted puede seguir debiéndole al banco. Por eso una venta que paga las dos suele ser mejor que dejar que la HOA ejecute.",
+      },
+      {
+        question: "La casa tiene violaciones abiertas con la HOA. ¿Igual la compran?",
+        answer:
+          "Sí. Díganos qué le citó la HOA. Tomamos en cuenta las reparaciones en el precio y las hacemos después del cierre, así no tiene que arreglar el jardín, la pintura o el techo primero.",
+      },
+    ],
+    related: [
+      foreclosure,
+      { href: "/es/vender/impuestos-atrasados", label: "¿También debe impuestos a la propiedad?" },
+      cashOffer,
+    ],
   },
 ];
 
